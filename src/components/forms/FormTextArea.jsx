@@ -1,9 +1,10 @@
 import { useRef, useEffect } from 'react';
 import InfoTooltip from '../ui/InfoTooltip';
+import AIEnhanceButton from '../ui/AIEnhanceButton';
 
 /**
  * Componente FormTextArea - TextArea reutilizável com auto-resize
- * Inclui label, tooltip, contador de caracteres e validação
+ * Inclui label, tooltip, contador de caracteres, validação e IA
  */
 function FormTextArea({
     label,
@@ -16,7 +17,9 @@ function FormTextArea({
     name = '',
     rows = 4,
     showCounter = false,
-    maxLength = null
+    maxLength = null,
+    enableAI = false,
+    aiContext = ''
 }) {
     const textareaRef = useRef(null);
 
@@ -30,15 +33,24 @@ function FormTextArea({
 
     return (
         <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-                {label}
-                {required && <span className="text-red-500 ml-1">*</span>}
-                {tooltip && (
-                    <span className="ml-2">
-                        <InfoTooltip content={tooltip} />
-                    </span>
+            <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                    {label}
+                    {required && <span className="text-red-500 ml-1">*</span>}
+                    {tooltip && (
+                        <span className="ml-2">
+                            <InfoTooltip content={tooltip} />
+                        </span>
+                    )}
+                </label>
+                {enableAI && (
+                    <AIEnhanceButton
+                        currentText={value}
+                        onTextEnhanced={onChange}
+                        context={aiContext || label}
+                    />
                 )}
-            </label>
+            </div>
             <textarea
                 ref={textareaRef}
                 name={name}
@@ -62,3 +74,4 @@ function FormTextArea({
 }
 
 export default FormTextArea;
+

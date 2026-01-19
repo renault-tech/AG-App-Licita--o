@@ -50,6 +50,8 @@ function Section04_Alternativas() {
                     tooltip="Descreva a primeira alternativa considerada"
                     placeholder="Descreva a primeira alternativa..."
                     rows={4}
+                    enableAI={true}
+                    aiContext="Alternativa de solução em documento ETP"
                 />
 
                 <FormTextArea
@@ -59,6 +61,8 @@ function Section04_Alternativas() {
                     tooltip="Descreva a segunda alternativa, se houver"
                     placeholder="Descreva a segunda alternativa (opcional)..."
                     rows={4}
+                    enableAI={true}
+                    aiContext="Alternativa de solução em documento ETP"
                 />
 
                 <FormTextArea
@@ -68,6 +72,8 @@ function Section04_Alternativas() {
                     tooltip="Descreva a terceira alternativa, se houver"
                     placeholder="Descreva a terceira alternativa (opcional)..."
                     rows={4}
+                    enableAI={true}
+                    aiContext="Alternativa de solução em documento ETP"
                 />
 
                 <FormTextArea
@@ -78,6 +84,8 @@ function Section04_Alternativas() {
                     tooltip="Justifique qual alternativa foi escolhida e os motivos da escolha"
                     placeholder="Explique qual opção foi escolhida e por que é a melhor alternativa..."
                     rows={5}
+                    enableAI={true}
+                    aiContext="Justificativa de escolha de alternativa em documento ETP"
                 />
             </div>
 

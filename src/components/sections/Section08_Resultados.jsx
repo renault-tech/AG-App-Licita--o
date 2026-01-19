@@ -45,6 +45,8 @@ function Section08_Resultados() {
                     tooltip="Descreva os resultados esperados"
                     placeholder="Descreva os resultados e benefícios esperados..."
                     rows={6}
+                    enableAI={true}
+                    aiContext="Resultados pretendidos com a contratação em documento ETP"
                 />
             </div>
 

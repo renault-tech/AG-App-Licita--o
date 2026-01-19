@@ -53,6 +53,8 @@ function Section02_DadosProcesso() {
                     tooltip="Descreva detalhadamente a necessidade que justifica esta contratação"
                     placeholder="Descreva qual necessidade será atendida com esta contratação, sua relevância e impacto..."
                     rows={6}
+                    enableAI={true}
+                    aiContext="Descrição da necessidade de contratação em documento ETP"
                 />
             </div>
 

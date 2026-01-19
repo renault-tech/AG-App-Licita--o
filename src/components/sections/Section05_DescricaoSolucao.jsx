@@ -75,6 +75,8 @@ function Section05_DescricaoSolucao() {
                     tooltip="Descreva em detalhes a solução que será adotada"
                     placeholder="Descreva a solução escolhida..."
                     rows={8}
+                    enableAI={true}
+                    aiContext="Descrição da solução escolhida em documento ETP"
                 />
             </div>
 
