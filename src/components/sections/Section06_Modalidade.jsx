@@ -28,24 +28,26 @@ function Section06_Modalidade() {
                             Seção 6: Estimativa de Quantidades e Modalidade
                         </h2>
                         <p className="text-gray-600">
-                            Definição da modalidade licitatória
+                            Definição da modalidade licitatória e quantitativos
                         </p>
                     </div>
-                </div>
-
-                <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
-                    <p className="text-sm text-gray-700">
-                        <strong>Nota Padrão (Editável):</strong> Os quantitativos estimados para a contratação pretendida
-                        têm como parâmetros o histórico de consumo (processo licitatório homologado no último ano) e a
-                        demanda enviada pelas Secretarias solicitantes que necessitam dos serviços/produtos para realizarem
-                        seus trabalhos. O quantitativo previsto levou em consideração as demandas de cada Secretaria
-                        Requisitante no presente ano, bem como tendo em vista a possibilidade de prorrogação da Ata a ser
-                        celebrada por igual período, totalizando 24 (vinte e quatro) meses.
-                    </p>
                 </div>
             </div>
 
             <div className="space-y-6">
+                {/* Estimativa das Quantidades */}
+                <FormTextArea
+                    label="Estimativa das Quantidades"
+                    value={formData.estimativaQuantidades}
+                    onChange={(value) => updateField('estimativaQuantidades', value)}
+                    required={true}
+                    tooltip="Informe os parâmetros utilizados para a estimativa de quantidades"
+                    placeholder="Descreva a estimativa de quantidades..."
+                    rows={6}
+                />
+
+                <div className="border-t border-gray-100 pt-6"></div>
+
                 {/* Modalidade */}
                 <FormDropdown
                     label="Modalidade"

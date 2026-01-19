@@ -77,14 +77,19 @@ function Section03_Requisitos() {
                 )}
 
                 {/* Sustentabilidade */}
-                <FormTextArea
-                    label="Critérios de Sustentabilidade"
-                    value={formData.sustentabilidade}
-                    onChange={(value) => updateField('sustentabilidade', value)}
-                    tooltip="Descreva critérios de sustentabilidade aplicáveis ou deixe em branco para usar texto padrão"
-                    placeholder="Deixe em branco para: 'Não há critérios de sustentabilidade para esta contratação/ata'"
-                    rows={4}
-                />
+                <div className="space-y-1">
+                    <FormTextArea
+                        label="Critérios de Sustentabilidade"
+                        value={formData.sustentabilidade}
+                        onChange={(value) => updateField('sustentabilidade', value)}
+                        tooltip="Descreva critérios de sustentabilidade aplicáveis"
+                        placeholder="Deixe em branco para usar o texto padrão..."
+                        rows={4}
+                    />
+                    <p className="text-xs text-gray-500 ml-1">
+                        * Os requisitos da contratação descrevem o que é essencial e suficiente para suprir a necessidade da unidade.
+                    </p>
+                </div>
 
                 {/* Garantia */}
                 <FormInput

@@ -62,6 +62,7 @@ export async function generateETPDocument(formData) {
 
                     // Seção 6: Modalidade
                     createSectionHeader('6. ESTIMATIVA DE QUANTIDADES E MODALIDADE'),
+                    createParagraph(formData.estimativaQuantidades),
                     createParagraph(`Modalidade: ${formData.modalidade}`),
                     ...(formData.modalidade !== 'Pregão Eletrônico' ? [
                         createParagraph(`Justificativa: ${formData.justificativaModalidade}`)

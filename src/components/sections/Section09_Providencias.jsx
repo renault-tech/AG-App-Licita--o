@@ -54,15 +54,26 @@ function Section09_Providencias() {
                     tooltip="Marque se houver providências necessárias"
                 />
 
-                <FormTextArea
-                    label={formData.haProvidencias ? "Descrição das Providências" : "Declaração Padrão"}
-                    value={formData.descricaoProvidencias}
-                    onChange={(value) => updateField('descricaoProvidencias', value)}
-                    required={true}
-                    tooltip={formData.haProvidencias ? "Descreva as providências necessárias" : "Texto padrão editável"}
-                    placeholder={formData.haProvidencias ? "Descreva as providências..." : ""}
-                    rows={4}
-                />
+                {formData.haProvidencias ? (
+                    <FormTextArea
+                        label="Descrição das Providências"
+                        value={formData.descricaoProvidencias}
+                        onChange={(value) => updateField('descricaoProvidencias', value)}
+                        required={true}
+                        tooltip="Descreva as providências necessárias"
+                        placeholder="Descreva as providências..."
+                        rows={6}
+                    />
+                ) : (
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <p className="text-sm font-medium text-gray-700 mb-1">
+                            Texto Padrão:
+                        </p>
+                        <p className="text-sm text-gray-600 italic">
+                            "Para esta solução não há necessidade de ajustes de qualquer natureza, a serem adotados pela Administração Pública."
+                        </p>
+                    </div>
+                )}
             </div>
 
             <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">

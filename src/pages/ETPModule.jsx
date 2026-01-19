@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import useETPStore from '../store/etpStore';
 import Stepper from '../components/navigation/Stepper';
 import ProgressBar from '../components/navigation/ProgressBar';
+import { generateETPDocument } from '../utils/exportDocx';
+import { supabase } from '../lib/supabase';
 
 // Importar todas as seções
 import Section01 from '../components/sections/Section01_Identificacao';
@@ -29,8 +31,10 @@ function ETPModule({ onBack }) {
         setCurrentSection,
         sectionValidation,
         validateSection,
-        formData
+        formData,
+        saveToSupabase
     } = useETPStore();
+    const [saving, setSaving] = useState(false);
 
     // Validar seção atual sempre que mudar
     useEffect(() => {
@@ -56,9 +60,27 @@ function ETPModule({ onBack }) {
     const CurrentSectionComponent = sections[currentSection - 1]?.component;
     const allSectionsCompleted = Object.values(sectionValidation).every(Boolean);
 
-    const handleExport = (format) => {
-        // TODO: Implementar exportação
-        alert(`Exportação em ${format} será implementada em breve!`);
+    const handleExport = async (format) => {
+        if (format === 'docx') {
+            await generateETPDocument(formData);
+        } else {
+            alert(`Exportação em ${format} será implementada em breve!`);
+        }
+    };
+
+    const handleSaveCloud = async () => {
+        setSaving(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error('Usuário não autenticado');
+            await saveToSupabase(user.id);
+            alert('Salvo na nuvem com sucesso!');
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao salvar: ' + error.message);
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -86,11 +108,19 @@ function ETPModule({ onBack }) {
 
                         <div className="flex gap-3">
                             <button
-                                onClick={() => handleExport('pdf')}
-                                disabled={!allSectionsCompleted}
+                                onClick={handleSaveCloud}
+                                disabled={saving}
                                 className="btn-secondary flex items-center gap-2"
                             >
                                 <Save className="w-5 h-5" />
+                                {saving ? 'Salvando...' : 'Salvar Nuvem'}
+                            </button>
+                            <button
+                                onClick={() => handleExport('pdf')}
+                                disabled={!allSectionsCompleted}
+                                className="hidden md:flex btn-secondary items-center gap-2"
+                            >
+                                <Download className="w-5 h-5" />
                                 PDF
                             </button>
                             <button

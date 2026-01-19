@@ -36,6 +36,7 @@ const useETPStore = create(
                 descricaoSolucao: '',
 
                 // Seção 6: Estimativa das Quantidades e Modalidade
+                estimativaQuantidades: 'Os quantitativos estimados para a contratação pretendida têm como parâmetros o histórico de consumo (processo licitatório homologado no último ano) e a demanda enviada pelas Secretarias solicitantes que necessitam dos serviços/produtos para realizarem seus trabalhos. O quantitativo previsto levou em consideração as demandas de cada Secretaria Requisitante no presente ano, bem como tendo em vista a possibilidade de prorrogação da Ata a ser celebrada por igual período, totalizando 24 (vinte e quatro) meses',
                 modalidade: 'Pregão Eletrônico',
                 justificativaModalidade: '',
                 procedimentoAuxiliar: 'Registro de Preço',
@@ -124,9 +125,9 @@ const useETPStore = create(
                         isValid = formData.descricaoSolucao.trim() !== '';
                         break;
                     case 6:
-                        isValid = true; // Validação básica, todos campos já têm valores default
+                        isValid = formData.estimativaQuantidades.trim() !== '';
                         if (formData.modalidade !== 'Pregão Eletrônico') {
-                            isValid = formData.justificativaModalidade.trim() !== '';
+                            isValid = isValid && formData.justificativaModalidade.trim() !== '';
                         }
                         if (formData.formaJulgamento === 'Por Lote') {
                             isValid = isValid && formData.justificativaLoteamento.trim() !== '';
@@ -187,6 +188,7 @@ const useETPStore = create(
                     alternativa3: '',
                     conclusaoAlternativa: '',
                     descricaoSolucao: '',
+                    estimativaQuantidades: 'Os quantitativos estimados para a contratação pretendida têm como parâmetros o histórico de consumo (processo licitatório homologado no último ano) e a demanda enviada pelas Secretarias solicitantes que necessitam dos serviços/produtos para realizarem seus trabalhos. O quantitativo previsto levou em consideração as demandas de cada Secretaria Requisitante no presente ano, bem como tendo em vista a possibilidade de prorrogação da Ata a ser celebrada por igual período, totalizando 24 (vinte e quatro) meses',
                     modalidade: 'Pregão Eletrônico',
                     justificativaModalidade: '',
                     procedimentoAuxiliar: 'Registro de Preço',
@@ -211,6 +213,20 @@ const useETPStore = create(
                     7: false, 8: false, 9: false, 10: false, 11: false, 12: false, 13: false
                 }
             })),
+
+            saveToSupabase: async (userId) => {
+                const { formData } = get();
+                const { data, error } = await supabase
+                    .from('etps')
+                    .upsert({
+                        user_id: userId,
+                        title: formData.secretariaRequisitante || 'ETP sem título',
+                        data: formData
+                    }, { onConflict: 'user_id' }); // Simplificação: um ETP por usuário por enquanto, ou podemos usar ID
+
+                if (error) throw error;
+                return data;
+            }
         }),
         {
             name: 'etp-storage',
