@@ -3,7 +3,7 @@
  * Utiliza Google Gemini API para adequar textos à Lei 14.133/2021
  */
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
 /**
  * Prompt base para adequação de textos à lei de licitações
