@@ -22,11 +22,13 @@ Plataforma SaaS que automatiza a produção e tramitação de documentos do proc
 </vision>
 
 <current_status>
-**Fase Atual**: Fase 3 (ETP, TR e Mapa de Riscos)
+**Fase Atual**: Fase 6 (Dashboard Geral, Assinaturas e Gestão de Créditos IA)
 **Progresso**:
-- Fases 0, 1 e 2 concluídas.
-- Infraestrutura Next.js + Tailwind + shadcn + Auth + Supabase ok.
-- Núcleo Inicial pronto: Wizard de Criação, Editor de DFD com integração de IA (Gemini) e Módulo de Cotação de Preços (com cálculos estatísticos e outliers).
+- Fases 0 a 5 100% concluídas!
+- Núcleo Inicial: Wizard, DFD e Cotação completos.
+- Módulo Preparatório: ETP, TR e Mapa de Riscos completos.
+- Módulo de Publicação: Edital (com seções por modalidade) concluído.
+- Procuradoria: Parecer Jurídico com status de aprovação e minuta gerada via IA pronto.
 </current_status>
 
 <initial_diagnostic_protocol>
