@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import BotaoAssinatura from '@/components/assinatura/botao-assinatura'
 
 import { atualizarDFD, aprimorarTextoIA } from '@/lib/actions/dfd'
 
@@ -136,8 +137,14 @@ export default function EditorDFD({ dfd, processoId }: { dfd: any; processoId: s
 
       </CardContent>
 
-      <CardFooter className="flex justify-end border-t p-4 bg-gray-50/50 rounded-b-lg mt-4">
-        <Button onClick={handleSalvar} disabled={salvando} className="bg-blue-700 hover:bg-blue-800 text-white">
+      <CardFooter className="flex items-center justify-between border-t p-4 bg-gray-50/50 rounded-b-lg mt-4">
+        <BotaoAssinatura 
+          tabelaOrigem="dfd" 
+          documentoId={dfd.id} 
+          processoId={processoId} 
+          statusAtual={dfd.status} 
+        />
+        <Button onClick={handleSalvar} disabled={salvando || dfd.status === 'assinado'} className="bg-blue-700 hover:bg-blue-800 text-white">
           {salvando ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Salvando...</> : <><Save className="w-4 h-4 mr-2" /> Salvar Alterações</>}
         </Button>
       </CardFooter>
