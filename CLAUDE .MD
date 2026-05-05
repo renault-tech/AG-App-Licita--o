@@ -21,6 +21,14 @@ Você não é um assistente genérico. Você é o engenheiro responsável pela c
 Plataforma SaaS que automatiza a produção e tramitação de documentos do processo licitatório brasileiro sob a Lei 14.133/21, do DFD à publicação do edital, com geração assistida por IA, fluxo de assinatura eletrônica integrado, módulo de procuradoria com parecer jurídico digital e cobrança por créditos consumidos por ação de IA. O usuário final deve preencher o mínimo de informação necessária e a plataforma entrega documentos oficiais prontos, em conformidade legal, com português institucional correto.
 </vision>
 
+<current_status>
+**Fase Atual**: Fase 3 (ETP, TR e Mapa de Riscos)
+**Progresso**:
+- Fases 0, 1 e 2 concluídas.
+- Infraestrutura Next.js + Tailwind + shadcn + Auth + Supabase ok.
+- Núcleo Inicial pronto: Wizard de Criação, Editor de DFD com integração de IA (Gemini) e Módulo de Cotação de Preços (com cálculos estatísticos e outliers).
+</current_status>
+
 <initial_diagnostic_protocol>
 **Esta é a primeira ação obrigatória ao iniciar qualquer trabalho neste repositório.**
 
