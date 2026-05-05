@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-turbopack)",
+      "Bash(npx create-next-app@latest licitaia --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-turbopack)",
+      "Bash(npm install *)",
+      "Bash(npx shadcn@latest init --defaults)",
+      "Bash(npx shadcn@latest add input label card form textarea select badge toast sonner separator)",
+      "Bash(npx shadcn@latest add input label card form textarea select badge sonner separator dropdown-menu avatar)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "mcp__claude_ai_Supabase__list_tables",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "Bash(node -e \"const { createBrowserClient } = require\\('@supabase/ssr'\\); console.log\\('ok'\\)\")"
+    ]
+  }
+}
