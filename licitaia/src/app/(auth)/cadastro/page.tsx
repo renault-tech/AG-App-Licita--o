@@ -37,6 +37,7 @@ export default function CadastroPage() {
       return
     }
 
+    toast.success('Conta criada! Verifique seu e-mail.')
     setEnviado(true)
     setCarregando(false)
   }
@@ -51,6 +52,9 @@ export default function CadastroPage() {
             Enviamos um link de confirmação para <strong>{email}</strong>.
             Acesse sua caixa de entrada e clique no link para ativar sua conta.
           </p>
+          <div className="bg-blue-50 border border-blue-200 text-blue-800 text-xs p-3 rounded-md text-left">
+            <strong>Dica para ambiente local:</strong> Acesse a caixa de entrada simulada do Supabase em <a href="http://localhost:54324" target="_blank" className="underline font-bold">http://localhost:54324</a> para ver o e-mail de confirmação e clicar no link.
+          </div>
           <Link href="/login" className="text-sm text-blue-600 hover:underline">
             Voltar ao login
           </Link>

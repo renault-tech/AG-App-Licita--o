@@ -37,7 +37,7 @@ export async function criarOrganizacaoEAdmin(
 
   if (orgError) {
     if (orgError.code === '23505') return { success: false, error: 'CNPJ ja cadastrado na plataforma.' }
-    return { success: false, error: 'Erro ao criar organizacao. Tente novamente.' }
+    return { success: false, error: `Erro no Supabase: ${orgError.message}` }
   }
 
   // Cria registro de usuário como admin_organizacao
@@ -54,7 +54,7 @@ export async function criarOrganizacaoEAdmin(
   if (usuarioError) {
     // Rollback manual: remove org criada
     await serviceClient.from('organizacoes').delete().eq('id', org.id)
-    return { success: false, error: 'Erro ao configurar usuario. Tente novamente.' }
+    return { success: false, error: `Erro ao configurar usuario: ${usuarioError.message}` }
   }
 
   // Cria saldo inicial de créditos (100 créditos de boas-vindas)

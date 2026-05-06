@@ -25,11 +25,16 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
 
     if (error) {
-      toast.error('Credenciais inválidas. Verifique e-mail e senha.')
+      if (error.message.includes('Email not confirmed')) {
+        toast.error('Por favor, confirme seu e-mail antes de entrar.')
+      } else {
+        toast.error('Credenciais inválidas. Verifique e-mail e senha.')
+      }
       setCarregando(false)
       return
     }
 
+    toast.success('Login efetuado com sucesso!')
     router.push('/dashboard')
     router.refresh()
   }
