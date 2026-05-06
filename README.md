@@ -1,93 +1,36 @@
-# Legal Tech - ETP & TR Generator
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Plataforma profissional para geração de documentos de licitação conforme Lei 14.133/2021.
+## Getting Started
 
-## 📋 Sobre o Projeto
-
-Sistema web para criação de **Estudos Técnicos Preliminares (ETP)** e **Termos de Referência (TR)** de forma estruturada, com validação automática e exportação em formatos DOCX e PDF.
-
-## 🚀 Tecnologias
-
--React 18+ com Vite
-- **Tailwind CSS** para estilização
-- **Zustand** para gerenciamento de estado
-- **docx** para exportação DOCX
-- **jspdf** para exportação PDF
-- **Lucide React** para ícones
-
-## 📦 Instalação
-
-Como o npm não está disponível no sistema, as dependências precisarão ser instaladas manualmente ou o projeto pode ser aberto diretamente se todas as dependências estiverem no `package.json`.
-
-Se o npm estiver disponível:
+First, run the development server:
 
 ```bash
-npm install
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-## 🎯 Funcionalidades
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Módulo ETP (Implementado)
-- ✅ **13 Seções Estruturadas** com navegação intuitiva
-- ✅ **Validação em Tempo Real** de campos obrigatórios
-- ✅ **Stepper Visual** mostrando progresso
-- ✅ **Lógica Condicional** complexa entre seções
-- ✅ **Auto-fill Inteligente** (Seção 5 baseada em Seção 6)
-- ✅ **Conversão Automática** de valores para extenso
-- ✅ **Tooltips Contextuais** em cada campo
-- ✅ **Persistência Local** (salva automaticamente no navegador)
-- ✅ **Exportação DOCX** formatada profissionalmente
-- 🔄 **Exportação PDF** (em desenvolvimento)
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-### Módulo TR
-- 🔜 Em desenvolvimento
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## 📖 Estrutura das Seções
+## Learn More
 
-1. **Identificação** - Dados básicos da contratação
-2. **Dados do Processo** - Descrição da necessidade
-3. **Requisitos** - Subcontratação, sustentabilidade, garantia
-4. **Alternativas** - Análise de opções
-5. **Descrição da Solução** - Detalhamento da escolha
-6. **Modalidade** - Tipo de licitação e julgamento
-7. **Valores** - Estimativa financeira
-8. **Resultados** - Objetivos esperados
-9. **Providências** - Ações necessárias
-10. **Correlatas** - Outras contratações relacionadas
-11. **Impactos Ambientais** - Avaliação de impactos
-12. **Viabilidade** - Conclusão de viabilidade
-13. **Análise de Risco** - Identificação e mitigação
+To learn more about Next.js, take a look at the following resources:
 
-## 🎨 Interface
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-- Design moderno e profissional
-- Cores governamentais (azul e verde)
-- Cards informativos em cada seção
-- Feedback visual de validação
-- Responsivo (desktop, tablet, mobile)
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## 📄 Exportação
+## Deploy on Vercel
 
-Os documentos gerados seguem padrões profissionais:
-- Formatação Arial/Times, tamanho 12
-- Texto justificado
-- Cabeçalhos estruturados
-- Lógica condicional (campos opcionais não aparecem se vazios)
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-## 🔧 Como Usar
-
-1. Abra o arquivo `index.html` no navegador
-2. Escolha "Estudo Técnico Preliminar (ETP)"
-3. Preencha as 13 seções sequencialmente
-4. Acompanhe seu progresso no Stepper
-5. Ao finalizar, clique em "Exportar DOCX"
-
-## 📝 Licença
-
-Desenvolvido em conformidade com a Lei 14.133/2021 - Nova Lei de Licitações.
-
----
-
-**Versão:** 1.0.0  
-**Última Atualização:** Janeiro 2026
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
