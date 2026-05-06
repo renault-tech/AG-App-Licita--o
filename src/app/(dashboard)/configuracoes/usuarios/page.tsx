@@ -35,16 +35,16 @@ export default async function GestaoUsuariosPage() {
     .order('created_at', { ascending: true })
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Gestao de Usuarios</h1>
-        <p className="text-gray-500 mt-1">Convide colaboradores e gerencie seus acessos</p>
+        <h1 className="text-lg font-bold text-gray-900">Gestao de Usuarios</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Convide colaboradores e gerencie papeis de acesso.</p>
       </div>
 
       <FormConvite />
 
       <div>
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <h2 className="text-sm font-semibold text-gray-700 mb-3">
           Usuarios cadastrados ({usuarios?.length ?? 0})
         </h2>
         <TabelaUsuarios
