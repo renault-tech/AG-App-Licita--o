@@ -16,7 +16,8 @@
       "Bash(find . -maxdepth 3 -name \"licitaia\" -type d)",
       "PowerShell(dir \"d:\\\\Documentos\\\\Projetos IA\\\\Licita AI\\\\AG-App-Licita--o\\\\src\" -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object FullName | Sort-Object FullName)",
       "PowerShell(Get-ChildItem -Path \"d:\\\\Documentos\\\\Projetos IA\\\\Licita AI\\\\AG-App-Licita--o\\\\src\" -Recurse -File | ForEach-Object { $_.FullName } | Sort-Object)",
-      "Bash(npx next *)"
+      "Bash(npx next *)",
+      "Bash(git push *)"
     ]
   }
 }
