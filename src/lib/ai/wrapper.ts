@@ -20,29 +20,31 @@ export interface ErroIA {
   error: string
 }
 
-async function chamarGemini(prompt: string, temperature: number): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) throw new Error('GEMINI_API_KEY não configurada.')
+async function chamarGroq(prompt: string, temperature: number): Promise<string> {
+  const apiKey = process.env.GROQ_API_KEY
+  if (!apiKey) throw new Error('GROQ_API_KEY não configurada.')
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature },
-      }),
-    }
-  )
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'user', content: prompt }],
+      temperature,
+      max_tokens: 4096,
+    }),
+  })
 
   if (!res.ok) {
     const errBody = await res.text()
-    throw new Error(`API Gemini retornou ${res.status}: ${errBody}`)
+    throw new Error(`API Groq retornou ${res.status}: ${errBody}`)
   }
 
   const data = await res.json()
-  const texto: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text
+  const texto: string | undefined = data?.choices?.[0]?.message?.content
   if (!texto) throw new Error('Resposta vazia da IA.')
   return texto.trim()
 }
@@ -100,7 +102,7 @@ export async function executarIAComCreditos(
   let creditosDebitar = 1
 
   try {
-    texto = await chamarGemini(params.prompt, temperature)
+    texto = await chamarGroq(params.prompt, temperature)
     sucesso = true
   } catch (err) {
     erroMensagem = err instanceof Error ? err.message : 'Falha de comunicação.'
@@ -116,8 +118,8 @@ export async function executarIAComCreditos(
       organizacao_id: organizacaoId,
       processo_id: params.processoId ?? null,
       tipo_acao: params.tipoAcao,
-      provedor: 'google',
-      modelo: 'gemini-2.0-flash',
+      provedor: 'groq',
+      modelo: 'llama-3.3-70b-versatile',
       tokens_entrada: params.prompt.length,
       tokens_saida: texto.length,
       creditos_consumidos: creditosDebitar,
