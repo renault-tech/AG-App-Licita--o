@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import type { ProcessoLicitatorioRow } from '@/types/database'
 
 export async function obterDFD(processoId: string) {
   const supabase = await createClient()
@@ -15,8 +16,42 @@ export async function obterDFD(processoId: string) {
     .eq('processo_id', processoId)
     .maybeSingle()
 
-  if (!dfd) return null
-  return dfd
+  if (dfd) return dfd
+
+  // DFD não existe — cria automaticamente a partir dos dados do processo
+  const { data: pRaw } = await supabase
+    .from('processos_licitatorios')
+    .select('*')
+    .eq('id', processoId)
+    .maybeSingle()
+
+  const p = pRaw as ProcessoLicitatorioRow | null
+  if (!p) return null
+
+  const { data: usuarioRaw } = await supabase
+    .from('usuarios')
+    .select('nome_completo')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const nomeCompleto = (usuarioRaw as any)?.nome_completo ?? ''
+
+  const { data: novo } = await (supabase as any)
+    .from('dfd')
+    .insert({
+      processo_id: processoId,
+      organizacao_id: p.organizacao_id,
+      criado_por: user.id,
+      responsavel_elaboracao: nomeCompleto,
+      descricao_necessidade: p.objeto,
+      justificativa: '',
+      status: 'rascunho',
+      gerado_por_ia: false,
+    })
+    .select('*')
+    .maybeSingle()
+
+  return novo ?? null
 }
 
 export async function atualizarDFD(dfdId: string, dados: any) {
@@ -40,7 +75,7 @@ import { executarIAComCreditos } from '@/lib/ai/wrapper'
 export async function aprimorarTextoIA(textoOriginal: string, campo: string) {
   if (!textoOriginal) return { success: false as const, error: 'Texto vazio.' }
 
-  const prompt = `Você é um especialista em licitações públicas (Lei 14.133/21). 
+  const prompt = `Você é um especialista em licitações públicas (Lei 14.133/21).
 Aprimore o texto abaixo para um DFD institucional, mantendo o sentido original, mas com um vocabulário formal e adequado à administração pública.
 Campo do documento: ${campo}
 Texto original fornecido pelo usuário: "${textoOriginal}"

@@ -27,7 +27,7 @@ export async function criarProcessoInicial(dados: ProcessoWizardInput) {
     return { success: false, error: 'Organização do usuário não encontrada.' }
   }
 
-  const { organizacao_id, nome_completo } = userData
+  const { organizacao_id, nome_completo } = userData as any
   const valorNum = Number.isNaN(input.valor_estimado) ? null : input.valor_estimado
 
   // 3. Criar Processo
@@ -50,23 +50,25 @@ export async function criarProcessoInicial(dados: ProcessoWizardInput) {
   }
 
   // 4. Criar DFD inicial atrelado
-  const { error: dfdError } = await (supabase
+  const { data: dfdCriado, error: dfdError } = await (supabase
     .from('dfd') as any)
     .insert({
       processo_id: processo.id,
       organizacao_id,
       criado_por: user.id,
       responsavel_elaboracao: nome_completo,
-      descricao_necessidade: input.objeto, 
+      descricao_necessidade: input.objeto,
       justificativa: input.justificativa,
       prazo_contratacao: input.prazo_contratacao,
       observacoes: input.observacoes,
       status: 'rascunho',
       gerado_por_ia: false
     })
+    .select('id')
+    .single()
 
-  if (dfdError) {
-    return { success: false, error: 'Processo criado, mas falhou ao criar DFD: ' + dfdError.message }
+  if (dfdError || !dfdCriado) {
+    return { success: false, error: 'Processo criado, mas falhou ao criar DFD: ' + (dfdError?.message ?? 'INSERT retornou vazio') }
   }
 
   return { success: true, processoId: processo.id }

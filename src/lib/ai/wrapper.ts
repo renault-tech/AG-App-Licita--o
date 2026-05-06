@@ -25,7 +25,7 @@ async function chamarGemini(prompt: string, temperature: number): Promise<string
   if (!apiKey) throw new Error('GEMINI_API_KEY não configurada.')
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -36,7 +36,10 @@ async function chamarGemini(prompt: string, temperature: number): Promise<string
     }
   )
 
-  if (!res.ok) throw new Error(`API Gemini retornou ${res.status}`)
+  if (!res.ok) {
+    const errBody = await res.text()
+    throw new Error(`API Gemini retornou ${res.status}: ${errBody}`)
+  }
 
   const data = await res.json()
   const texto: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text
@@ -114,7 +117,7 @@ export async function executarIAComCreditos(
       processo_id: params.processoId ?? null,
       tipo_acao: params.tipoAcao,
       provedor: 'google',
-      modelo: 'gemini-2.5-flash',
+      modelo: 'gemini-2.0-flash',
       tokens_entrada: params.prompt.length,
       tokens_saida: texto.length,
       creditos_consumidos: creditosDebitar,
