@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Loader2, LogIn } from 'lucide-react'
@@ -10,12 +10,21 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Suspense } from 'react'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [carregando, setCarregando] = useState(false)
+
+  useEffect(() => {
+    const erro = searchParams.get('error')
+    if (erro === 'link_invalido') {
+      toast.error('Link de confirmacao invalido ou expirado. Tente fazer login ou solicite novo cadastro.')
+    }
+  }, [searchParams])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -28,7 +37,7 @@ export default function LoginPage() {
       if (error.message.includes('Email not confirmed')) {
         toast.error('Por favor, confirme seu e-mail antes de entrar.')
       } else {
-        toast.error('Credenciais inválidas. Verifique e-mail e senha.')
+        toast.error('Credenciais invalidas. Verifique e-mail e senha.')
       }
       setCarregando(false)
       return
@@ -91,5 +100,13 @@ export default function LoginPage() {
         </CardFooter>
       </form>
     </Card>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   )
 }

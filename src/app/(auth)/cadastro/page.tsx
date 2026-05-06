@@ -28,7 +28,7 @@ export default function CadastroPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password: senha,
-      options: { emailRedirectTo: `${window.location.origin}/login` },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding` },
     })
 
     if (error) {
