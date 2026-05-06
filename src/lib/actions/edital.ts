@@ -23,7 +23,7 @@ export async function obterEdital(processoId: string) {
     .from('processos_licitatorios')
     .select('*')
     .eq('id', processoId)
-    .single()
+    .maybeSingle()
 
   const p = pRaw as ProcessoLicitatorioRow | null
   if (!p) return null

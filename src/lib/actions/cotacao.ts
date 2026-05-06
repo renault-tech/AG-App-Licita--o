@@ -7,24 +7,28 @@ export async function obterCotacao(processoId: string) {
   const supabase = await createClient()
 
   // Buscar cotação principal
-  let { data: cotacaoData } = await supabase
+  const { data: cotacaoData } = await supabase
     .from('cotacoes')
     .select('*')
     .eq('processo_id', processoId)
-    .single()
+    .maybeSingle()
 
   let cotacao = cotacaoData as any
 
-  // Se não existe, cria rascunho
+  // Se não existe, cria rascunho automaticamente
   if (!cotacao) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
 
-    const { data: pData } = await supabase.from('processos_licitatorios').select('*').eq('id', processoId).single()
+    const { data: pData } = await supabase
+      .from('processos_licitatorios')
+      .select('organizacao_id')
+      .eq('id', processoId)
+      .maybeSingle()
     const p = pData as any
     if (!p) return null
 
-    const { data: nova } = await (supabase
+    const { data: nova, error: insError } = await (supabase
       .from('cotacoes') as any)
       .insert({
         processo_id: processoId,
@@ -35,7 +39,8 @@ export async function obterCotacao(processoId: string) {
       })
       .select('*')
       .single()
-    
+
+    if (insError || !nova) return null
     cotacao = nova
   }
 

@@ -23,7 +23,7 @@ export async function obterETP(processoId: string) {
     .from('processos_licitatorios')
     .select('organizacao_id')
     .eq('id', processoId)
-    .single()
+    .maybeSingle()
 
   const p = pRaw as Pick<ProcessoLicitatorioRow, 'organizacao_id'> | null
   if (!p) return null
