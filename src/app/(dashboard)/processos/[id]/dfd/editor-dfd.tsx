@@ -50,11 +50,11 @@ export default function EditorDFD({ dfd, processoId }: { dfd: any; processoId: s
     setIaLoading(campo)
     const res = await aprimorarTextoIA(textoOriginal, campo)
     
-    if (res.success && res.texto) {
+    if (res.success) {
       setFormData(prev => ({ ...prev, [campo]: res.texto }))
       toast.success('Texto aprimorado pela IA!')
     } else {
-      toast.error(res.error || 'Erro na IA.')
+      toast.error(res.error)
     }
     setIaLoading(null)
   }

@@ -38,7 +38,7 @@ export async function atualizarDFD(dfdId: string, dados: any) {
 import { executarIAComCreditos } from '@/lib/ai/wrapper'
 
 export async function aprimorarTextoIA(textoOriginal: string, campo: string) {
-  if (!textoOriginal) return { success: false, error: 'Texto vazio.' }
+  if (!textoOriginal) return { success: false as const, error: 'Texto vazio.' }
 
   const prompt = `Você é um especialista em licitações públicas (Lei 14.133/21). 
 Aprimore o texto abaixo para um DFD institucional, mantendo o sentido original, mas com um vocabulário formal e adequado à administração pública.

@@ -48,11 +48,11 @@ export default function EditorRiscos({ mapa, processoId }: { mapa: any; processo
   async function handleSugerirIA() {
     setIaLoading(true)
     const res = await sugerirRiscosIA(objetoProcesso)
-    if (res.success && res.riscos) {
+    if (res.success) {
       setRiscos([...riscos, ...res.riscos])
       toast.success('Riscos sugeridos pela IA adicionados!')
     } else {
-      toast.error(res.error || 'Erro na sugestão.')
+      toast.error(res.error)
     }
     setIaLoading(false)
   }

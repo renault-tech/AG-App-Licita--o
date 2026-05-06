@@ -34,12 +34,12 @@ export default function EditorParecer({ parecer, processoId }: { parecer: any; p
   async function handleGerarIA() {
     setIaLoading(true)
     const res = await gerarParecerIA(processoId)
-    if (res.success && res.conteudo) {
+    if (res.success) {
       setConteudo(res.conteudo)
-      setStatus(res.statusSugerido as StatusParecer)
+      setStatus(res.statusSugerido)
       toast.success('Parecer base gerado com sucesso pela IA!')
     } else {
-      toast.error(res.error || 'Erro na geração da IA.')
+      toast.error(res.error)
     }
     setIaLoading(false)
   }

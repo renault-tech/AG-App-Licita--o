@@ -1,131 +1,136 @@
-import { createClient } from '@/lib/supabase/server'
-import { TipoAcaoIA } from '@/types/database'
+'use server'
 
-interface RequestIA {
-  prompt: string;
-  tipoAcao: TipoAcaoIA;
-  processoId?: string;
-  temperature?: number;
+import { createClient } from '@/lib/supabase/server'
+import type { TipoAcaoIA, UsuarioRow, CreditosUsuarioRow, AcaoIARow } from '@/types/database'
+
+export interface RequestIA {
+  prompt: string
+  tipoAcao: TipoAcaoIA
+  processoId?: string
+  temperature?: number
 }
 
-export async function executarIAComCreditos(params: RequestIA) {
-  const supabase = await createClient()
+export interface ResultadoIA {
+  success: true
+  texto: string
+}
 
-  // 1. Identificar usuário
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Usuário não autenticado.' }
+export interface ErroIA {
+  success: false
+  error: string
+}
 
-  const { data } = await supabase
-    .from('usuarios')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  const userData = data as any;
-
-  if (!userData) return { success: false, error: 'Organização não encontrada.' }
-  const organizacaoId = userData.organizacao_id
-
-  // 2. Verificar saldo de créditos
-  const { data: dataCreditos } = await supabase
-    .from('creditos_usuario')
-    .select('*')
-    .eq('usuario_id', user.id)
-    .single()
-  const creditos = dataCreditos as any
-
-  // Se não tem registro de créditos, vamos dar 500 de cortesia pro MVP
-  let saldoAtual = 0
-  let creditosId = null
-  if (!creditos) {
-    const { data: novoCreditoData } = await (supabase
-      .from('creditos_usuario') as any)
-      .insert({
-        usuario_id: user.id,
-        organizacao_id: organizacaoId,
-        saldo: 500
-      })
-      .select('*')
-      .single()
-    const novoCredito = novoCreditoData as any
-    
-    saldoAtual = novoCredito?.saldo || 0
-    creditosId = novoCredito?.id
-  } else {
-    saldoAtual = creditos.saldo
-    creditosId = creditos.id
-  }
-
-  if (saldoAtual <= 0) {
-    return { success: false, error: 'Saldo de créditos insuficiente. Adquira mais créditos para continuar usando a IA.' }
-  }
-
-  // 3. Executar chamada à API (Google Gemini Flash)
+async function chamarGemini(prompt: string, temperature: number): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) {
-    return { success: false, error: 'Chave de API não configurada no servidor.' }
-  }
+  if (!apiKey) throw new Error('GEMINI_API_KEY não configurada.')
 
-  let textoRetorno = ''
-  let sucesso = false
-  let msgErro = null
-  let creditosDebitar = 1 // Custo fixo por ação no MVP
-
-  try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: params.prompt }] }],
-        generationConfig: { temperature: params.temperature || 0.3 }
-      })
-    })
-
-    if (!res.ok) {
-      throw new Error('Erro retornado pela API do provedor de IA.')
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature },
+      }),
     }
+  )
 
-    const data = await res.json()
-    textoRetorno = data?.candidates?.[0]?.content?.parts?.[0]?.text || ''
-    
-    if (textoRetorno) {
-      sucesso = true
-    } else {
-      throw new Error('Resposta vazia da IA.')
+  if (!res.ok) throw new Error(`API Gemini retornou ${res.status}`)
+
+  const data = await res.json()
+  const texto: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text
+  if (!texto) throw new Error('Resposta vazia da IA.')
+  return texto.trim()
+}
+
+export async function executarIAComCreditos(
+  params: RequestIA
+): Promise<ResultadoIA | ErroIA> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Usuário não autenticado.' }
+
+  const { data: usuarioRaw } = await supabase
+    .from('usuarios')
+    .select('organizacao_id')
+    .eq('id', user.id)
+    .single()
+
+  const usuario = usuarioRaw as Pick<UsuarioRow, 'organizacao_id'> | null
+  if (!usuario) return { success: false, error: 'Perfil de usuário não encontrado.' }
+
+  const organizacaoId = usuario.organizacao_id
+
+  // Verificar ou criar saldo de créditos
+  const { data: creditosRaw } = await supabase
+    .from('creditos_usuario')
+    .select('id, saldo')
+    .eq('usuario_id', user.id)
+    .single()
+
+  type CreditosSaldo = Pick<CreditosUsuarioRow, 'id' | 'saldo'>
+  let creditos = creditosRaw as CreditosSaldo | null
+
+  if (!creditos) {
+    const supabaseAny = supabase as any
+    const { data: novoRaw } = await supabaseAny
+      .from('creditos_usuario')
+      .insert({ usuario_id: user.id, organizacao_id: organizacaoId, saldo: 500 })
+      .select('id, saldo')
+      .single()
+    creditos = novoRaw as CreditosSaldo | null
+  }
+
+  if (!creditos || creditos.saldo <= 0) {
+    return {
+      success: false,
+      error: 'Saldo de créditos insuficiente. Adquira mais créditos para continuar.',
     }
-  } catch (err: any) {
-    sucesso = false
-    msgErro = err.message || 'Falha de comunicação.'
-    creditosDebitar = 0 // Não debita se houver falha de rede grave
   }
 
-  // 4. Registrar Ação na tabela acoes_ia
-  await (supabase.from('acoes_ia') as any).insert({
-    usuario_id: user.id,
-    organizacao_id: organizacaoId,
-    processo_id: params.processoId || null,
-    tipo_acao: params.tipoAcao,
-    provedor: 'google',
-    modelo: 'gemini-2.5-flash',
-    tokens_entrada: params.prompt.length, // aproximação grosseira para MVP
-    tokens_saida: textoRetorno.length,
-    creditos_consumidos: creditosDebitar,
-    input_resumo: params.prompt.substring(0, 100),
-    sucesso: sucesso,
-    erro_mensagem: msgErro
-  })
+  const temperature = params.temperature ?? 0.3
+  let texto = ''
+  let sucesso = false
+  let erroMensagem: string | null = null
+  let creditosDebitar = 1
 
-  // 5. Debitar Crédito se houver sucesso
-  if (sucesso && creditosId) {
-    await (supabase
-      .from('creditos_usuario') as any)
-      .update({ saldo: saldoAtual - creditosDebitar, updated_at: new Date().toISOString() })
-      .eq('id', creditosId)
+  try {
+    texto = await chamarGemini(params.prompt, temperature)
+    sucesso = true
+  } catch (err) {
+    erroMensagem = err instanceof Error ? err.message : 'Falha de comunicação.'
+    creditosDebitar = 0
   }
 
-  if (!sucesso) {
-    return { success: false, error: msgErro }
+  // Registrar ação de IA (fire-and-forget)
+  const supabaseAny = supabase as any
+  supabaseAny
+    .from('acoes_ia')
+    .insert({
+      usuario_id: user.id,
+      organizacao_id: organizacaoId,
+      processo_id: params.processoId ?? null,
+      tipo_acao: params.tipoAcao,
+      provedor: 'google',
+      modelo: 'gemini-2.5-flash',
+      tokens_entrada: params.prompt.length,
+      tokens_saida: texto.length,
+      creditos_consumidos: creditosDebitar,
+      input_resumo: params.prompt.substring(0, 100),
+      sucesso,
+      erro_mensagem: erroMensagem,
+    } satisfies Omit<AcaoIARow, 'id' | 'created_at'>)
+    .then(() => {})
+
+  if (sucesso && creditosDebitar > 0) {
+    await supabaseAny
+      .from('creditos_usuario')
+      .update({ saldo: creditos.saldo - creditosDebitar, updated_at: new Date().toISOString() })
+      .eq('id', creditos.id)
   }
 
-  return { success: true, texto: textoRetorno.trim() }
+  if (!sucesso) return { success: false, error: erroMensagem ?? 'Falha interna.' }
+  return { success: true, texto }
 }

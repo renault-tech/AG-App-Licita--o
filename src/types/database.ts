@@ -1,5 +1,5 @@
-// Tipos gerados manualmente a partir do schema Supabase (supabase/migrations/20260505000000_schema_inicial.sql)
-// Para regenerar automaticamente: npx supabase gen types typescript --project-id jqzkfuablvszpmhrzfwq > src/types/database.ts
+// Tipos do banco de dados — gerados manualmente a partir do schema em supabase/migrations/
+// Para regenerar: npx supabase gen types typescript --project-id <id> > src/types/database.ts
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
@@ -28,7 +28,7 @@ export type FonteCotacao = 'pncp' | 'banco_municipal' | 'pesquisa_direta'
 export type StatusParecer = 'pendente' | 'aprovado' | 'aprovado_com_ressalvas' | 'devolvido'
 
 // -------------------------------------------------------
-// Tipos de linha por tabela
+// Tipos de linha por tabela (exportados para uso direto)
 // -------------------------------------------------------
 
 export interface OrganizacaoRow {
@@ -108,6 +108,27 @@ export interface CotacaoRow {
   tem_outlier: boolean
   status: StatusDocumento
   criado_por: string
+}
+
+export interface CotacaoFornecedorRow {
+  id: string
+  cotacao_id: string
+  nome_fornecedor: string
+  cnpj_fornecedor: string | null
+  justificativa_escolha: string | null
+  pedido_url: string | null
+  resposta_url: string | null
+  valor_proposto: number | null
+}
+
+export interface CotacaoItemRow {
+  id: string
+  cotacao_id: string
+  descricao: string
+  unidade: string
+  quantidade: number
+  valor_unitario: number | null
+  valor_total: number | null
 }
 
 export interface ETPRow {
@@ -192,12 +213,49 @@ export interface ParecerRow {
   gerado_por_ia: boolean
 }
 
+export interface VersaoDocumentoRow {
+  id: string
+  created_at: string
+  tabela_origem: string
+  documento_id: string
+  organizacao_id: string
+  usuario_id: string
+  conteudo_snap: Json
+  motivo: string | null
+}
+
+export interface AssinaturaRow {
+  id: string
+  created_at: string
+  tabela_origem: string
+  documento_id: string
+  organizacao_id: string
+  usuario_id: string
+  provedor: string
+  hash_documento: string | null
+  timestamp_assinatura: string | null
+  status: string
+}
+
 export interface CreditosUsuarioRow {
   id: string
   usuario_id: string
   organizacao_id: string
   saldo: number
   updated_at: string
+}
+
+export interface TransacaoCreditoRow {
+  id: string
+  created_at: string
+  usuario_id: string
+  organizacao_id: string
+  tipo: 'compra' | 'consumo' | 'estorno'
+  quantidade: number
+  saldo_anterior: number
+  saldo_posterior: number
+  descricao: string | null
+  referencia_id: string | null
 }
 
 export interface AcaoIARow {
@@ -217,117 +275,159 @@ export interface AcaoIARow {
   erro_mensagem: string | null
 }
 
+export interface NotificacaoRow {
+  id: string
+  created_at: string
+  usuario_id: string
+  organizacao_id: string
+  processo_id: string | null
+  titulo: string
+  mensagem: string
+  lida: boolean
+  link: string | null
+}
+
+export interface SecretariaEnvolvidaRow {
+  processo_id: string
+  secretaria_id: string
+  ordem_assinatura: number | null
+}
+
 // -------------------------------------------------------
-// Database schema (para o Supabase Client)
+// Database schema para o Supabase Client tipado
 // -------------------------------------------------------
 
-type TableDef<Row, Insert = Omit<Row, 'id' | 'created_at'>, Update = Partial<Insert>> = {
-  Row: Row
-  Insert: Insert
-  Update: Update
-  Relationships: any[]
-}
+type NoRelationships = {
+  foreignKeyName: string
+  columns: string[]
+  isOneToOne?: boolean
+  referencedRelation: string
+  referencedColumns: string[]
+}[]
 
 export interface Database {
   public: {
     Tables: {
-      organizacoes: TableDef<
-        OrganizacaoRow,
-        Omit<OrganizacaoRow, 'id' | 'created_at'>
-      >
-      usuarios: TableDef<
-        UsuarioRow,
-        Omit<UsuarioRow, 'created_at'>
-      >
-      secretarias: TableDef<
-        SecretariaRow,
-        Omit<SecretariaRow, 'id'>
-      >
-      processos_licitatorios: TableDef<
-        ProcessoLicitatorioRow,
-        Omit<ProcessoLicitatorioRow, 'id' | 'created_at' | 'updated_at'>
-      >
-      dfd: TableDef<DFDRow, Omit<DFDRow, 'id' | 'created_at' | 'updated_at'>>
-      cotacoes: TableDef<CotacaoRow, Omit<CotacaoRow, 'id' | 'created_at' | 'updated_at'>>
-      cotacoes_fornecedores: TableDef<{
-        id: string
-        cotacao_id: string
-        nome_fornecedor: string
-        cnpj_fornecedor: string | null
-        justificativa_escolha: string | null
-        pedido_url: string | null
-        resposta_url: string | null
-        valor_proposto: number | null
-      }>
-      cotacoes_itens: TableDef<{
-        id: string
-        cotacao_id: string
-        descricao: string
-        unidade: string
-        quantidade: number
-        valor_unitario: number | null
-        valor_total: number | null
-      }>
-      etp: TableDef<ETPRow, Omit<ETPRow, 'id' | 'created_at' | 'updated_at'>>
-      termo_referencia: TableDef<TermoReferenciaRow, Omit<TermoReferenciaRow, 'id' | 'created_at' | 'updated_at'>>
-      mapa_riscos: TableDef<MapaRiscosRow, Omit<MapaRiscosRow, 'id' | 'created_at' | 'updated_at'>>
-      edital: TableDef<EditalRow, Omit<EditalRow, 'id' | 'created_at' | 'updated_at'>>
-      pareceres: TableDef<ParecerRow, Omit<ParecerRow, 'id' | 'created_at' | 'updated_at'>>
-      versoes_documento: TableDef<{
-        id: string
-        created_at: string
-        tabela_origem: string
-        documento_id: string
-        organizacao_id: string
-        usuario_id: string
-        conteudo_snap: Json
-        motivo: string | null
-      }>
-      assinaturas: TableDef<{
-        id: string
-        created_at: string
-        tabela_origem: string
-        documento_id: string
-        organizacao_id: string
-        usuario_id: string
-        provedor: string
-        hash_documento: string | null
-        timestamp_assinatura: string | null
-        status: string
-      }>
-      creditos_usuario: TableDef<
-        CreditosUsuarioRow,
-        Omit<CreditosUsuarioRow, 'id' | 'updated_at'>
-      >
-      transacoes_credito: TableDef<{
-        id: string
-        created_at: string
-        usuario_id: string
-        organizacao_id: string
-        tipo: 'compra' | 'consumo' | 'estorno'
-        quantidade: number
-        saldo_anterior: number
-        saldo_posterior: number
-        descricao: string | null
-        referencia_id: string | null
-      }>
-      acoes_ia: TableDef<AcaoIARow, Omit<AcaoIARow, 'id' | 'created_at'>>
-      notificacoes: TableDef<{
-        id: string
-        created_at: string
-        usuario_id: string
-        organizacao_id: string
-        processo_id: string | null
-        titulo: string
-        mensagem: string
-        lida: boolean
-        link: string | null
-      }>
-      secretarias_envolvidas: TableDef<{
-        processo_id: string
-        secretaria_id: string
-        ordem_assinatura: number | null
-      }>
+      organizacoes: {
+        Row: OrganizacaoRow
+        Insert: Omit<OrganizacaoRow, 'id' | 'created_at'>
+        Update: Partial<Omit<OrganizacaoRow, 'id' | 'created_at'>>
+        Relationships: NoRelationships
+      }
+      usuarios: {
+        Row: UsuarioRow
+        Insert: Omit<UsuarioRow, 'created_at'>
+        Update: Partial<Omit<UsuarioRow, 'id' | 'created_at'>>
+        Relationships: NoRelationships
+      }
+      secretarias: {
+        Row: SecretariaRow
+        Insert: Omit<SecretariaRow, 'id'>
+        Update: Partial<Omit<SecretariaRow, 'id'>>
+        Relationships: NoRelationships
+      }
+      processos_licitatorios: {
+        Row: ProcessoLicitatorioRow
+        Insert: Omit<ProcessoLicitatorioRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<ProcessoLicitatorioRow, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: NoRelationships
+      }
+      dfd: {
+        Row: DFDRow
+        Insert: Omit<DFDRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<DFDRow, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: NoRelationships
+      }
+      cotacoes: {
+        Row: CotacaoRow
+        Insert: Omit<CotacaoRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<CotacaoRow, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: NoRelationships
+      }
+      cotacoes_fornecedores: {
+        Row: CotacaoFornecedorRow
+        Insert: Omit<CotacaoFornecedorRow, 'id'>
+        Update: Partial<Omit<CotacaoFornecedorRow, 'id'>>
+        Relationships: NoRelationships
+      }
+      cotacoes_itens: {
+        Row: CotacaoItemRow
+        Insert: Omit<CotacaoItemRow, 'id'>
+        Update: Partial<Omit<CotacaoItemRow, 'id'>>
+        Relationships: NoRelationships
+      }
+      etp: {
+        Row: ETPRow
+        Insert: Omit<ETPRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<ETPRow, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: NoRelationships
+      }
+      termo_referencia: {
+        Row: TermoReferenciaRow
+        Insert: Omit<TermoReferenciaRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<TermoReferenciaRow, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: NoRelationships
+      }
+      mapa_riscos: {
+        Row: MapaRiscosRow
+        Insert: Omit<MapaRiscosRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<MapaRiscosRow, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: NoRelationships
+      }
+      edital: {
+        Row: EditalRow
+        Insert: Omit<EditalRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<EditalRow, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: NoRelationships
+      }
+      pareceres: {
+        Row: ParecerRow
+        Insert: Omit<ParecerRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<ParecerRow, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: NoRelationships
+      }
+      versoes_documento: {
+        Row: VersaoDocumentoRow
+        Insert: Omit<VersaoDocumentoRow, 'id' | 'created_at'>
+        Update: Partial<Omit<VersaoDocumentoRow, 'id' | 'created_at'>>
+        Relationships: NoRelationships
+      }
+      assinaturas: {
+        Row: AssinaturaRow
+        Insert: Omit<AssinaturaRow, 'id' | 'created_at'>
+        Update: Partial<Omit<AssinaturaRow, 'id' | 'created_at'>>
+        Relationships: NoRelationships
+      }
+      creditos_usuario: {
+        Row: CreditosUsuarioRow
+        Insert: Omit<CreditosUsuarioRow, 'id' | 'updated_at'>
+        Update: Partial<Omit<CreditosUsuarioRow, 'id' | 'updated_at'>>
+        Relationships: NoRelationships
+      }
+      transacoes_credito: {
+        Row: TransacaoCreditoRow
+        Insert: Omit<TransacaoCreditoRow, 'id' | 'created_at'>
+        Update: Partial<Omit<TransacaoCreditoRow, 'id' | 'created_at'>>
+        Relationships: NoRelationships
+      }
+      acoes_ia: {
+        Row: AcaoIARow
+        Insert: Omit<AcaoIARow, 'id' | 'created_at'>
+        Update: Partial<Omit<AcaoIARow, 'id' | 'created_at'>>
+        Relationships: NoRelationships
+      }
+      notificacoes: {
+        Row: NotificacaoRow
+        Insert: Omit<NotificacaoRow, 'id' | 'created_at'>
+        Update: Partial<Omit<NotificacaoRow, 'id' | 'created_at'>>
+        Relationships: NoRelationships
+      }
+      secretarias_envolvidas: {
+        Row: SecretariaEnvolvidaRow
+        Insert: SecretariaEnvolvidaRow
+        Update: Partial<SecretariaEnvolvidaRow>
+        Relationships: NoRelationships
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

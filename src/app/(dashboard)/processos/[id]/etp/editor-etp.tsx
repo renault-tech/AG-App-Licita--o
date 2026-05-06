@@ -51,11 +51,11 @@ export default function EditorETP({ etp, processoId }: { etp: any; processoId: s
     setIaLoading(campo)
     const res = await aprimorarETPComIA(textoOriginal, campo)
     
-    if (res.success && res.texto) {
+    if (res.success) {
       setFormData(prev => ({ ...prev, [campo]: res.texto }))
       toast.success('Conteúdo do ETP aprimorado!')
     } else {
-      toast.error(res.error || 'Erro na IA.')
+      toast.error(res.error)
     }
     setIaLoading(null)
   }

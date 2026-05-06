@@ -11,7 +11,12 @@
       "Bash(npm run *)",
       "mcp__claude_ai_Supabase__list_tables",
       "mcp__claude_ai_Supabase__apply_migration",
-      "Bash(node -e \"const { createBrowserClient } = require\\('@supabase/ssr'\\); console.log\\('ok'\\)\")"
+      "Bash(node -e \"const { createBrowserClient } = require\\('@supabase/ssr'\\); console.log\\('ok'\\)\")",
+      "Bash(cd /d)",
+      "Bash(find . -maxdepth 3 -name \"licitaia\" -type d)",
+      "PowerShell(dir \"d:\\\\Documentos\\\\Projetos IA\\\\Licita AI\\\\AG-App-Licita--o\\\\src\" -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object FullName | Sort-Object FullName)",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\Documentos\\\\Projetos IA\\\\Licita AI\\\\AG-App-Licita--o\\\\src\" -Recurse -File | ForEach-Object { $_.FullName } | Sort-Object)",
+      "Bash(npx next *)"
     ]
   }
 }

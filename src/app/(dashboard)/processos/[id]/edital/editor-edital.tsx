@@ -47,11 +47,11 @@ export default function EditorEdital({ edital, processoId }: { edital: any; proc
 
     setIaLoadingId(id)
     const res = await revisarEditalComIA(secao.texto, modalidade)
-    if (res.success && res.texto) {
+    if (res.success) {
       atualizaSecao(id, 'texto', res.texto)
       toast.success('Cláusula revisada pela IA!')
     } else {
-      toast.error(res.error || 'Erro na IA.')
+      toast.error(res.error)
     }
     setIaLoadingId(null)
   }
