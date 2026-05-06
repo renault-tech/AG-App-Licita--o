@@ -7,11 +7,13 @@ export default async function ConfiguracaoOrganizacaoPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: usuario } = await supabase
+  const { data } = await supabase
     .from('usuarios')
-    .select('organizacao_id, papel')
+    .select('*')
     .eq('id', user.id)
     .single()
+
+  const usuario = data as any
 
   if (!usuario) redirect('/onboarding')
 
