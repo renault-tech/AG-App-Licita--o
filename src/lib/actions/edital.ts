@@ -8,6 +8,9 @@ import type { ProcessoLicitatorioRow, EditalRow, ModalidadeLicitacao } from '@/t
 export async function obterEdital(processoId: string) {
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
   const { data } = await supabase
     .from('edital')
     .select('*, processos_licitatorios(objeto, modalidade)')
@@ -15,9 +18,6 @@ export async function obterEdital(processoId: string) {
     .maybeSingle()
 
   if (data) return data
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
 
   const { data: pRaw } = await supabase
     .from('processos_licitatorios')

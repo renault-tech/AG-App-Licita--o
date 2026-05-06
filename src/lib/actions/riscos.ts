@@ -16,6 +16,9 @@ export interface RiscoItem {
 export async function obterMapaRiscos(processoId: string) {
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
   const { data } = await supabase
     .from('mapa_riscos')
     .select('*, processos_licitatorios(objeto)')
@@ -23,9 +26,6 @@ export async function obterMapaRiscos(processoId: string) {
     .maybeSingle()
 
   if (data) return data
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
 
   const { data: pRaw } = await supabase
     .from('processos_licitatorios')

@@ -8,6 +8,9 @@ import type { ProcessoLicitatorioRow, TermoReferenciaRow } from '@/types/databas
 export async function obterTR(processoId: string) {
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
   const { data } = await supabase
     .from('termo_referencia')
     .select('*')
@@ -15,9 +18,6 @@ export async function obterTR(processoId: string) {
     .maybeSingle()
 
   if (data) return data as TermoReferenciaRow
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
 
   const { data: pRaw } = await supabase
     .from('processos_licitatorios')

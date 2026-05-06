@@ -23,59 +23,77 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // IMPORTANTE: getUser() renova o token de sessão nos cookies
+  // IMPORTANTE: getUser() renova o token de sessão nos cookies.
+  // Não remover este await — é ele que garante que os cookies chegam aos Server Components.
   const { data: { user } } = await supabase.auth.getUser()
+
   const pathname = request.nextUrl.pathname
 
-  // Injeta o pathname como header para layouts server-side (stepper ativo)
+  // Injeta pathname como header para layouts server-side detectarem a etapa ativa
   supabaseResponse.headers.set('x-pathname', pathname)
 
   const isAuthRoute = pathname.startsWith('/login') ||
     pathname.startsWith('/cadastro') ||
     pathname.startsWith('/recuperar-senha')
   const isOnboarding = pathname.startsWith('/onboarding')
+  const isAuthCallback = pathname.startsWith('/auth/callback')
 
-  // Nao autenticado: so pode acessar rotas de auth
-  if (!user && !isAuthRoute && !isOnboarding) {
+  // Callback de confirmação de email: deixa passar sempre
+  if (isAuthCallback) {
+    return supabaseResponse
+  }
+
+  // Não autenticado: só pode acessar rotas de auth
+  if (!user && !isAuthRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    return NextResponse.redirect(url)
+    const redirectResponse = NextResponse.redirect(url)
+    // Propagar cookies de sessão para o redirect
+    supabaseResponse.cookies.getAll().forEach(cookie => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+    })
+    return redirectResponse
   }
 
   // Autenticado em rota de auth: vai para dashboard
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+    const redirectResponse = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach(cookie => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+    })
+    return redirectResponse
   }
 
-  // Autenticado sem organizacao configurada: vai para onboarding
-  if (user && !isOnboarding) {
+  if (user) {
+    // Verifica se o usuário tem perfil na organização
     const { data: perfil } = await supabase
       .from('usuarios')
       .select('id')
       .eq('id', user.id)
       .maybeSingle()
 
-    if (!perfil) {
+    // Autenticado sem organização: vai para onboarding (exceto se já estiver lá)
+    if (!perfil && !isOnboarding) {
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding'
-      return NextResponse.redirect(url)
+      const redirectResponse = NextResponse.redirect(url)
+      supabaseResponse.cookies.getAll().forEach(cookie => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+      })
+      return redirectResponse
     }
-  }
 
-  // Autenticado com organizacao tentando acessar onboarding: vai para dashboard
-  if (user && isOnboarding) {
-    const { data: perfil } = await supabase
-      .from('usuarios')
-      .select('id')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    if (perfil) {
+    // Autenticado com organização tentando acessar onboarding: vai para dashboard
+    if (perfil && isOnboarding) {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
-      return NextResponse.redirect(url)
+      const redirectResponse = NextResponse.redirect(url)
+      supabaseResponse.cookies.getAll().forEach(cookie => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+      })
+      return redirectResponse
     }
   }
 

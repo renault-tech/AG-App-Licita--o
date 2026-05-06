@@ -6,6 +6,10 @@ import { revalidatePath } from 'next/cache'
 export async function obterCotacao(processoId: string) {
   const supabase = await createClient()
 
+  // Verificar sessão primeiro
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
   // Buscar cotação principal
   const { data: cotacaoData } = await supabase
     .from('cotacoes')
@@ -17,9 +21,6 @@ export async function obterCotacao(processoId: string) {
 
   // Se não existe, cria rascunho automaticamente
   if (!cotacao) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
-
     const { data: pData } = await supabase
       .from('processos_licitatorios')
       .select('organizacao_id')
@@ -38,7 +39,7 @@ export async function obterCotacao(processoId: string) {
         status: 'rascunho'
       })
       .select('*')
-      .single()
+      .maybeSingle()
 
     if (insError || !nova) return null
     cotacao = nova

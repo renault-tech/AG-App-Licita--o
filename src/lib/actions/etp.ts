@@ -8,6 +8,9 @@ import type { ProcessoLicitatorioRow, ETPRow } from '@/types/database'
 export async function obterETP(processoId: string) {
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
   const { data } = await supabase
     .from('etp')
     .select('*')
@@ -15,9 +18,6 @@ export async function obterETP(processoId: string) {
     .maybeSingle()
 
   if (data) return data as ETPRow
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
 
   const { data: pRaw } = await supabase
     .from('processos_licitatorios')
