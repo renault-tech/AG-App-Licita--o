@@ -2,7 +2,7 @@
 
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { schemaOnboarding, type OnboardingInput } from '@/lib/validacao/organizacao'
-import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
 export async function criarOrganizacaoEAdmin(
   input: OnboardingInput
@@ -64,5 +64,6 @@ export async function criarOrganizacaoEAdmin(
     saldo: 100,
   })
 
+  revalidatePath('/', 'layout')
   return { success: true }
 }

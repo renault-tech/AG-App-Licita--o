@@ -64,8 +64,7 @@ export default function OnboardingPage() {
       return
     }
     toast.success('Organizacao configurada com sucesso!')
-    router.push('/dashboard')
-    router.refresh()
+    router.replace('/dashboard')
   }
 
   function formatarCNPJ(valor: string) {
