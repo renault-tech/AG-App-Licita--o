@@ -9,13 +9,13 @@ export async function obterDFD(processoId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: dfd, error } = await supabase
+  const { data: dfd } = await supabase
     .from('dfd')
     .select('*')
     .eq('processo_id', processoId)
-    .single()
+    .maybeSingle()
 
-  if (error || !dfd) return null
+  if (!dfd) return null
   return dfd
 }
 
