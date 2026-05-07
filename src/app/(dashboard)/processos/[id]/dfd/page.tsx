@@ -1,6 +1,7 @@
 import { obterDFD } from '@/lib/actions/dfd'
 import { notFound } from 'next/navigation'
 import EditorDFD from './editor-dfd'
+import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import { Info } from 'lucide-react'
 
 export default async function DFDPage({ params }: { params: Promise<{ id: string }> }) {
@@ -19,9 +20,12 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
             Formalize a necessidade de contratacao conforme Art. 6&ordm;, X da Lei 14.133/21.
           </p>
         </div>
-        <div className="shrink-0 hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg">
-          <Info className="w-3.5 h-3.5" />
-          Art. 6&ordm;, X
+        <div className="flex items-center gap-3 shrink-0">
+          <BotoesExportacao tipo="dfd" processoId={id} nomeDocumento="DFD" />
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg">
+            <Info className="w-3.5 h-3.5" />
+            Art. 6&ordm;, X
+          </div>
         </div>
       </div>
 
