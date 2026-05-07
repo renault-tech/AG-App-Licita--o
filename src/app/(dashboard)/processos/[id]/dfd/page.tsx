@@ -1,4 +1,5 @@
 import { obterDFD } from '@/lib/actions/dfd'
+import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { notFound } from 'next/navigation'
 import EditorDFD from './editor-dfd'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
@@ -6,7 +7,7 @@ import { Info } from 'lucide-react'
 
 export default async function DFDPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const dfd = await obterDFD(id)
+  const [dfd, papel] = await Promise.all([obterDFD(id), obterPapelUsuario()])
 
   if (!dfd) return notFound()
 
@@ -29,7 +30,7 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
         </div>
       </div>
 
-      <EditorDFD dfd={dfd} processoId={id} />
+      <EditorDFD dfd={dfd} processoId={id} papelUsuario={papel ?? 'requisitante'} />
     </div>
   )
 }

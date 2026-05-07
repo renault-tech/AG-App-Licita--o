@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
-import { LogOut, Settings, FileText, LayoutDashboard, Users, Zap, ChevronDown, Menu, X } from 'lucide-react'
+import { LogOut, Settings, FileText, LayoutDashboard, Users, Zap, ChevronDown, Menu, X, Building2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
 import {
@@ -14,11 +14,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import SinoNotificacoes from '@/components/layout/sino-notificacoes'
+import type { Notificacao } from '@/lib/actions/notificacoes'
 
 interface NavbarProps {
   user: User
   nomeUsuario?: string | null
   saldoCreditos?: number | null
+  notificacoes?: Notificacao[]
+  naoLidas?: number
 }
 
 const NAV_LINKS = [
@@ -26,7 +30,7 @@ const NAV_LINKS = [
   { href: '/processos', label: 'Processos', icon: FileText },
 ]
 
-export default function Navbar({ user, nomeUsuario, saldoCreditos }: NavbarProps) {
+export default function Navbar({ user, nomeUsuario, saldoCreditos, notificacoes = [], naoLidas = 0 }: NavbarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [menuMobileAberto, setMenuMobileAberto] = useState(false)
@@ -98,6 +102,9 @@ export default function Navbar({ user, nomeUsuario, saldoCreditos }: NavbarProps
               </Link>
             )}
 
+            {/* Sino de notificacoes */}
+            <SinoNotificacoes notificacoes={notificacoes} naoLidas={naoLidas} />
+
             {/* Menu usuario */}
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-full outline-none group">
@@ -130,6 +137,10 @@ export default function Navbar({ user, nomeUsuario, saldoCreditos }: NavbarProps
                 <DropdownMenuItem onSelect={() => router.push('/configuracoes/usuarios')} className="gap-2 cursor-pointer text-sm">
                   <Users className="w-4 h-4" />
                   Usuarios
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => router.push('/configuracoes/secretarias')} className="gap-2 cursor-pointer text-sm">
+                  <Building2 className="w-4 h-4" />
+                  Secretarias
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSair} className="gap-2 text-red-600 cursor-pointer text-sm">

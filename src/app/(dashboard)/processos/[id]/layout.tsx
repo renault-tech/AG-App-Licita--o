@@ -2,16 +2,19 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { headers } from 'next/headers'
-import { ArrowLeft, FileText, Calculator, ClipboardList, ShieldAlert, ScrollText, BookOpen, Gavel, CheckCircle2, Circle } from 'lucide-react'
+import { ArrowLeft, FileText, Calculator, ClipboardList, ShieldAlert, ScrollText, BookOpen, Gavel, CheckCircle2, Circle, ClipboardCheck, ShieldCheck, Globe } from 'lucide-react'
 
 const ETAPAS = [
-  { slug: 'dfd',     label: 'DFD',     icon: FileText,      desc: 'Formalizacao da Demanda' },
-  { slug: 'cotacao', label: 'Cotacao', icon: Calculator,    desc: 'Pesquisa de Precos' },
-  { slug: 'etp',     label: 'ETP',     icon: ClipboardList, desc: 'Estudo Tecnico Preliminar' },
-  { slug: 'tr',      label: 'TR',      icon: ScrollText,    desc: 'Termo de Referencia' },
-  { slug: 'riscos',  label: 'Riscos',  icon: ShieldAlert,   desc: 'Mapa de Riscos' },
-  { slug: 'edital',  label: 'Edital',  icon: BookOpen,      desc: 'Edital da Licitacao' },
-  { slug: 'parecer', label: 'Parecer', icon: Gavel,         desc: 'Parecer Juridico' },
+  { slug: 'dfd',         label: 'DFD',        icon: FileText,       desc: 'Formalizacao da Demanda' },
+  { slug: 'cotacao',     label: 'Cotacao',    icon: Calculator,     desc: 'Pesquisa de Precos' },
+  { slug: 'etp',         label: 'ETP',        icon: ClipboardList,  desc: 'Estudo Tecnico Preliminar' },
+  { slug: 'tr',          label: 'TR',         icon: ScrollText,     desc: 'Termo de Referencia' },
+  { slug: 'riscos',      label: 'Riscos',     icon: ShieldAlert,    desc: 'Mapa de Riscos' },
+  { slug: 'edital',      label: 'Edital',     icon: BookOpen,       desc: 'Edital da Licitacao' },
+  { slug: 'revisao',     label: 'Revisao',    icon: ClipboardCheck, desc: 'Revisao do Setor de Licitacoes' },
+  { slug: 'parecer',     label: 'Parecer',    icon: Gavel,          desc: 'Parecer Juridico' },
+  { slug: 'autorizacao', label: 'Autorizacao',icon: ShieldCheck,    desc: 'Autorizacao da Autoridade Competente' },
+  { slug: 'publicacao',  label: 'Publicacao', icon: Globe,           desc: 'Publicacao do Processo' },
 ]
 
 const MODALIDADE_LABEL: Record<string, string> = {

@@ -1,4 +1,5 @@
 import { obterEdital } from '@/lib/actions/edital'
+import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { notFound } from 'next/navigation'
 import EditorEdital from './editor-edital'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
@@ -7,7 +8,7 @@ import { Info } from 'lucide-react'
 export default async function EditalPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const edital = await obterEdital(id)
+  const [edital, papel] = await Promise.all([obterEdital(id), obterPapelUsuario()])
   if (!edital) return notFound()
 
   return (
@@ -27,7 +28,7 @@ export default async function EditalPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
       </div>
-      <EditorEdital edital={edital} processoId={id} />
+      <EditorEdital edital={edital} processoId={id} papelUsuario={papel ?? 'requisitante'} />
     </div>
   )
 }

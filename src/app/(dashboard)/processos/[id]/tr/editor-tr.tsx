@@ -8,7 +8,9 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { atualizarTR, aprimorarTRComIA } from '@/lib/actions/tr'
+import BotaoTramitacao from '@/components/documentos/botao-tramitacao'
 import Link from 'next/link'
+import type { PapelUsuario } from '@/types/database'
 
 type FormData = {
   objeto:              string
@@ -36,7 +38,7 @@ const CLAUSULAS = [
   { id: 'sancoes',             num: '10', label: 'Sancoes Administrativas',            placeholder: 'Penalidades por atraso ou inexecucao total ou parcial...' },
 ] as const
 
-export default function EditorTR({ tr, processoId }: { tr: any; processoId: string }) {
+export default function EditorTR({ tr, processoId, papelUsuario }: { tr: any; processoId: string; papelUsuario: PapelUsuario }) {
   const [formData, setFormData] = useState<FormData>({
     objeto:              tr.objeto              || '',
     fundamentacao:       tr.fundamentacao       || '',
@@ -120,11 +122,20 @@ export default function EditorTR({ tr, processoId }: { tr: any; processoId: stri
       </CardContent>
 
       <CardFooter className="flex items-center justify-between border-t border-gray-100 bg-gray-50/50 px-6 py-4 rounded-b-xl gap-3">
-        <Link href={`/processos/${processoId}/etp`}>
-          <Button variant="outline" className="gap-1.5 h-9 text-sm">
-            <ChevronLeft className="w-4 h-4" /> ETP
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href={`/processos/${processoId}/etp`}>
+            <Button variant="outline" className="gap-1.5 h-9 text-sm">
+              <ChevronLeft className="w-4 h-4" /> ETP
+            </Button>
+          </Link>
+          <BotaoTramitacao
+            tabela="termo_referencia"
+            documentoId={tr.id}
+            processoId={processoId}
+            statusAtual={tr.status}
+            papelUsuario={papelUsuario}
+          />
+        </div>
         <div className="flex items-center gap-2">
           <Button onClick={handleSalvar} disabled={salvando} className="bg-blue-700 hover:bg-blue-800 text-white gap-2 h-9 text-sm">
             {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><Save className="w-4 h-4" /> Salvar TR</>}

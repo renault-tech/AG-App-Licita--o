@@ -10,7 +10,9 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { atualizarMapaRiscos, sugerirRiscosIA } from '@/lib/actions/riscos'
+import BotaoTramitacao from '@/components/documentos/botao-tramitacao'
 import Link from 'next/link'
+import type { PapelUsuario } from '@/types/database'
 
 const NIVEL_CLASSES: Record<string, string> = {
   Alta:  'bg-red-50 text-red-700 border-red-200',
@@ -38,7 +40,7 @@ const NIVEL_BADGE: Record<string, string> = {
   Baixo:    'bg-green-50 text-green-700 border-green-200',
 }
 
-export default function EditorRiscos({ mapa, processoId }: { mapa: any; processoId: string }) {
+export default function EditorRiscos({ mapa, processoId, papelUsuario }: { mapa: any; processoId: string; papelUsuario: PapelUsuario }) {
   const [riscos, setRiscos] = useState<any[]>(Array.isArray(mapa.riscos) ? mapa.riscos : [])
   const [salvando, setSalvando]   = useState(false)
   const [iaLoading, setIaLoading] = useState(false)
@@ -195,11 +197,20 @@ export default function EditorRiscos({ mapa, processoId }: { mapa: any; processo
       </CardContent>
 
       <CardFooter className="flex items-center justify-between border-t border-gray-100 bg-gray-50/50 px-6 py-4 rounded-b-xl gap-3">
-        <Link href={`/processos/${processoId}/tr`}>
-          <Button variant="outline" className="gap-1.5 h-9 text-sm">
-            <ChevronLeft className="w-4 h-4" /> TR
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href={`/processos/${processoId}/tr`}>
+            <Button variant="outline" className="gap-1.5 h-9 text-sm">
+              <ChevronLeft className="w-4 h-4" /> TR
+            </Button>
+          </Link>
+          <BotaoTramitacao
+            tabela="mapa_riscos"
+            documentoId={mapa.id}
+            processoId={processoId}
+            statusAtual={mapa.status}
+            papelUsuario={papelUsuario}
+          />
+        </div>
         <div className="flex items-center gap-2">
           <Button onClick={handleSalvar} disabled={salvando} className="bg-blue-700 hover:bg-blue-800 text-white gap-2 h-9 text-sm">
             {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><Save className="w-4 h-4" /> Salvar Riscos</>}

@@ -1,4 +1,5 @@
 import { obterMapaRiscos } from '@/lib/actions/riscos'
+import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { notFound } from 'next/navigation'
 import EditorRiscos from './editor-riscos'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
@@ -7,7 +8,7 @@ import { Info } from 'lucide-react'
 export default async function MapaRiscosPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const mapa = await obterMapaRiscos(id)
+  const [mapa, papel] = await Promise.all([obterMapaRiscos(id), obterPapelUsuario()])
   if (!mapa) return notFound()
 
   return (
@@ -27,7 +28,7 @@ export default async function MapaRiscosPage({ params }: { params: Promise<{ id:
           </div>
         </div>
       </div>
-      <EditorRiscos mapa={mapa} processoId={id} />
+      <EditorRiscos mapa={mapa} processoId={id} papelUsuario={papel ?? 'requisitante'} />
     </div>
   )
 }

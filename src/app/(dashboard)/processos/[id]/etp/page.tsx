@@ -1,4 +1,5 @@
 import { obterETP } from '@/lib/actions/etp'
+import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { notFound } from 'next/navigation'
 import EditorETP from './editor-etp'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
@@ -7,7 +8,7 @@ import { Info } from 'lucide-react'
 export default async function ETPPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const etp = await obterETP(id)
+  const [etp, papel] = await Promise.all([obterETP(id), obterPapelUsuario()])
   if (!etp) return notFound()
 
   return (
@@ -27,7 +28,7 @@ export default async function ETPPage({ params }: { params: Promise<{ id: string
           </div>
         </div>
       </div>
-      <EditorETP etp={etp} processoId={id} />
+      <EditorETP etp={etp} processoId={id} papelUsuario={papel ?? 'requisitante'} />
     </div>
   )
 }

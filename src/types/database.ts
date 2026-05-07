@@ -213,6 +213,39 @@ export interface ParecerRow {
   gerado_por_ia: boolean
 }
 
+export type StatusAutorizacao = 'pendente' | 'autorizado' | 'devolvido'
+
+export interface AutorizacaoRow {
+  id: string
+  created_at: string
+  updated_at: string
+  processo_id: string
+  organizacao_id: string
+  autorizado_por: string | null
+  status: StatusAutorizacao
+  observacao: string | null
+  autorizado_em: string | null
+}
+
+export type StatusPublicacao = 'publicado' | 'suspenso' | 'cancelado' | 'encerrado'
+
+export interface PublicacaoRow {
+  id: string
+  created_at: string
+  updated_at: string
+  processo_id: string
+  organizacao_id: string
+  publicado_por: string
+  pncp_numero: string | null
+  pncp_url: string | null
+  diario_oficial: string | null
+  portal_proprio: string | null
+  data_publicacao: string
+  data_abertura: string | null
+  status: StatusPublicacao
+  observacoes: string | null
+}
+
 export interface VersaoDocumentoRow {
   id: string
   created_at: string
@@ -426,6 +459,18 @@ export interface Database {
         Row: SecretariaEnvolvidaRow
         Insert: SecretariaEnvolvidaRow
         Update: Partial<SecretariaEnvolvidaRow>
+        Relationships: NoRelationships
+      }
+      autorizacoes: {
+        Row: AutorizacaoRow
+        Insert: Omit<AutorizacaoRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<AutorizacaoRow, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: NoRelationships
+      }
+      publicacoes: {
+        Row: PublicacaoRow
+        Insert: Omit<PublicacaoRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<PublicacaoRow, 'id' | 'created_at' | 'updated_at'>>
         Relationships: NoRelationships
       }
     }

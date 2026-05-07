@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
-import { FileText, PlusCircle, Clock, CheckCircle, ArrowRight, AlertCircle, Gavel, TrendingUp } from 'lucide-react'
+import {
+  FileText, PlusCircle, Clock, CheckCircle, ArrowRight,
+  AlertCircle, Gavel, TrendingUp,
+} from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -12,28 +15,58 @@ const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
 }
 
 const MODALIDADE_LABEL: Record<string, string> = {
-  pregao_eletronico:  'Pregao Eletronico',
-  pregao_presencial:  'Pregao Presencial',
-  concorrencia:       'Concorrencia',
-  concurso:           'Concurso',
-  leilao:             'Leilao',
-  dialogo_competitivo:'Dialogo Competitivo',
-  dispensa:           'Dispensa',
-  inexigibilidade:    'Inexigibilidade',
+  pregao_eletronico:   'Pregao Eletronico',
+  pregao_presencial:   'Pregao Presencial',
+  concorrencia:        'Concorrencia',
+  concurso:            'Concurso',
+  leilao:              'Leilao',
+  dialogo_competitivo: 'Dialogo Competitivo',
+  dispensa:            'Dispensa',
+  inexigibilidade:     'Inexigibilidade',
 }
 
-// Retorna a ultima etapa com conteudo, para mostrar progresso
-function calcularEtapaAtual(p: any): { etapa: string; slug: string; percentual: number } {
-  // Usa status como proxy simples; leituras de sub-documentos exigiriam joins
-  if (p.status === 'publicado') return { etapa: 'Publicado', slug: 'parecer', percentual: 100 }
-  if (p.status === 'assinado')  return { etapa: 'Assinado',  slug: 'parecer', percentual: 85 }
-  return { etapa: 'DFD',    slug: 'dfd',    percentual: 14 }
+// Ordem canonica das etapas (igual ao layout do processo)
+const ETAPAS_ORDEM = [
+  'dfd', 'cotacao', 'etp', 'tr', 'riscos',
+  'edital', 'revisao', 'parecer', 'autorizacao', 'publicacao',
+] as const
+
+type Etapa = typeof ETAPAS_ORDEM[number]
+
+// Dado o conjunto de etapas preenchidas, calcula a ultima concluida
+function calcularProgresso(flags: Record<Etapa, boolean>): {
+  ultimaEtapa: Etapa
+  percentual: number
+  slug: Etapa
+} {
+  let ultimo = 0
+  for (let i = ETAPAS_ORDEM.length - 1; i >= 0; i--) {
+    if (flags[ETAPAS_ORDEM[i]]) { ultimo = i; break }
+  }
+  const etapa = ETAPAS_ORDEM[ultimo]
+  const percentual = Math.round(((ultimo + 1) / ETAPAS_ORDEM.length) * 100)
+  return { ultimaEtapa: etapa, percentual, slug: etapa }
+}
+
+function etapaLabel(etapa: Etapa): string {
+  const map: Record<Etapa, string> = {
+    dfd:        'DFD',
+    cotacao:    'Cotacao',
+    etp:        'ETP',
+    tr:         'TR',
+    riscos:     'Riscos',
+    edital:     'Edital',
+    revisao:    'Revisao',
+    parecer:    'Parecer',
+    autorizacao:'Autorizacao',
+    publicacao: 'Publicado',
+  }
+  return map[etapa]
 }
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
   if (!user) return null
 
   const { data: usuarioData } = await supabase
@@ -42,46 +75,89 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .maybeSingle()
 
-  const usuario = usuarioData as any
+  const usuario = usuarioData as { nome_completo: string; organizacao_id: string; papel: string } | null
   const organizacaoId = usuario?.organizacao_id
 
-  const [{ data: dataProcessos }, { data: orgData }, { data: creditosData }] = await Promise.all([
+  if (!organizacaoId) return null
+
+  // Busca paralela: processos + dados de cada etapa + org + creditos
+  const [
+    { data: dataProcessos },
+    { data: orgData },
+    { data: creditosData },
+    { data: dfds },
+    { data: cotacoes },
+    { data: etps },
+    { data: trs },
+    { data: riscos },
+    { data: editais },
+    { data: pareceres },
+    { data: autorizacoes },
+    { data: publicacoes },
+  ] = await Promise.all([
     supabase
       .from('processos_licitatorios')
-      .select('id, objeto, modalidade, status, numero_processo, created_at, valor_estimado')
-      .eq('organizacao_id', organizacaoId as string)
+      .select('id, objeto, modalidade, status, numero_processo, created_at, valor_estimado, etapa_atual')
+      .eq('organizacao_id', organizacaoId)
       .order('created_at', { ascending: false }),
     supabase
       .from('organizacoes')
       .select('nome, municipio, estado')
-      .eq('id', organizacaoId as string)
+      .eq('id', organizacaoId)
       .maybeSingle(),
     (supabase as any)
       .from('creditos_usuario')
       .select('saldo')
       .eq('usuario_id', user.id)
       .maybeSingle(),
+    // Etapas: apenas processo_id para saber quais existem
+    supabase.from('dfd').select('processo_id').eq('organizacao_id', organizacaoId),
+    (supabase as any).from('cotacoes').select('processo_id').eq('organizacao_id', organizacaoId),
+    (supabase as any).from('etp').select('processo_id').eq('organizacao_id', organizacaoId),
+    (supabase as any).from('termo_referencia').select('processo_id').eq('organizacao_id', organizacaoId),
+    (supabase as any).from('mapa_riscos').select('processo_id').eq('organizacao_id', organizacaoId),
+    (supabase as any).from('edital').select('processo_id').eq('organizacao_id', organizacaoId),
+    (supabase as any).from('pareceres').select('processo_id').eq('organizacao_id', organizacaoId),
+    (supabase as any).from('autorizacoes').select('processo_id').eq('organizacao_id', organizacaoId),
+    (supabase as any).from('publicacoes').select('processo_id').eq('organizacao_id', organizacaoId),
   ])
 
   const processos = (dataProcessos as any[] | null) ?? []
-  const org = orgData as any
-  const saldo = (creditosData as any)?.saldo ?? 0
+  const org = orgData as { nome: string; municipio: string; estado: string } | null
+  const saldo: number = (creditosData as any)?.saldo ?? 0
 
+  // Sets para lookup O(1)
+  const setDfd        = new Set((dfds        as any[] | null ?? []).map((r: any) => r.processo_id))
+  const setCotacao    = new Set((cotacoes    as any[] | null ?? []).map((r: any) => r.processo_id))
+  const setEtp        = new Set((etps        as any[] | null ?? []).map((r: any) => r.processo_id))
+  const setTr         = new Set((trs         as any[] | null ?? []).map((r: any) => r.processo_id))
+  const setRiscos     = new Set((riscos      as any[] | null ?? []).map((r: any) => r.processo_id))
+  const setEdital     = new Set((editais     as any[] | null ?? []).map((r: any) => r.processo_id))
+  const setParecer    = new Set((pareceres   as any[] | null ?? []).map((r: any) => r.processo_id))
+  const setAutorizacao = new Set((autorizacoes as any[] | null ?? []).map((r: any) => r.processo_id))
+  const setPublicacao  = new Set((publicacoes  as any[] | null ?? []).map((r: any) => r.processo_id))
+
+  // Revisao nao tem tabela propria: consideramos 'revisao' = edital existente + status em_revisao
   const totalProcessos = processos.length
-  const concluidos   = processos.filter(p => p.status === 'publicado' || p.status === 'assinado').length
-  const emAndamento  = processos.filter(p => p.status === 'rascunho' || p.status === 'em_revisao').length
+  const emAndamento = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao').length
+  const concluidos  = processos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado').length
+  const publicados  = processos.filter((p: any) => p.status === 'publicado').length
 
   const nomeUsuario = usuario?.nome_completo || user.email || 'Gestor'
   const primeiroNome = nomeUsuario.split(' ')[0]
 
+  // Saudacao por hora
+  const hora = new Date().getHours()
+  const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
+
   return (
     <div className="space-y-6">
 
-      {/* Cabecalho de boas-vindas */}
+      {/* Cabecalho */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900">
-            Bom dia, {primeiroNome}.
+            {saudacao}, {primeiroNome}.
           </h1>
           {org && (
             <p className="text-sm text-gray-500 mt-0.5">
@@ -133,9 +209,9 @@ export default async function DashboardPage() {
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Concluidos</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">{concluidos}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Assinados/Publicados</p>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Publicados</p>
+                <p className="text-2xl font-bold text-green-600 mt-1">{publicados}</p>
+                <p className="text-xs text-gray-500 mt-0.5">de {concluidos} concluidos</p>
               </div>
               <div className="p-2 bg-green-50 rounded-lg">
                 <CheckCircle className="w-4 h-4 text-green-600" />
@@ -197,29 +273,41 @@ export default async function DashboardPage() {
           ) : (
             <div className="divide-y divide-gray-100">
               {processos.map((p: any) => {
-                const etapaInfo = calcularEtapaAtual(p)
+                const flags: Record<Etapa, boolean> = {
+                  dfd:         setDfd.has(p.id),
+                  cotacao:     setCotacao.has(p.id),
+                  etp:         setEtp.has(p.id),
+                  tr:          setTr.has(p.id),
+                  riscos:      setRiscos.has(p.id),
+                  edital:      setEdital.has(p.id),
+                  revisao:     setEdital.has(p.id) && p.status === 'em_revisao',
+                  parecer:     setParecer.has(p.id),
+                  autorizacao: setAutorizacao.has(p.id),
+                  publicacao:  setPublicacao.has(p.id),
+                }
+
+                const { ultimaEtapa, percentual, slug } = calcularProgresso(flags)
                 const statusInfo = STATUS_CONFIG[p.status] ?? STATUS_CONFIG['rascunho']
                 const modalidade = MODALIDADE_LABEL[p.modalidade] ?? p.modalidade
+
+                // Link aponta para a ultima etapa preenchida
+                const href = `/processos/${p.id}/${slug}`
 
                 return (
                   <Link
                     key={p.id}
-                    href={`/processos/${p.id}/${etapaInfo.slug}`}
+                    href={href}
                     className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors group"
                   >
-                    {/* Icone */}
                     <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                       <FileText className="w-4 h-4 text-blue-600" />
                     </div>
 
-                    {/* Dados principais */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-semibold text-gray-900 truncate">
-                          {p.numero_processo ? `${p.numero_processo} - ` : ''}{p.objeto}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {p.numero_processo ? `${p.numero_processo} - ` : ''}{p.objeto}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-xs text-gray-400">{modalidade}</span>
                         {p.valor_estimado > 0 && (
                           <>
@@ -230,19 +318,22 @@ export default async function DashboardPage() {
                           </>
                         )}
                       </div>
-                      {/* Barra de progresso */}
+                      {/* Barra de progresso com etapa real */}
                       <div className="flex items-center gap-2 mt-2">
-                        <div className="flex-1 h-1 bg-gray-200 rounded-full max-w-24">
+                        <div className="flex-1 h-1.5 bg-gray-100 rounded-full max-w-32">
                           <div
-                            className="h-1 bg-blue-500 rounded-full transition-all"
-                            style={{ width: `${etapaInfo.percentual}%` }}
+                            className={`h-1.5 rounded-full transition-all ${
+                              percentual === 100 ? 'bg-green-500' : 'bg-blue-500'
+                            }`}
+                            style={{ width: `${Math.max(percentual, 5)}%` }}
                           />
                         </div>
-                        <span className="text-xs text-gray-400">{etapaInfo.etapa}</span>
+                        <span className="text-xs text-gray-400 shrink-0">
+                          {etapaLabel(ultimaEtapa)} &bull; {percentual}%
+                        </span>
                       </div>
                     </div>
 
-                    {/* Status + seta */}
                     <div className="flex items-center gap-3 shrink-0">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${statusInfo.classes}`}>
                         {statusInfo.label}
@@ -258,13 +349,13 @@ export default async function DashboardPage() {
       </Card>
 
       {/* Aviso creditos baixos */}
-      {saldo < 10 && saldo >= 0 && (
+      {saldo < 10 && (
         <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm">
           <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <div>
             <p className="font-medium text-amber-800">Saldo de creditos baixo</p>
             <p className="text-amber-700 text-xs mt-0.5">
-              Voce tem apenas {saldo} credito(s) restante(s). As funcionalidades de IA ficam indisponiveis com saldo zerado.
+              Voce tem apenas {saldo} credito{saldo !== 1 ? 's' : ''} restante{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponiveis com saldo zerado.
             </p>
           </div>
         </div>

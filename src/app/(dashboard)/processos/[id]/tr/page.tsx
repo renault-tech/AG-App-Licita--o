@@ -1,4 +1,5 @@
 import { obterTR } from '@/lib/actions/tr'
+import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { notFound } from 'next/navigation'
 import EditorTR from './editor-tr'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
@@ -7,7 +8,7 @@ import { Info } from 'lucide-react'
 export default async function TRPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const tr = await obterTR(id)
+  const [tr, papel] = await Promise.all([obterTR(id), obterPapelUsuario()])
   if (!tr) return notFound()
 
   return (
@@ -27,7 +28,7 @@ export default async function TRPage({ params }: { params: Promise<{ id: string 
           </div>
         </div>
       </div>
-      <EditorTR tr={tr} processoId={id} />
+      <EditorTR tr={tr} processoId={id} papelUsuario={papel ?? 'requisitante'} />
     </div>
   )
 }

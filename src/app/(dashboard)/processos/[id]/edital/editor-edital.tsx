@@ -8,12 +8,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { atualizarEdital, revisarEditalComIA } from '@/lib/actions/edital'
-import { ModalidadeLicitacao } from '@/types/database'
+import BotaoTramitacao from '@/components/documentos/botao-tramitacao'
+import { ModalidadeLicitacao, PapelUsuario } from '@/types/database'
 import Link from 'next/link'
 
 type Secao = { id: string; titulo: string; texto: string }
 
-export default function EditorEdital({ edital, processoId }: { edital: any; processoId: string }) {
+export default function EditorEdital({ edital, processoId, papelUsuario }: { edital: any; processoId: string; papelUsuario: PapelUsuario }) {
   const modalidade = (edital.processos_licitatorios?.modalidade || 'dispensa') as ModalidadeLicitacao
   const [secoes, setSecoes] = useState<Secao[]>(
     Array.isArray(edital.conteudo) ? edital.conteudo : []
@@ -106,11 +107,20 @@ export default function EditorEdital({ edital, processoId }: { edital: any; proc
       </CardContent>
 
       <CardFooter className="flex items-center justify-between border-t border-gray-100 bg-gray-50/50 px-6 py-4 rounded-b-xl gap-3">
-        <Link href={`/processos/${processoId}/riscos`}>
-          <Button variant="outline" className="gap-1.5 h-9 text-sm">
-            <ChevronLeft className="w-4 h-4" /> Riscos
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href={`/processos/${processoId}/riscos`}>
+            <Button variant="outline" className="gap-1.5 h-9 text-sm">
+              <ChevronLeft className="w-4 h-4" /> Riscos
+            </Button>
+          </Link>
+          <BotaoTramitacao
+            tabela="edital"
+            documentoId={edital.id}
+            processoId={processoId}
+            statusAtual={edital.status}
+            papelUsuario={papelUsuario}
+          />
+        </div>
         <div className="flex items-center gap-2">
           <Button onClick={handleSalvar} disabled={salvando} className="bg-blue-700 hover:bg-blue-800 text-white gap-2 h-9 text-sm">
             {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><Save className="w-4 h-4" /> Salvar Edital</>}

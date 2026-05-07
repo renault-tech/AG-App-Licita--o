@@ -9,10 +9,11 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import BotaoAssinatura from '@/components/assinatura/botao-assinatura'
 
 import { atualizarDFD, aprimorarTextoIA } from '@/lib/actions/dfd'
+import BotaoTramitacao from '@/components/documentos/botao-tramitacao'
 import Link from 'next/link'
+import type { PapelUsuario } from '@/types/database'
 
 interface CampoIA {
   id: keyof FormData
@@ -74,7 +75,7 @@ const CAMPOS: CampoIA[] = [
   },
 ]
 
-export default function EditorDFD({ dfd, processoId }: { dfd: any; processoId: string }) {
+export default function EditorDFD({ dfd, processoId, papelUsuario }: { dfd: any; processoId: string; papelUsuario: PapelUsuario }) {
   const [formData, setFormData] = useState<FormData>({
     responsavel_elaboracao: dfd.responsavel_elaboracao || '',
     descricao_necessidade:  dfd.descricao_necessidade  || '',
@@ -188,11 +189,12 @@ export default function EditorDFD({ dfd, processoId }: { dfd: any; processoId: s
       </CardContent>
 
       <CardFooter className="flex items-center justify-between border-t border-gray-100 bg-gray-50/50 px-6 py-4 rounded-b-xl gap-3">
-        <BotaoAssinatura
-          tabelaOrigem="dfd"
+        <BotaoTramitacao
+          tabela="dfd"
           documentoId={dfd.id}
           processoId={processoId}
           statusAtual={dfd.status}
+          papelUsuario={papelUsuario}
         />
         <div className="flex items-center gap-2">
           <Button
