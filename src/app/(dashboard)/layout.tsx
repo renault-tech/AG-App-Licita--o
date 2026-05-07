@@ -28,7 +28,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         notificacoes={notificacoes}
         naoLidas={naoLidas}
       />
-      <main className="flex-1 container mx-auto px-4 py-6 max-w-7xl">
+      <main className="flex-1 container mx-auto px-4 py-6 max-w-7xl pb-24">
         {children}
       </main>
       {papelAtual && <DemoSwitcher papelAtual={papelAtual as PapelUsuario} />}
