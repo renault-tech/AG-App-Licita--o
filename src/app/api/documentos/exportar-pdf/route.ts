@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { montarPayloadDFD } from '@/lib/documentos/montar-payload'
+import {
+  montarPayloadDFD,
+  montarPayloadETP,
+  montarPayloadTR,
+  montarPayloadRiscos,
+  montarPayloadEdital,
+  montarPayloadParecer,
+} from '@/lib/documentos/montar-payload'
 import { gerarPdf } from '@/lib/documentos/gerar-pdf'
 
 const MONTADORES: Record<string, (id: string) => Promise<any>> = {
-  dfd: montarPayloadDFD,
+  dfd:    montarPayloadDFD,
+  etp:    montarPayloadETP,
+  tr:     montarPayloadTR,
+  riscos: montarPayloadRiscos,
+  edital: montarPayloadEdital,
+  parecer: montarPayloadParecer,
 }
 
 export async function GET(request: NextRequest) {

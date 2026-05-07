@@ -1,6 +1,7 @@
 import { obterMapaRiscos } from '@/lib/actions/riscos'
 import { notFound } from 'next/navigation'
 import EditorRiscos from './editor-riscos'
+import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import { Info } from 'lucide-react'
 
 export default async function MapaRiscosPage({ params }: { params: Promise<{ id: string }> }) {
@@ -18,9 +19,12 @@ export default async function MapaRiscosPage({ params }: { params: Promise<{ id:
             Identificacao e tratamento de riscos do processo licitatorio conforme Art. 22 da Lei 14.133/21.
           </p>
         </div>
-        <div className="shrink-0 hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg">
-          <Info className="w-3.5 h-3.5" />
-          Art. 22
+        <div className="flex items-center gap-3 shrink-0">
+          <BotoesExportacao tipo="riscos" processoId={id} nomeDocumento="Mapa-de-Riscos" />
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg">
+            <Info className="w-3.5 h-3.5" />
+            Art. 22
+          </div>
         </div>
       </div>
       <EditorRiscos mapa={mapa} processoId={id} />

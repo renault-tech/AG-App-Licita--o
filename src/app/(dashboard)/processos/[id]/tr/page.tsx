@@ -1,6 +1,7 @@
 import { obterTR } from '@/lib/actions/tr'
 import { notFound } from 'next/navigation'
 import EditorTR from './editor-tr'
+import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import { Info } from 'lucide-react'
 
 export default async function TRPage({ params }: { params: Promise<{ id: string }> }) {
@@ -18,9 +19,12 @@ export default async function TRPage({ params }: { params: Promise<{ id: string 
             Documento que define o objeto da contratacao e suas condicoes conforme Art. 6&ordm;, XXIII da Lei 14.133/21.
           </p>
         </div>
-        <div className="shrink-0 hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg">
-          <Info className="w-3.5 h-3.5" />
-          Art. 6&ordm;, XXIII
+        <div className="flex items-center gap-3 shrink-0">
+          <BotoesExportacao tipo="tr" processoId={id} nomeDocumento="TR" />
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg">
+            <Info className="w-3.5 h-3.5" />
+            Art. 6&ordm;, XXIII
+          </div>
         </div>
       </div>
       <EditorTR tr={tr} processoId={id} />

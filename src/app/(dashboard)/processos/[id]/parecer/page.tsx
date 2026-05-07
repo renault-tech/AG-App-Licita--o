@@ -1,10 +1,11 @@
 import { obterParecer } from '@/lib/actions/parecer'
 import { notFound } from 'next/navigation'
 import EditorParecer from './editor-parecer'
+import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 
 export default async function ParecerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  
+
   const parecer = await obterParecer(id)
   if (!parecer) return notFound()
 
@@ -17,8 +18,11 @@ export default async function ParecerPage({ params }: { params: Promise<{ id: st
             Analise de regularidade do processo pela Procuradoria conforme Art. 53 da Lei 14.133/21.
           </p>
         </div>
-        <div className="shrink-0 hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg">
-          <span className="font-medium">Art. 53</span>
+        <div className="flex items-center gap-3 shrink-0">
+          <BotoesExportacao tipo="parecer" processoId={id} nomeDocumento="Parecer" />
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg">
+            <span className="font-medium">Art. 53</span>
+          </div>
         </div>
       </div>
       <EditorParecer parecer={parecer} processoId={id} />

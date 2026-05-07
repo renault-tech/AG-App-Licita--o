@@ -90,3 +90,246 @@ export async function montarPayloadDFD(processoId: string): Promise<PayloadDocum
     rodapeIA: dfd.gerado_por_ia ?? false,
   }
 }
+
+export async function montarPayloadETP(processoId: string): Promise<PayloadDocumento | null> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: etp } = await (supabase as any)
+    .from('etp')
+    .select('*')
+    .eq('processo_id', processoId)
+    .maybeSingle()
+  if (!etp) return null
+
+  const { data: processo } = await (supabase as any)
+    .from('processos_licitatorios')
+    .select('objeto, modalidade, numero_processo, organizacao_id')
+    .eq('id', processoId)
+    .maybeSingle()
+  if (!processo) return null
+
+  const cabecalho = await buscarCabecalho(supabase, processo.organizacao_id, null)
+  cabecalho.geradoPorIA = etp.gerado_por_ia ?? false
+
+  const secoes = [
+    { titulo: '1. Descricao da Necessidade', conteudo: etp.descricao_necessidade ?? '' },
+    { titulo: '2. Requisitos da Contratacao', conteudo: etp.requisitos_contratacao ?? '' },
+    { titulo: '3. Levantamento de Mercado', conteudo: etp.levantamento_mercado ?? '' },
+    { titulo: '4. Estimativa de Quantidades', conteudo: etp.estimativa_quantidades ?? '' },
+    { titulo: '5. Estimativa de Valores', conteudo: etp.estimativa_valores ?? '' },
+    { titulo: '6. Justificativa da Solucao', conteudo: etp.justificativa_solucao ?? '' },
+    etp.parcelamento ? { titulo: '7. Parcelamento', conteudo: etp.parcelamento } : null,
+    etp.resultados_pretendidos ? { titulo: '8. Resultados Pretendidos', conteudo: etp.resultados_pretendidos } : null,
+    etp.providencias ? { titulo: '9. Providencias a Adotar', conteudo: etp.providencias } : null,
+    etp.contratacoes_correlatas ? { titulo: '10. Contratacoes Correlatas', conteudo: etp.contratacoes_correlatas } : null,
+    etp.impactos_ambientais ? { titulo: '11. Impactos Ambientais', conteudo: etp.impactos_ambientais } : null,
+    etp.viabilidade ? { titulo: '12. Declaracao de Viabilidade', conteudo: etp.viabilidade } : null,
+  ].filter(Boolean) as { titulo: string; conteudo: string }[]
+
+  return {
+    cabecalho,
+    tipoDocumento: 'ESTUDO TECNICO PRELIMINAR (ETP)',
+    numeroProcesso: processo.numero_processo ?? null,
+    objeto: processo.objeto,
+    modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,
+    dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
+    secoes,
+    rodapeIA: etp.gerado_por_ia ?? false,
+  }
+}
+
+export async function montarPayloadTR(processoId: string): Promise<PayloadDocumento | null> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: tr } = await (supabase as any)
+    .from('termo_referencia')
+    .select('*')
+    .eq('processo_id', processoId)
+    .maybeSingle()
+  if (!tr) return null
+
+  const { data: processo } = await (supabase as any)
+    .from('processos_licitatorios')
+    .select('objeto, modalidade, numero_processo, organizacao_id')
+    .eq('id', processoId)
+    .maybeSingle()
+  if (!processo) return null
+
+  const cabecalho = await buscarCabecalho(supabase, processo.organizacao_id, null)
+  cabecalho.geradoPorIA = tr.gerado_por_ia ?? false
+
+  const secoes = [
+    { titulo: '1. Objeto', conteudo: tr.objeto ?? '' },
+    { titulo: '2. Fundamentacao Legal', conteudo: tr.fundamentacao ?? '' },
+    { titulo: '3. Descricao do Objeto', conteudo: tr.descricao ?? '' },
+    { titulo: '4. Requisitos Tecnicos', conteudo: tr.requisitos_tecnicos ?? '' },
+    { titulo: '5. Modelo de Execucao', conteudo: tr.modelo_execucao ?? '' },
+    { titulo: '6. Modelo de Gestao', conteudo: tr.modelo_gestao ?? '' },
+    tr.criterios_medicao ? { titulo: '7. Criterios de Medicao', conteudo: tr.criterios_medicao } : null,
+    tr.forma_pagamento ? { titulo: '8. Forma de Pagamento', conteudo: tr.forma_pagamento } : null,
+    tr.garantias ? { titulo: '9. Garantias', conteudo: tr.garantias } : null,
+    tr.sancoes ? { titulo: '10. Sancoes Administrativas', conteudo: tr.sancoes } : null,
+  ].filter(Boolean) as { titulo: string; conteudo: string }[]
+
+  return {
+    cabecalho,
+    tipoDocumento: 'TERMO DE REFERENCIA (TR)',
+    numeroProcesso: processo.numero_processo ?? null,
+    objeto: processo.objeto,
+    modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,
+    dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
+    secoes,
+    rodapeIA: tr.gerado_por_ia ?? false,
+  }
+}
+
+export async function montarPayloadRiscos(processoId: string): Promise<PayloadDocumento | null> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: mapa } = await (supabase as any)
+    .from('mapa_riscos')
+    .select('*')
+    .eq('processo_id', processoId)
+    .maybeSingle()
+  if (!mapa) return null
+
+  const { data: processo } = await (supabase as any)
+    .from('processos_licitatorios')
+    .select('objeto, modalidade, numero_processo, organizacao_id')
+    .eq('id', processoId)
+    .maybeSingle()
+  if (!processo) return null
+
+  const cabecalho = await buscarCabecalho(supabase, processo.organizacao_id, null)
+  cabecalho.geradoPorIA = mapa.gerado_por_ia ?? false
+
+  const riscos: Array<{ id: string; identificacao: string; probabilidade: string; impacto: string; mitigacao: string }> =
+    Array.isArray(mapa.riscos) ? mapa.riscos : []
+
+  const conteudoRiscos = riscos.length === 0
+    ? '(Nenhum risco identificado)'
+    : riscos.map((r, i) =>
+        `${i + 1}. ${r.identificacao}\n   Probabilidade: ${r.probabilidade}  |  Impacto: ${r.impacto}\n   Mitigacao: ${r.mitigacao}`
+      ).join('\n\n')
+
+  const secoes = [
+    {
+      titulo: '1. Matriz de Riscos Identificados',
+      conteudo: conteudoRiscos,
+    },
+  ]
+
+  return {
+    cabecalho,
+    tipoDocumento: 'MAPA DE RISCOS',
+    numeroProcesso: processo.numero_processo ?? null,
+    objeto: processo.objeto,
+    modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,
+    dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
+    secoes,
+    rodapeIA: mapa.gerado_por_ia ?? false,
+  }
+}
+
+export async function montarPayloadEdital(processoId: string): Promise<PayloadDocumento | null> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: edital } = await (supabase as any)
+    .from('edital')
+    .select('*')
+    .eq('processo_id', processoId)
+    .maybeSingle()
+  if (!edital) return null
+
+  const { data: processo } = await (supabase as any)
+    .from('processos_licitatorios')
+    .select('objeto, modalidade, numero_processo, organizacao_id')
+    .eq('id', processoId)
+    .maybeSingle()
+  if (!processo) return null
+
+  const cabecalho = await buscarCabecalho(supabase, processo.organizacao_id, null)
+  cabecalho.geradoPorIA = edital.gerado_por_ia ?? false
+
+  const conteudo: Record<string, string> = typeof edital.conteudo === 'object' && edital.conteudo !== null
+    ? (edital.conteudo as Record<string, string>)
+    : {}
+
+  const secoes = Object.entries(conteudo)
+    .filter(([, v]) => typeof v === 'string' && v.trim())
+    .map(([titulo, valor]) => ({ titulo, conteudo: valor }))
+
+  if (secoes.length === 0) {
+    secoes.push({ titulo: '1. Conteudo do Edital', conteudo: '(Nao preenchido)' })
+  }
+
+  return {
+    cabecalho,
+    tipoDocumento: 'EDITAL DE LICITACAO',
+    numeroProcesso: processo.numero_processo ?? null,
+    objeto: processo.objeto,
+    modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,
+    dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
+    secoes,
+    rodapeIA: edital.gerado_por_ia ?? false,
+  }
+}
+
+export async function montarPayloadParecer(processoId: string): Promise<PayloadDocumento | null> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: parecer } = await (supabase as any)
+    .from('pareceres')
+    .select('*')
+    .eq('processo_id', processoId)
+    .maybeSingle()
+  if (!parecer) return null
+
+  const { data: processo } = await (supabase as any)
+    .from('processos_licitatorios')
+    .select('objeto, modalidade, numero_processo, organizacao_id')
+    .eq('id', processoId)
+    .maybeSingle()
+  if (!processo) return null
+
+  const cabecalho = await buscarCabecalho(supabase, processo.organizacao_id, null)
+  cabecalho.geradoPorIA = parecer.gerado_por_ia ?? false
+
+  const STATUS_LABEL: Record<string, string> = {
+    pendente:               'Pendente de analise',
+    aprovado:               'Aprovado',
+    aprovado_com_ressalvas: 'Aprovado com ressalvas',
+    devolvido:              'Devolvido para correcao',
+  }
+
+  const secoes = [
+    { titulo: '1. Status do Parecer', conteudo: STATUS_LABEL[parecer.status] ?? parecer.status },
+    { titulo: '2. Conteudo do Parecer', conteudo: parecer.conteudo ?? '(Conteudo nao preenchido)' },
+  ]
+
+  return {
+    cabecalho,
+    tipoDocumento: 'PARECER JURIDICO',
+    numeroProcesso: processo.numero_processo ?? null,
+    objeto: processo.objeto,
+    modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,
+    dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
+    secoes,
+    rodapeIA: parecer.gerado_por_ia ?? false,
+  }
+}
