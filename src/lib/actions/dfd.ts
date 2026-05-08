@@ -89,6 +89,7 @@ export async function obterDFD(processoId: string) {
       organizacao_id: p.organizacao_id,
       criado_por: user.id,
       objeto: p.objeto,
+      justificativa: '',
       justificativa_necessidade: null,
       tipo: 'individual',
       status_adesao: 'rascunho',
