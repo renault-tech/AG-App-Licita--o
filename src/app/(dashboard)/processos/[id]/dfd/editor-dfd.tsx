@@ -22,7 +22,7 @@ import {
 } from '@/lib/actions/dfd'
 import BotaoTramitacao from '@/components/documentos/botao-tramitacao'
 import ModalEncaminharAdesao from './modal-encaminhar-adesao'
-import type { PapelUsuario, DFDItemRow, DFDParticipacaoRow } from '@/types/database'
+import type { PapelUsuario, StatusDocumento, DFDItemRow, DFDParticipacaoRow } from '@/types/database'
 
 // -------------------------------------------------------
 // Tipos
@@ -51,7 +51,7 @@ type DFDCompleto = {
   responsavel_elaboracao: string
   fiscal_contrato: string | null
   dotacao_orcamentaria: string | null
-  status: string
+  status: StatusDocumento
   itens: DFDItemRow[]
   participacoes: DFDParticipacaoRow[]
 }
