@@ -72,11 +72,12 @@ export async function montarPayloadDFD(processoId: string): Promise<PayloadDocum
   cabecalho.geradoPorIA = dfd.gerado_por_ia ?? false
 
   const secoes = [
-    { titulo: '1. Identificacao do Responsavel pela Elaboracao', conteudo: dfd.responsavel_elaboracao ?? '' },
-    { titulo: '2. Descricao da Necessidade (Objeto da Contratacao)', conteudo: dfd.descricao_necessidade ?? '' },
-    { titulo: '3. Justificativa da Contratacao', conteudo: dfd.justificativa ?? '' },
-    dfd.prazo_contratacao ? { titulo: '4. Prazo Esperado de Contratacao', conteudo: dfd.prazo_contratacao } : null,
-    dfd.observacoes ? { titulo: '5. Observacoes Adicionais', conteudo: dfd.observacoes } : null,
+    { titulo: '1. Secretaria Requisitante', conteudo: dfd.secretaria_nome ?? '' },
+    { titulo: '2. Responsavel pela Elaboracao', conteudo: dfd.responsavel_elaboracao ?? '' },
+    { titulo: '3. Objeto da Contratacao', conteudo: dfd.objeto ?? '' },
+    dfd.justificativa_necessidade ? { titulo: '4. Justificativa da Necessidade', conteudo: dfd.justificativa_necessidade } : null,
+    dfd.fiscal_contrato ? { titulo: '5. Fiscal do Contrato', conteudo: dfd.fiscal_contrato } : null,
+    dfd.dotacao_orcamentaria ? { titulo: '6. Dotacao Orcamentaria', conteudo: dfd.dotacao_orcamentaria } : null,
   ].filter(Boolean) as { titulo: string; conteudo: string }[]
 
   return {

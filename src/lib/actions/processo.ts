@@ -49,27 +49,5 @@ export async function criarProcessoInicial(dados: ProcessoWizardInput) {
     return { success: false, error: procError?.message || 'Erro ao criar processo.' }
   }
 
-  // 4. Criar DFD inicial atrelado
-  const { data: dfdCriado, error: dfdError } = await (supabase
-    .from('dfd') as any)
-    .insert({
-      processo_id: processo.id,
-      organizacao_id,
-      criado_por: user.id,
-      responsavel_elaboracao: nome_completo,
-      descricao_necessidade: input.objeto,
-      justificativa: input.justificativa,
-      prazo_contratacao: input.prazo_contratacao,
-      observacoes: input.observacoes,
-      status: 'rascunho',
-      gerado_por_ia: false
-    })
-    .select('id')
-    .single()
-
-  if (dfdError || !dfdCriado) {
-    return { success: false, error: 'Processo criado, mas falhou ao criar DFD: ' + (dfdError?.message ?? 'INSERT retornou vazio') }
-  }
-
   return { success: true, processoId: processo.id }
 }
