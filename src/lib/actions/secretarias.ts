@@ -8,6 +8,9 @@ const SecretariaSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
   sigla: z.string().max(10).optional(),
   responsavel: z.string().optional(),
+  secretario_nome: z.string().optional(),
+  email: z.string().email('E-mail invalido').optional().or(z.literal('')),
+  telefone: z.string().optional(),
   ativo: z.boolean().default(true),
 })
 
@@ -49,7 +52,7 @@ export async function listarSecretarias() {
 
   const { data } = await (supabase as any)
     .from('secretarias')
-    .select('id, nome, sigla, responsavel, ativo')
+    .select('id, nome, sigla, responsavel, secretario_nome, email, telefone, ativo')
     .eq('organizacao_id', (usuario as any).organizacao_id)
     .order('nome')
 
@@ -58,6 +61,9 @@ export async function listarSecretarias() {
     nome: string
     sigla: string | null
     responsavel: string | null
+    secretario_nome: string | null
+    email: string | null
+    telefone: string | null
     ativo: boolean
   }>
 }
@@ -72,6 +78,9 @@ export async function criarSecretaria(
     nome: formData.get('nome'),
     sigla: formData.get('sigla') || undefined,
     responsavel: formData.get('responsavel') || undefined,
+    secretario_nome: formData.get('secretario_nome') || undefined,
+    email: formData.get('email') || undefined,
+    telefone: formData.get('telefone') || undefined,
     ativo: true,
   })
   if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
@@ -100,6 +109,9 @@ export async function atualizarSecretaria(
     nome: formData.get('nome'),
     sigla: formData.get('sigla') || undefined,
     responsavel: formData.get('responsavel') || undefined,
+    secretario_nome: formData.get('secretario_nome') || undefined,
+    email: formData.get('email') || undefined,
+    telefone: formData.get('telefone') || undefined,
     ativo: formData.get('ativo') === 'true',
   })
   if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }

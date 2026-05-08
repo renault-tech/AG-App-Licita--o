@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Building2, Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Check, AlertTriangle } from 'lucide-react'
+import { Building2, Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Check, AlertTriangle, Mail, Phone, User } from 'lucide-react'
 import {
   criarSecretaria,
   atualizarSecretaria,
@@ -14,6 +14,9 @@ type Secretaria = {
   nome: string
   sigla: string | null
   responsavel: string | null
+  secretario_nome: string | null
+  email: string | null
+  telefone: string | null
   ativo: boolean
 }
 
@@ -52,6 +55,7 @@ function FormSecretaria({
             placeholder="Ex: Secretaria Municipal de Administracao"
           />
         </div>
+
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Sigla</label>
           <input
@@ -62,19 +66,43 @@ function FormSecretaria({
             placeholder="Ex: SEMAD"
           />
         </div>
+
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Responsavel</label>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Secretario(a) Titular</label>
           <input
-            name="responsavel"
-            defaultValue={inicial?.responsavel ?? ''}
+            name="secretario_nome"
+            defaultValue={inicial?.secretario_nome ?? inicial?.responsavel ?? ''}
             className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Nome do secretario(a)"
+            placeholder="Nome completo do secretario(a)"
           />
         </div>
+
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">E-mail institucional</label>
+          <input
+            name="email"
+            type="email"
+            defaultValue={inicial?.email ?? ''}
+            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="secretaria@municipio.mg.gov.br"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Telefone</label>
+          <input
+            name="telefone"
+            defaultValue={inicial?.telefone ?? ''}
+            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Ex: 3422-1066"
+          />
+        </div>
+
         {inicial && (
           <input type="hidden" name="ativo" value={String(inicial.ativo)} />
         )}
       </div>
+
       <div className="flex justify-end gap-2">
         <button
           type="button"
@@ -113,13 +141,14 @@ export default function PainelSecretarias({ secretariasIniciais }: Props) {
     startTransition(async () => {
       const res = await criarSecretaria(fd)
       if (!res.success) { exibirErro(res.error!); return }
-      const novas = await fetch('/api/secretarias').catch(() => null)
-      // Optimistic update com dados do form
       const nova: Secretaria = {
         id: res.data!.id,
         nome: fd.get('nome') as string,
         sigla: (fd.get('sigla') as string) || null,
-        responsavel: (fd.get('responsavel') as string) || null,
+        responsavel: (fd.get('secretario_nome') as string) || null,
+        secretario_nome: (fd.get('secretario_nome') as string) || null,
+        email: (fd.get('email') as string) || null,
+        telefone: (fd.get('telefone') as string) || null,
         ativo: true,
       }
       setSecretarias(prev => [...prev, nova].sort((a, b) => a.nome.localeCompare(b.nome)))
@@ -136,7 +165,10 @@ export default function PainelSecretarias({ secretariasIniciais }: Props) {
           ...s,
           nome: fd.get('nome') as string,
           sigla: (fd.get('sigla') as string) || null,
-          responsavel: (fd.get('responsavel') as string) || null,
+          responsavel: (fd.get('secretario_nome') as string) || null,
+          secretario_nome: (fd.get('secretario_nome') as string) || null,
+          email: (fd.get('email') as string) || null,
+          telefone: (fd.get('telefone') as string) || null,
         })
       )
       setEditandoId(null)
@@ -172,7 +204,6 @@ export default function PainelSecretarias({ secretariasIniciais }: Props) {
         </div>
       )}
 
-      {/* Cabecalho com botao adicionar */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">
           {ativas.length} secretaria{ativas.length !== 1 ? 's' : ''} ativa{ativas.length !== 1 ? 's' : ''}
@@ -189,7 +220,6 @@ export default function PainelSecretarias({ secretariasIniciais }: Props) {
         )}
       </div>
 
-      {/* Formulario de adicao */}
       {adicionando && (
         <FormSecretaria
           onSalvar={handleCriar}
@@ -197,7 +227,6 @@ export default function PainelSecretarias({ secretariasIniciais }: Props) {
         />
       )}
 
-      {/* Lista de secretarias ativas */}
       {secretarias.length === 0 && !adicionando && (
         <div className="text-center py-12 text-gray-400">
           <Building2 className="w-8 h-8 mx-auto mb-2 opacity-40" />
@@ -237,17 +266,17 @@ export default function PainelSecretarias({ secretariasIniciais }: Props) {
                 </div>
               </div>
             ) : (
-              <div className={`flex items-center gap-3 bg-white border rounded-xl px-4 py-3 transition-all ${
+              <div className={`flex items-start gap-3 bg-white border rounded-xl px-4 py-3 transition-all ${
                 s.ativo ? 'border-gray-200' : 'border-gray-100 opacity-60'
               }`}>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
                   s.ativo ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-400'
                 }`}>
                   <Building2 className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900 truncate">{s.nome}</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-medium text-gray-900">{s.nome}</span>
                     {s.sigla && (
                       <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 shrink-0">
                         {s.sigla}
@@ -259,9 +288,26 @@ export default function PainelSecretarias({ secretariasIniciais }: Props) {
                       </span>
                     )}
                   </div>
-                  {s.responsavel && (
-                    <p className="text-xs text-gray-400 mt-0.5 truncate">{s.responsavel}</p>
-                  )}
+                  <div className="mt-1 space-y-0.5">
+                    {(s.secretario_nome || s.responsavel) && (
+                      <p className="flex items-center gap-1 text-xs text-gray-500">
+                        <User className="w-3 h-3 shrink-0" />
+                        {s.secretario_nome || s.responsavel}
+                      </p>
+                    )}
+                    {s.email && (
+                      <p className="flex items-center gap-1 text-xs text-gray-400">
+                        <Mail className="w-3 h-3 shrink-0" />
+                        {s.email}
+                      </p>
+                    )}
+                    {s.telefone && (
+                      <p className="flex items-center gap-1 text-xs text-gray-400">
+                        <Phone className="w-3 h-3 shrink-0" />
+                        {s.telefone}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button

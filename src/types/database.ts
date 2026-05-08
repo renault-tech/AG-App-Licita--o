@@ -26,6 +26,10 @@ export type ModalidadeLicitacao =
 export type TipoAcaoIA = 'aprimorar_texto' | 'sugerir_conteudo' | 'gerar_documento'
 export type FonteCotacao = 'pncp' | 'banco_municipal' | 'pesquisa_direta'
 export type StatusParecer = 'pendente' | 'aprovado' | 'aprovado_com_ressalvas' | 'devolvido'
+export type TipoDFD = 'individual' | 'compartilhado'
+export type StatusAdesaoDFD = 'rascunho' | 'aguardando_adesao' | 'prazo_encerrado' | 'consolidado'
+export type StatusParticipacaoDFD = 'pendente' | 'aderida' | 'recusada'
+export type TipoParticipacaoDFD = 'iniciadora' | 'participante'
 
 // -------------------------------------------------------
 // Tipos de linha por tabela (exportados para uso direto)
@@ -60,6 +64,9 @@ export interface SecretariaRow {
   nome: string
   sigla: string | null
   responsavel: string | null
+  secretario_nome: string | null
+  email: string | null
+  telefone: string | null
   ativo: boolean
 }
 
@@ -84,14 +91,59 @@ export interface DFDRow {
   processo_id: string
   organizacao_id: string
   secretaria_id: string | null
+  objeto: string
+  justificativa_necessidade: string | null
+  tipo: TipoDFD
+  status_adesao: StatusAdesaoDFD
+  prazo_adesao: string | null
+  consolidado_em: string | null
+  secretaria_nome: string
+  secretaria_email: string | null
+  secretaria_telefone: string | null
+  secretario_responsavel: string | null
   responsavel_elaboracao: string
-  descricao_necessidade: string
-  justificativa: string
-  prazo_contratacao: string | null
-  observacoes: string | null
+  fiscal_contrato: string | null
+  dotacao_orcamentaria: string | null
   status: StatusDocumento
   gerado_por_ia: boolean
   criado_por: string
+}
+
+export interface DFDItemRow {
+  id: string
+  dfd_id: string
+  numero_item: number
+  especificacao: string
+  unidade_medida: string
+  observacoes: string | null
+  created_at: string
+}
+
+export interface DFDParticipacaoRow {
+  id: string
+  dfd_id: string
+  secretaria_id: string
+  tipo: TipoParticipacaoDFD
+  status: StatusParticipacaoDFD
+  fiscal_contrato: string | null
+  dotacao_orcamentaria: string | null
+  secretaria_nome: string
+  secretaria_email: string | null
+  secretaria_telefone: string | null
+  secretario_responsavel: string | null
+  enviado_em: string | null
+  prazo_resposta: string | null
+  respondido_em: string | null
+  respondido_por: string | null
+  created_at: string
+}
+
+export interface DFDParticipacaoItemRow {
+  id: string
+  participacao_id: string
+  dfd_item_id: string
+  quantidade: number
+  observacoes: string | null
 }
 
 export interface CotacaoRow {
@@ -371,6 +423,24 @@ export interface Database {
         Update: Partial<Omit<DFDRow, 'id' | 'created_at' | 'updated_at'>>
         Relationships: NoRelationships
       }
+      dfd_itens: {
+        Row: DFDItemRow
+        Insert: Omit<DFDItemRow, 'id' | 'created_at'>
+        Update: Partial<Omit<DFDItemRow, 'id' | 'created_at'>>
+        Relationships: NoRelationships
+      }
+      dfd_participacoes: {
+        Row: DFDParticipacaoRow
+        Insert: Omit<DFDParticipacaoRow, 'id' | 'created_at'>
+        Update: Partial<Omit<DFDParticipacaoRow, 'id' | 'created_at'>>
+        Relationships: NoRelationships
+      }
+      dfd_participacoes_itens: {
+        Row: DFDParticipacaoItemRow
+        Insert: Omit<DFDParticipacaoItemRow, 'id'>
+        Update: Partial<Omit<DFDParticipacaoItemRow, 'id'>>
+        Relationships: NoRelationships
+      }
       cotacoes: {
         Row: CotacaoRow
         Insert: Omit<CotacaoRow, 'id' | 'created_at' | 'updated_at'>
@@ -483,6 +553,10 @@ export interface Database {
       tipo_acao_ia: TipoAcaoIA
       fonte_cotacao: FonteCotacao
       status_parecer: StatusParecer
+      tipo_dfd: TipoDFD
+      status_adesao_dfd: StatusAdesaoDFD
+      status_participacao_dfd: StatusParticipacaoDFD
+      tipo_participacao_dfd: TipoParticipacaoDFD
     }
   }
 }
