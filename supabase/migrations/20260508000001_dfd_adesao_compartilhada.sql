@@ -180,7 +180,7 @@ create policy "dfd_participacoes_acesso" on dfd_participacoes
   for all using (
     -- secretaria participante ve seu proprio registro
     secretaria_id in (
-      select id from secretarias s
+      select s.id from secretarias s
       join usuarios u on u.organizacao_id = s.organizacao_id
       where u.id = auth.uid()
     )
