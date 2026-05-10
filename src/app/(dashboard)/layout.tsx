@@ -4,6 +4,7 @@ import Navbar from '@/components/layout/navbar'
 import DemoSwitcher from '@/components/layout/demo-switcher'
 import { obterNotificacoes } from '@/lib/actions/notificacoes'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
+import { seedClausulasPadrao } from '@/lib/actions/clausulas'
 import type { PapelUsuario } from '@/types/database'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -11,6 +12,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
+
+  // Seed silencioso: so insere clausulas_padrao se tabela estiver vazia
+  seedClausulasPadrao().catch(() => {})
 
   const [usuarioRes, creditosRes, { notificacoes, naoLidas }, papelAtual] = await Promise.all([
     supabase.from('usuarios').select('nome_completo, organizacao_id').eq('id', user.id).maybeSingle(),
