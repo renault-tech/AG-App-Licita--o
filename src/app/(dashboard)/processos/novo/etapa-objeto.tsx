@@ -82,7 +82,7 @@ export default function EtapaObjeto({ dados, onChange }: Props) {
               onChange={e => atualizarItem(item.id, 'quantidade', Number(e.target.value))}
               className="w-16 text-sm h-8 text-center"
             />
-            <Select value={item.unidade} onValueChange={v => atualizarItem(item.id, 'unidade', v)}>
+            <Select value={item.unidade} onValueChange={v => atualizarItem(item.id, 'unidade', v ?? 'unidade')}>
               <SelectTrigger className="w-28 h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {UNIDADES.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
