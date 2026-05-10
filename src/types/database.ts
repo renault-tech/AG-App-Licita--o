@@ -560,3 +560,32 @@ export interface Database {
     }
   }
 }
+
+export interface ClausulaPadraoRow {
+  id: string
+  tipo_campo: string
+  documento: 'dfd' | 'etp' | 'tr'
+  modalidade: string | null
+  categoria_objeto: string | null
+  texto_template: string
+  variaveis: string[]
+  versao: number
+  ativo: boolean
+  criado_em: string
+}
+
+export interface ClausulaAprendidaRow {
+  id: string
+  organizacao_id: string
+  tipo_campo: string
+  documento: 'dfd' | 'etp' | 'tr'
+  modalidade: string | null
+  categoria_objeto: string | null
+  texto_original: string
+  texto_aprovado: string
+  processos_referencia: string[]
+  uso_count: number
+  score_qualidade: number
+  ultima_vez_em: string
+  criado_em: string
+}
