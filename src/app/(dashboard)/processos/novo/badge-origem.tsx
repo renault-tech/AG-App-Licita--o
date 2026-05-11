@@ -21,9 +21,9 @@ const CONFIG: Record<OrigemClausula, { label: string; dot: string; classes: stri
     classes: 'bg-amber-50 text-amber-700 border-amber-200',
   },
   ia: {
-    label: 'Gerado por IA',
-    dot: 'bg-gray-400',
-    classes: 'bg-gray-50 text-gray-500 border-gray-200',
+    label: 'Refinado por IA',
+    dot: 'bg-blue-500',
+    classes: 'bg-blue-50 text-blue-700 border-blue-200',
   },
   vazio: {
     label: 'Sem conteudo',

@@ -27,6 +27,8 @@ const DADOS_INICIAIS: DadosWizard = {
   sancoes: SANCOES_PADRAO,
 }
 
+const STORAGE_KEY = 'licitaia_wizard_draft'
+
 const ETAPAS = [
   { num: 1, label: 'Identificacao' },
   { num: 2, label: 'Objeto' },
@@ -34,6 +36,35 @@ const ETAPAS = [
   { num: 4, label: 'Condicoes' },
   { num: 5, label: 'Revisao' },
 ]
+
+function validarEtapa(etapa: number, dados: DadosWizard): string | null {
+  switch (etapa) {
+    case 1:
+      if (!dados.secretaria_id) return 'Selecione a secretaria requisitante.'
+      if (!dados.modalidade) return 'Selecione a modalidade de licitacao.'
+      if (!dados.categoria_objeto) return 'Selecione a categoria do objeto.'
+      return null
+    case 2:
+      if (dados.objeto.length < 10) return 'Descreva o objeto com pelo menos 10 caracteres.'
+      if (dados.problema_atual.length < 10) return 'Descreva o problema atual.'
+      if (dados.impacto_sem_contratar.length < 10) return 'Descreva o impacto sem contratar.'
+      if (dados.solucao_proposta.length < 10) return 'Descreva a solucao proposta.'
+      return null
+    case 3:
+      if (dados.especificacoes_minimas.length < 10) return 'Descreva as especificacoes minimas.'
+      return null
+    case 4:
+      if (!dados.forma_pagamento) return 'Selecione a forma de pagamento.'
+      if (!dados.garantia) return 'Selecione a garantia contratual.'
+      return null
+    default:
+      return null
+  }
+}
+
+function todasEtapasValidas(dados: DadosWizard): boolean {
+  return [1, 2, 3, 4].every(etapa => validarEtapa(etapa, dados) === null)
+}
 
 export default function NovoProcessoPage() {
   const router = useRouter()
@@ -48,10 +79,27 @@ export default function NovoProcessoPage() {
 
   useEffect(() => {
     listarSecretarias().then(secs => setSecretarias(secs))
+    try {
+      const salvo = localStorage.getItem(STORAGE_KEY)
+      if (salvo) setDados(prev => ({ ...prev, ...JSON.parse(salvo) }))
+    } catch {}
   }, [])
 
   function onChange(campo: keyof DadosWizard, valor: unknown) {
-    setDados(prev => ({ ...prev, [campo]: valor }))
+    setDados(prev => {
+      const proximo = { ...prev, [campo]: valor }
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(proximo)) } catch {}
+      return proximo
+    })
+  }
+
+  function handleContinuar() {
+    const erro = validarEtapa(etapa, dados)
+    if (erro) {
+      toast.error(erro)
+      return
+    }
+    setEtapa(e => e + 1)
   }
 
   async function handleGerar() {
@@ -90,6 +138,7 @@ export default function NovoProcessoPage() {
         toast.error(res.error ?? 'Erro ao criar processo.')
         return
       }
+      try { localStorage.removeItem(STORAGE_KEY) } catch {}
       toast.success('Processo criado com sucesso!')
       router.push(`/processos/${res.processoId}/dfd`)
     })
@@ -100,6 +149,7 @@ export default function NovoProcessoPage() {
       <div className="max-w-3xl mx-auto">
         <TelaDocumentosGerados
           documentos={documentosGerados}
+          iaModeloSolicitado={dados.ia_modelo === 'com_ia'}
           onEditar={handleEditarSecao}
           onConfirmar={handleConfirmar}
           onVoltar={() => setDocumentosGerados(null)}
@@ -108,6 +158,8 @@ export default function NovoProcessoPage() {
       </div>
     )
   }
+
+  const prontoParaGerar = todasEtapasValidas(dados)
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -195,7 +247,7 @@ export default function NovoProcessoPage() {
           {etapa < 5 ? (
             <button
               type="button"
-              onClick={() => setEtapa(e => e + 1)}
+              onClick={handleContinuar}
               className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Continuar <ChevronRight className="w-4 h-4" />
@@ -204,8 +256,9 @@ export default function NovoProcessoPage() {
             <button
               type="button"
               onClick={handleGerar}
-              disabled={gerando}
-              className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              disabled={gerando || !prontoParaGerar}
+              title={!prontoParaGerar ? 'Corrija os campos pendentes antes de gerar.' : undefined}
+              className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {gerando
                 ? <><Loader2 className="w-4 h-4 animate-spin" /> Gerando documentos...</>

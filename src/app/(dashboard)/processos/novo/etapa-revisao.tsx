@@ -1,33 +1,24 @@
 'use client'
 
-import { AlertTriangle, CheckCircle2, Zap } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Settings, Zap } from 'lucide-react'
 import { Label } from '@/components/ui/label'
+import Link from 'next/link'
 import type { DadosWizard } from './types'
 
-const MODELOS_IA = [
+const MODELOS_IA: { value: 'com_ia' | 'sem_ia'; label: string; desc: string; badge: string | null; badgeClass: string }[] = [
   {
-    value: 'gemini' as const,
-    label: 'Gemini Flash (Google)',
-    custo: 'R$ 0,00',
-    desc: 'Gratuito, sem configuracao adicional',
+    value: 'com_ia',
+    label: 'Com assistencia de IA',
+    desc: 'O sistema refina os textos com IA para maior aderencia ao seu contexto especifico. O provedor e configurado nas preferencias da organizacao.',
     badge: 'Recomendado',
     badgeClass: 'bg-green-100 text-green-700',
   },
   {
-    value: 'sem_ia' as const,
-    label: 'Sem IA (somente templates)',
-    custo: 'R$ 0,00',
-    desc: 'Mais rapido. Documentos gerados via templates padrao, sem personalizacao.',
+    value: 'sem_ia',
+    label: 'Somente templates padrao',
+    desc: 'Mais rapido. Documentos preenchidos com os templates padrao e seus dados, sem refinamento por IA.',
     badge: null,
     badgeClass: '',
-  },
-  {
-    value: 'anthropic' as const,
-    label: 'Claude Sonnet (Anthropic)',
-    custo: 'X creditos',
-    desc: 'Requer chave API configurada na organizacao.',
-    badge: 'Requer configuracao',
-    badgeClass: 'bg-gray-100 text-gray-600',
   },
 ]
 
@@ -103,7 +94,7 @@ export default function EtapaRevisao({ dados, onChange, onIrParaEtapa }: Props) 
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-medium">Modelo de IA para geracao</Label>
+        <Label className="text-sm font-medium">Geracao dos documentos</Label>
         <div className="space-y-2">
           {MODELOS_IA.map(m => (
             <label
@@ -128,13 +119,25 @@ export default function EtapaRevisao({ dados, onChange, onIrParaEtapa }: Props) 
                       {m.badge}
                     </span>
                   )}
-                  <span className="ml-auto text-sm font-semibold text-gray-700">{m.custo}</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5">{m.desc}</p>
               </div>
             </label>
           ))}
         </div>
+
+        {dados.ia_modelo === 'com_ia' && (
+          <div className="flex items-start gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+            <Settings className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+            <p className="text-xs text-gray-500">
+              O provedor de IA e definido nas{' '}
+              <Link href="/configuracoes/ia" className="text-blue-600 hover:underline font-medium">
+                configuracoes da organizacao
+              </Link>
+              . Se nao houver provedor configurado, os documentos serao gerados com templates padrao.
+            </p>
+          </div>
+        )}
       </div>
 
       {pronto && (

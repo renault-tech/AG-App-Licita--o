@@ -39,7 +39,7 @@ export interface DadosWizard {
   garantia: string
   prazo_vigencia_meses: number
   sancoes: string
-  ia_modelo: 'gemini' | 'sem_ia' | 'anthropic'
+  ia_modelo: 'com_ia' | 'sem_ia'
   clarificacoes: Record<string, string>
 }
 
@@ -85,30 +85,30 @@ export const DADOS_WIZARD_INICIAL: DadosWizard = {
   garantia: 'dispensada',
   prazo_vigencia_meses: 12,
   sancoes: '',
-  ia_modelo: 'gemini',
+  ia_modelo: 'com_ia',
   clarificacoes: {},
 }
 
 export const LABELS_CATEGORIA: Record<CategoriaObjeto, string> = {
-  informatica: 'Equipamentos de Informática',
-  mobiliario: 'Mobiliário',
+  informatica: 'Equipamentos de Informatica',
+  mobiliario: 'Mobiliario',
   material_consumo: 'Material de Consumo',
-  veiculos: 'Veículos',
-  obras: 'Obras e Serviços de Engenharia',
-  servicos_continuados: 'Serviços Continuados',
-  servicos_eventuais: 'Serviços Eventuais',
-  saude_medicamentos: 'Saúde e Medicamentos',
-  alimentacao: 'Alimentação',
+  veiculos: 'Veiculos',
+  obras: 'Obras e Servicos de Engenharia',
+  servicos_continuados: 'Servicos Continuados',
+  servicos_eventuais: 'Servicos Eventuais',
+  saude_medicamentos: 'Saude e Medicamentos',
+  alimentacao: 'Alimentacao',
   outros: 'Outros',
 }
 
 export const LABELS_MODALIDADE: Record<ModalidadeLicitacao, string> = {
-  pregao_eletronico: 'Pregão Eletrônico',
-  pregao_presencial: 'Pregão Presencial',
-  concorrencia: 'Concorrência',
+  pregao_eletronico: 'Pregao Eletronico',
+  pregao_presencial: 'Pregao Presencial',
+  concorrencia: 'Concorrencia',
   concurso: 'Concurso',
-  leilao: 'Leilão',
-  dialogo_competitivo: 'Diálogo Competitivo',
-  dispensa: 'Dispensa de Licitação',
+  leilao: 'Leilao',
+  dialogo_competitivo: 'Dialogo Competitivo',
+  dispensa: 'Dispensa de Licitacao',
   inexigibilidade: 'Inexigibilidade',
 }

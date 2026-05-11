@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, Check, X } from 'lucide-react'
+import { AlertTriangle, Check, Pencil, Settings, X } from 'lucide-react'
+import Link from 'next/link'
 import { Textarea } from '@/components/ui/textarea'
 import BadgeOrigem from './badge-origem'
 import type { DocumentosGerados, SecaoGerada } from './types'
@@ -104,13 +105,14 @@ function SecaoDocumento({
 
 interface Props {
   documentos: DocumentosGerados
+  iaModeloSolicitado: boolean
   onEditar: (doc: 'dfd' | 'etp' | 'tr', tipoCampo: string, novoTexto: string) => void
   onConfirmar: () => void
   onVoltar: () => void
   salvando: boolean
 }
 
-export default function TelaDocumentosGerados({ documentos, onEditar, onConfirmar, onVoltar, salvando }: Props) {
+export default function TelaDocumentosGerados({ documentos, iaModeloSolicitado, onEditar, onConfirmar, onVoltar, salvando }: Props) {
   const [abaAtiva, setAbaAtiva] = useState<'dfd' | 'etp' | 'tr'>('dfd')
 
   const abas: { key: 'dfd' | 'etp' | 'tr'; label: string }[] = [
@@ -118,6 +120,10 @@ export default function TelaDocumentosGerados({ documentos, onEditar, onConfirma
     { key: 'etp', label: 'ETP' },
     { key: 'tr', label: 'TR' },
   ]
+
+  const todasSecoes = [...documentos.dfd.secoes, ...documentos.etp.secoes, ...documentos.tr.secoes]
+  const iaFoiUsada = todasSecoes.some(s => s.origem === 'ia')
+  const temSecoesVazias = todasSecoes.some(s => !s.texto)
 
   return (
     <div className="space-y-4">
@@ -127,6 +133,42 @@ export default function TelaDocumentosGerados({ documentos, onEditar, onConfirma
           Revise o conteudo de cada documento. Edite as secoes se necessario e confirme para criar o processo.
         </p>
       </div>
+
+      {/* Banner: IA solicitada mas nao utilizada */}
+      {iaModeloSolicitado && !iaFoiUsada && (
+        <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+          <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-amber-800">
+              IA nao foi utilizada nesta geracao
+            </p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Os documentos foram gerados com os templates padrao. Para ativar o refinamento por IA, configure o provedor nas{' '}
+              <Link href="/configuracoes/ia" className="font-semibold underline hover:text-amber-900">
+                configuracoes da organizacao
+              </Link>
+              .
+            </p>
+          </div>
+          <Link
+            href="/configuracoes/ia"
+            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-amber-700 border border-amber-300 rounded-lg hover:bg-amber-100 transition-colors shrink-0"
+          >
+            <Settings className="w-3 h-3" />
+            Configurar
+          </Link>
+        </div>
+      )}
+
+      {/* Banner: secoes sem conteudo */}
+      {temSecoesVazias && (
+        <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+          <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+          <p className="text-sm text-red-700">
+            Algumas secoes ficaram sem conteudo. Clique no icone de edicao (lapiz) para preenche-las manualmente antes de confirmar.
+          </p>
+        </div>
+      )}
 
       <div className="flex border-b border-gray-200">
         {abas.map(aba => (

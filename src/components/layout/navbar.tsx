@@ -142,6 +142,10 @@ export default function Navbar({ user, nomeUsuario, saldoCreditos, notificacoes 
                   <Building2 className="w-4 h-4" />
                   Secretarias
                 </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => router.push('/configuracoes/ia')} className="gap-2 cursor-pointer text-sm">
+                  <Zap className="w-4 h-4" />
+                  Inteligencia Artificial
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSair} className="gap-2 text-red-600 cursor-pointer text-sm">
                   <LogOut className="w-4 h-4" />
