@@ -22,7 +22,8 @@
       "mcp__claude_ai_Supabase__get_logs",
       "mcp__claude_ai_Supabase__execute_sql",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(node \"C:/Users/danre/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/brainstorming/scripts/server.cjs\" --project-dir \"d:/Documentos/Projetos IA/Licita AI/AG-App-Licita--o\")"
     ]
   }
 }
