@@ -107,6 +107,24 @@ Disponível a qualquer momento após o procurador ter redigido ao menos 100 cara
 
 A análise é salva no campo `analise_ia` da tabela `pareceres`. O procurador lê e decide se incorpora algo. Consumo de créditos registrado em `acoes_ia`.
 
+### Resumo do processo (painel de contexto)
+Antes do editor, exibido em painel expansível (aberto por padrão na primeira abertura, colapsável depois), o procurador vê um resumo estruturado do processo:
+
+| Dado | Fonte |
+|---|---|
+| Objeto completo | `processos_licitatorios.objeto` |
+| Modalidade e fundamento legal | `processos_licitatorios.modalidade` |
+| Valor estimado | calculado via cotação |
+| Prazo de vigência | `tr.prazo_vigencia` |
+| Secretaria requisitante | `processos_licitatorios.secretaria_id` |
+| Justificativa da contratação | `dfd.justificativa` |
+| Principais requisitos técnicos | `tr.requisitos_tecnicos` (resumo primeiros 500 chars) |
+| Resultado esperado | `etp.resultados_pretendidos` |
+| Riscos identificados | `mapa_riscos`: itens de alta criticidade |
+| Histórico de tramitação | etapas anteriores com data e responsável |
+
+O procurador pode expandir cada seção para ler o conteúdo completo. Botão "Ver documento completo" abre o documento em nova aba. Este painel é somente leitura e não consome créditos de IA.
+
 ### Painel lateral de documentos
 Colapsável, abre à direita do editor. Lista os documentos do processo disponíveis (DFD, TR, ETP, Edital) com link para abrir cada um em nova aba. Permite consulta sem sair da tela do parecer.
 
@@ -125,7 +143,15 @@ Para cada precedente exibido:
 - Veredito emitido (Aprovado / Aprovado com ressalvas / Contrário)
 - Procurador responsável (nome, da mesma org; anonimizado de outras orgs)
 - Data
+- **Barra de similaridade visual**: percentual de 0% a 100% com gradiente de cor (cinza → âmbar → verde) calculado como média ponderada de: match de modalidade (40%), overlap de keywords do objeto (40%), proximidade de faixa de valor (20%). Exibida como barra horizontal com número ao lado.
 - Indicação "Em linha" ou "Divergente" em relação ao veredito atual sendo redigido
+
+**Modal de visualização do precedente**: ao clicar em qualquer precedente, abre modal com:
+- Cabeçalho: objeto, modalidade, valor, data, procurador (ou "Procurador anônimo" se org diferente)
+- A barra de similaridade com breakdown das 3 dimensões (modalidade, objeto, valor) — cada dimensão com seu percentual individual
+- Texto completo do parecer (o campo `conteudo` do parecer original), em modo leitura com scroll
+- Veredito emitido destacado no topo do texto
+- Botão "Fechar" — não há ação de copiar nem de editar (para evitar plágio inadvertido)
 
 Se nenhum precedente relevante for encontrado, o painel não aparece.
 
@@ -210,13 +236,15 @@ ALTER TABLE organizacoes
 | Arquivo | Responsabilidade |
 |---|---|
 | `supabase/migrations/20260512000006_procuradoria.sql` | Todas as alterações de banco acima |
-| `src/lib/actions/procuradoria.ts` | `listarPareceresOrg`, `marcarEmAnalise`, `salvarVeredito`, `salvarConteudo`, `emitirParecer`, `gerarMinutaIA`, `analisarComIA`, `buscarPrecedentes` |
+| `src/lib/actions/procuradoria.ts` | `listarPareceresOrg`, `marcarEmAnalise`, `salvarVeredito`, `salvarConteudo`, `emitirParecer`, `gerarMinutaIA`, `analisarComIA`, `buscarPrecedentes` (retorna score 0-100 e breakdown por dimensão), `obterResumProcesso` |
 | `src/lib/actions/configuracoes-plataforma.ts` | `obterConfiguracoes`, `salvarConfiguracao` |
 | `src/app/(dashboard)/procuradoria/layout.tsx` | Guard de acesso por papel |
 | `src/app/(dashboard)/procuradoria/page.tsx` | Server Component: busca pareceres + configs de prazo |
 | `src/app/(dashboard)/procuradoria/lista-pareceres.tsx` | Client Component: abas, lista, badges, KPIs |
 | `src/app/(dashboard)/admin/configuracoes-plataforma/page.tsx` | Formulário de configs globais |
-| `src/app/(dashboard)/processos/[id]/parecer/painel-documentos.tsx` | Painel lateral colapsável |
+| `src/app/(dashboard)/processos/[id]/parecer/painel-documentos.tsx` | Painel lateral colapsável com lista de documentos |
+| `src/app/(dashboard)/processos/[id]/parecer/resumo-processo.tsx` | Painel de contexto com resumo estruturado do processo (somente leitura) |
+| `src/app/(dashboard)/processos/[id]/parecer/modal-precedente.tsx` | Modal de visualização de precedente com barra de similaridade e texto completo |
 
 ### Modificados
 | Arquivo | O que muda |
