@@ -25,7 +25,7 @@ export type ModalidadeLicitacao =
 
 export type TipoAcaoIA = 'aprimorar_texto' | 'sugerir_conteudo' | 'gerar_documento'
 export type FonteCotacao = 'pncp' | 'banco_municipal' | 'pesquisa_direta'
-export type StatusParecer = 'pendente' | 'aprovado' | 'aprovado_com_ressalvas' | 'devolvido'
+export type StatusParecer = 'pendente' | 'em_analise' | 'aprovado' | 'aprovado_com_ressalvas' | 'contrario' | 'devolvido'
 export type TipoDFD = 'individual' | 'compartilhado'
 export type StatusAdesaoDFD = 'rascunho' | 'aguardando_adesao' | 'prazo_encerrado' | 'consolidado'
 export type StatusParticipacaoDFD = 'pendente' | 'aderida' | 'recusada'
@@ -263,6 +263,11 @@ export interface ParecerRow {
   conteudo: string | null
   status: StatusParecer
   gerado_por_ia: boolean
+  veredito: 'aprovar' | 'aprovar_com_ressalvas' | 'contrario' | null
+  analise_ia: string | null
+  ressalvas: string | null
+  motivo_contrario: string | null
+  data_envio_procuradoria: string | null
 }
 
 export type StatusAutorizacao = 'pendente' | 'autorizado' | 'devolvido'
@@ -376,6 +381,45 @@ export interface SecretariaEnvolvidaRow {
   processo_id: string
   secretaria_id: string
   ordem_assinatura: number | null
+}
+
+export interface ConfiguracaoPlataformaRow {
+  id: string
+  chave: string
+  valor: string
+  descricao: string | null
+  updated_at: string
+  updated_by: string | null
+}
+
+export interface PrecedenteRow {
+  id: string
+  parecer_id: string
+  organizacao_id: string
+  objeto_keywords: string[] | null
+  modalidade: string | null
+  faixa_valor: string | null
+  veredito: 'aprovar' | 'aprovar_com_ressalvas' | 'contrario'
+  procurador_id: string | null
+  emitido_em: string
+  participa_pool: boolean
+}
+
+export interface PrecedenteComScore {
+  id: string
+  parecer_id: string
+  objeto_processo: string
+  modalidade: string | null
+  faixa_valor: string | null
+  veredito: 'aprovar' | 'aprovar_com_ressalvas' | 'contrario'
+  procurador_nome: string | null
+  emitido_em: string
+  score: number
+  score_modalidade: number
+  score_keywords: number
+  score_valor: number
+  mesma_org: boolean
+  conteudo_parecer: string | null
 }
 
 // -------------------------------------------------------
