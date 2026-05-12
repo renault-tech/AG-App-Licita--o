@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import {
   FileText, PlusCircle, Clock, CheckCircle, ArrowRight,
   AlertCircle, Gavel, Zap, Scale, ShieldCheck, Filter,
-  Archive, CheckCircle2,
+  Archive, CheckCircle2, Share2,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -233,6 +233,14 @@ async function DashboardSetorLicitacao({
     .eq('organizacao_id', organizacaoId)
     .order('created_at', { ascending: false })
 
+  const { data: avisosAbertosData } = await (supabase as any)
+    .from('avisos_compra_conjunta')
+    .select('id')
+    .eq('organizacao_id', organizacaoId)
+    .eq('status', 'aberto')
+
+  const totalAvisosAbertos = (avisosAbertosData as any[] | null ?? []).length
+
   const processos = (todosProcessos as any[] | null) ?? []
 
   const ativos   = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao')
@@ -258,6 +266,22 @@ async function DashboardSetorLicitacao({
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {totalAvisosAbertos > 0 && (
+          <Link href="/processos/aviso-compra-conjunta/novo" className="col-span-2 lg:col-span-4">
+            <div className="flex items-center gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors cursor-pointer">
+              <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                <Share2 className="w-4 h-4 text-amber-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-amber-800">
+                  {totalAvisosAbertos} aviso{totalAvisosAbertos !== 1 ? 's' : ''} de compra conjunta aberto{totalAvisosAbertos !== 1 ? 's' : ''}
+                </p>
+                <p className="text-xs text-amber-600">Clique para criar ou gerenciar avisos</p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-amber-400 shrink-0" />
+            </div>
+          </Link>
+        )}
         <SectionKpi label="PROCESSOS"      valor={processos.length} sub="Total na organizacao" icon={FileText}     color="#1A365D" />
         <SectionKpi label="EM ELABORACAO"  valor={ativos.length}    sub="Em andamento"         icon={Clock}        color="#B7935E" />
         <SectionKpi label="EM REVISAO"     valor={emRevisao}        sub="Aguardando analise"   icon={Filter}       color="#7A5A1E" />
