@@ -30,9 +30,9 @@ export default async function ConfiguracaoOrganizacaoPage() {
   if (!org) redirect('/onboarding')
 
   return (
-    <div className="max-w-2xl space-y-5">
+    <div className="space-y-5">
       <div>
-        <h1 className="text-lg font-bold text-gray-900">Configuracoes da Organizacao</h1>
+        <h2 className="text-base font-semibold text-gray-900">Dados da Organizacao</h2>
         <p className="text-sm text-gray-500 mt-0.5">Dados institucionais exibidos nos documentos gerados pela plataforma.</p>
       </div>
       <FormOrganizacao organizacao={org} />

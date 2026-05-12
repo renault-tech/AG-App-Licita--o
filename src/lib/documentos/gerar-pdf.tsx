@@ -1,16 +1,11 @@
-import React from 'react'
 import {
-  Document, Page, Text, View, StyleSheet, Font, pdf,
+  Document, Page, Text, View, Image, StyleSheet, pdf,
 } from '@react-pdf/renderer'
 import type { PayloadDocumento } from './tipos'
 
-Font.register({
-  family: 'Arial',
-  fonts: [
-    { src: 'https://fonts.gstatic.com/s/opensans/v40/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsiF0B4taVIGxA.woff2', fontWeight: 'normal' },
-    { src: 'https://fonts.gstatic.com/s/opensans/v40/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsg-1x4taVIGxA.woff2', fontWeight: 'bold' },
-  ],
-})
+// Helvetica e Helvetica-Bold sao fontes PDF nativas — nao precisam de registro nem download
+const FONT_NORMAL = 'Helvetica'
+const FONT_BOLD   = 'Helvetica-Bold'
 
 const AZUL = '#1e3a5f'
 const CINZA = '#64748b'
@@ -19,10 +14,10 @@ const LINHA = '#cbd5e1'
 
 const s = StyleSheet.create({
   page: {
-    fontFamily: 'Arial',
+    fontFamily: FONT_NORMAL,
     fontSize: 10,
-    paddingTop: 60,
-    paddingBottom: 60,
+    paddingTop: 68,
+    paddingBottom: 64,
     paddingLeft: 56,
     paddingRight: 46,
     color: '#1e293b',
@@ -33,31 +28,41 @@ const s = StyleSheet.create({
     borderBottomStyle: 'solid',
     paddingBottom: 10,
     marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  brasao: {
+    width: 52,
+    height: 52,
+    objectFit: 'contain',
+  },
+  cabecalhoTexto: {
+    flex: 1,
     alignItems: 'center',
   },
   orgNome: {
+    fontFamily: FONT_BOLD,
     fontSize: 14,
-    fontWeight: 'bold',
     color: AZUL,
     textAlign: 'center',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   secNome: {
+    fontFamily: FONT_NORMAL,
     fontSize: 11,
     color: AZUL,
     textAlign: 'center',
     marginTop: 2,
   },
   tipoDoc: {
+    fontFamily: FONT_BOLD,
     fontSize: 12,
-    fontWeight: 'bold',
     color: AZUL,
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 12,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   metaTabela: {
     backgroundColor: CINZA_CLARO,
@@ -76,11 +81,11 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     gap: 4,
   },
-  metaLabel: { fontWeight: 'bold', color: AZUL, fontSize: 9 },
-  metaValor: { fontSize: 9, color: '#334155' },
+  metaLabel: { fontFamily: FONT_BOLD, color: AZUL, fontSize: 9 },
+  metaValor: { fontFamily: FONT_NORMAL, fontSize: 9, color: '#334155' },
   secaoTitulo: {
+    fontFamily: FONT_BOLD,
     fontSize: 10,
-    fontWeight: 'bold',
     color: AZUL,
     marginTop: 16,
     marginBottom: 6,
@@ -90,6 +95,7 @@ const s = StyleSheet.create({
     borderBottomStyle: 'solid',
   },
   secaoConteudo: {
+    fontFamily: FONT_NORMAL,
     fontSize: 10,
     lineHeight: 1.6,
     textAlign: 'justify',
@@ -100,14 +106,14 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  linha: {
+  assinaturaLinha: {
     width: 280,
     borderBottomWidth: 1,
     borderBottomColor: '#1e293b',
     borderBottomStyle: 'solid',
     marginBottom: 6,
   },
-  assinaturaLabel: { fontSize: 9, color: CINZA, textAlign: 'center' },
+  assinaturaLabel: { fontFamily: FONT_NORMAL, fontSize: 9, color: CINZA, textAlign: 'center' },
   rodapeIA: {
     marginTop: 32,
     padding: 8,
@@ -117,7 +123,6 @@ const s = StyleSheet.create({
     fontSize: 8,
     color: CINZA,
     textAlign: 'justify',
-    fontStyle: 'italic',
   },
   header: {
     position: 'absolute',
@@ -131,7 +136,7 @@ const s = StyleSheet.create({
     borderBottomStyle: 'solid',
     paddingBottom: 4,
   },
-  headerText: { fontSize: 8, color: CINZA },
+  headerText: { fontFamily: FONT_NORMAL, fontSize: 8, color: CINZA },
   footer: {
     position: 'absolute',
     bottom: 20,
@@ -143,18 +148,18 @@ const s = StyleSheet.create({
     paddingTop: 4,
     alignItems: 'center',
   },
-  footerText: { fontSize: 8, color: CINZA, textAlign: 'center' },
+  footerText: { fontFamily: FONT_NORMAL, fontSize: 8, color: CINZA, textAlign: 'center' },
   marca: {
     position: 'absolute',
-    top: '40%',
+    top: '38%',
     left: 0,
     right: 0,
     textAlign: 'center',
-    fontSize: 72,
+    fontSize: 76,
     color: '#e2e8f0',
-    opacity: 0.25,
+    opacity: 0.3,
     transform: 'rotate(-45deg)',
-    fontWeight: 'bold',
+    fontFamily: FONT_BOLD,
   },
 })
 
@@ -166,20 +171,26 @@ function rodapeTexto(payload: PayloadDocumento): string {
   return partes.join('   |   ')
 }
 
-function PaginaDoc({ payload, isMarca }: { payload: PayloadDocumento; isMarca: boolean }) {
+function ehMinuta(statusDocumento: string | null): boolean {
+  return !['assinado', 'publicado'].includes(statusDocumento ?? '')
+}
+
+function PaginaDoc({ payload }: { payload: PayloadDocumento }) {
   const { cabecalho } = payload
+  const minuta = ehMinuta(payload.statusDocumento)
+
   return (
     <Page size="A4" style={s.page}>
-      {/* Marca d'agua Minuta */}
-      {isMarca && <Text style={s.marca} fixed>MINUTA</Text>}
+      {/* Marca d'agua MINUTA enquanto nao assinado */}
+      {minuta && <Text style={s.marca} fixed>MINUTA</Text>}
 
-      {/* Header fixo */}
+      {/* Header fixo por pagina */}
       <View style={s.header} fixed>
         <Text style={s.headerText}>{cabecalho.municipio} - {cabecalho.estado}</Text>
         <Text style={s.headerText}>{payload.tipoDocumento}</Text>
       </View>
 
-      {/* Footer fixo */}
+      {/* Footer fixo por pagina */}
       <View style={s.footer} fixed>
         <Text style={s.footerText}>{rodapeTexto(payload)}</Text>
         <Text
@@ -189,12 +200,19 @@ function PaginaDoc({ payload, isMarca }: { payload: PayloadDocumento; isMarca: b
         />
       </View>
 
-      {/* Cabecalho do documento */}
+      {/* Cabecalho do documento com brasao */}
       <View style={s.cabecalho}>
-        <Text style={s.orgNome}>{cabecalho.nomeOrganizacao}</Text>
-        {cabecalho.nomeSecretaria && (
-          <Text style={s.secNome}>{cabecalho.nomeSecretaria}</Text>
+        {cabecalho.brasaoUrl && (
+          <Image src={cabecalho.brasaoUrl} style={s.brasao} />
         )}
+        <View style={s.cabecalhoTexto}>
+          <Text style={s.orgNome}>{cabecalho.nomeOrganizacao}</Text>
+          {cabecalho.nomeSecretaria && (
+            <Text style={s.secNome}>{cabecalho.nomeSecretaria}</Text>
+          )}
+        </View>
+        {/* Espaco simetrico para alinhar o texto ao centro quando ha brasao */}
+        {cabecalho.brasaoUrl && <View style={{ width: 52 }} />}
       </View>
 
       <Text style={s.tipoDoc}>{payload.tipoDocumento}</Text>
@@ -231,9 +249,9 @@ function PaginaDoc({ payload, isMarca }: { payload: PayloadDocumento; isMarca: b
         </View>
       ))}
 
-      {/* Assinatura */}
+      {/* Espaco para assinatura */}
       <View style={s.assinatura}>
-        <View style={s.linha} />
+        <View style={s.assinaturaLinha} />
         <Text style={s.assinaturaLabel}>Assinatura do Responsavel</Text>
         <Text style={s.assinaturaLabel}>
           {cabecalho.nomeSecretaria ?? cabecalho.nomeOrganizacao}
@@ -251,8 +269,6 @@ function PaginaDoc({ payload, isMarca }: { payload: PayloadDocumento; isMarca: b
 }
 
 export async function gerarPdf(payload: PayloadDocumento): Promise<Buffer> {
-  const isMarca = payload.cabecalho.geradoPorIA
-
   const elemento = (
     <Document
       title={payload.tipoDocumento}
@@ -260,7 +276,7 @@ export async function gerarPdf(payload: PayloadDocumento): Promise<Buffer> {
       subject={payload.objeto}
       creator="LicitaIA"
     >
-      <PaginaDoc payload={payload} isMarca={isMarca} />
+      <PaginaDoc payload={payload} />
     </Document>
   )
 

@@ -147,3 +147,26 @@ export async function desativarUsuario(usuarioId: string): Promise<ActionResult>
   revalidatePath('/configuracoes/usuarios')
   return { success: true }
 }
+
+export async function salvarConfigIA(provedor: string): Promise<ActionResult> {
+  const provedoresValidos = ['gemini', 'groq', 'anthropic', 'openrouter']
+  if (!provedoresValidos.includes(provedor)) {
+    return { success: false, error: 'Provedor invalido.' }
+  }
+
+  const usuario = await getUsuarioAutenticado()
+  if (!usuario) return { success: false, error: 'Sessao expirada.' }
+  if (!['admin_organizacao', 'admin_plataforma'].includes(usuario.papel)) {
+    return { success: false, error: 'Sem permissao para configurar IA.' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await (supabase.from('organizacoes') as any)
+    .update({ ia_config: { provider: provedor } })
+    .eq('id', usuario.organizacao_id)
+
+  if (error) return { success: false, error: 'Erro ao salvar configuracao.' }
+
+  revalidatePath('/configuracoes/ia')
+  return { success: true }
+}

@@ -24,15 +24,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   ])
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-[#FAFAFA]">
       <Navbar
         user={user}
         nomeUsuario={(usuarioRes.data as any)?.nome_completo ?? null}
         saldoCreditos={(creditosRes.data as any)?.saldo ?? null}
         notificacoes={notificacoes}
         naoLidas={naoLidas}
+        isAdminPlataforma={papelAtual === 'admin_plataforma'}
       />
-      <main className="flex-1 container mx-auto px-4 py-6 max-w-7xl pb-24">
+      <main className="flex-1 max-w-[1200px] mx-auto w-full px-6 py-8 pb-24">
         {children}
       </main>
       {papelAtual && <DemoSwitcher papelAtual={papelAtual as PapelUsuario} />}

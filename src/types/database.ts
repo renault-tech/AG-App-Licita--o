@@ -543,6 +543,12 @@ export interface Database {
         Update: Partial<Omit<PublicacaoRow, 'id' | 'created_at' | 'updated_at'>>
         Relationships: NoRelationships
       }
+      permissoes_papel_organizacao: {
+        Row: PermissaoPapelRow
+        Insert: Omit<PermissaoPapelRow, 'id' | 'updated_at'>
+        Update: Partial<Omit<PermissaoPapelRow, 'id'>>
+        Relationships: NoRelationships
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -588,4 +594,14 @@ export interface ClausulaAprendidaRow {
   score_qualidade: number
   ultima_vez_em: string
   criado_em: string
+}
+
+export interface PermissaoPapelRow {
+  id: string
+  organizacao_id: string
+  papel: PapelUsuario
+  tab_slug: string
+  pode_ver: boolean
+  pode_editar: boolean
+  updated_at: string
 }

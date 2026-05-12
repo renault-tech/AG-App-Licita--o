@@ -67,6 +67,7 @@ export async function gerarSecao(params: {
   variaveis: Record<string, string>
   usarIA: boolean
   modeloIA: string
+  providerOverride?: string
 }): Promise<SecaoGerada> {
   const { texto: textoBase, origem, processosReferencia } = await buscarClausulaParaCampo(
     params.documento,
@@ -84,6 +85,7 @@ export async function gerarSecao(params: {
         prompt: `Personalize o texto abaixo para o contexto especifico da contratacao, mantendo o registro juridico formal e as referencias legais. Retorne apenas o texto ajustado, sem comentarios.\n\nContexto: ${JSON.stringify(params.variaveis)}\n\nTexto base:\n${textoFinal}`,
         maxTokens: 800,
         temperature: 0.3,
+        provider: params.providerOverride as import('./ai/types').AIProvider | undefined,
       })
       textoFinal = res.text
       return { tipo_campo: params.tipoCampo, texto: textoFinal, origem: 'ia', processos_referencia: [] }

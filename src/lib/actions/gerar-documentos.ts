@@ -39,14 +39,25 @@ export async function gerarDocumentos(
     .maybeSingle()
   if (!usuario) return { success: false, error: 'Usuario nao encontrado.' }
 
-  const { data: secretaria } = await (supabase as any)
-    .from('secretarias')
-    .select('nome')
-    .eq('id', dados.secretaria_id)
-    .maybeSingle()
-
-  const secretariaNome = (secretaria as any)?.nome ?? 'Secretaria Requisitante'
   const orgId = (usuario as any).organizacao_id
+
+  const [secretariaRes, orgRes] = await Promise.all([
+    (supabase as any)
+      .from('secretarias')
+      .select('nome')
+      .eq('id', dados.secretaria_id)
+      .maybeSingle(),
+    (supabase as any)
+      .from('organizacoes')
+      .select('ia_config')
+      .eq('id', orgId)
+      .maybeSingle(),
+  ])
+
+  const secretariaNome = (secretariaRes.data as any)?.nome ?? 'Secretaria Requisitante'
+  const iaConfig = (orgRes.data as any)?.ia_config as { provider?: string } | null
+  const providerOverride = iaConfig?.provider ?? undefined
+
   const usarIA = dados.ia_modelo !== 'sem_ia'
   const variaveis = montarVariaveis(dados, secretariaNome)
 
@@ -61,6 +72,7 @@ export async function gerarDocumentos(
         variaveis,
         usarIA,
         modeloIA: dados.ia_modelo,
+        providerOverride,
       })
     )
 

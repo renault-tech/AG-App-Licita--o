@@ -1,0 +1,1 @@
+ALTER TABLE organizacoes ADD COLUMN IF NOT EXISTS ia_config jsonb DEFAULT NULL;

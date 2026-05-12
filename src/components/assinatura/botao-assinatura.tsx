@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Loader2, PenTool, CheckCircle, ShieldCheck } from 'lucide-react'
-
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -24,57 +23,85 @@ interface BotaoAssinaturaProps {
   desabilitado?: boolean
 }
 
-export default function BotaoAssinatura({ tabelaOrigem, documentoId, processoId, statusAtual, desabilitado }: BotaoAssinaturaProps) {
+export default function BotaoAssinatura({
+  tabelaOrigem,
+  documentoId,
+  processoId,
+  statusAtual,
+  desabilitado,
+}: BotaoAssinaturaProps) {
   const [aberto, setAberto] = useState(false)
   const [assinando, setAssinando] = useState(false)
 
-  const isAssinado = statusAtual === 'assinado'
+  const isAssinado = statusAtual === 'assinado' || statusAtual === 'publicado'
 
   async function handleAssinar() {
     setAssinando(true)
     const res = await assinarDocumento(tabelaOrigem, documentoId, processoId)
-    
     if (res.success) {
-      toast.success('Documento assinado digitalmente com sucesso!')
+      toast.success('Documento assinado com sucesso.')
       setAberto(false)
     } else {
-      toast.error(res.error || 'Erro ao assinar.')
+      toast.error(res.error ?? 'Erro ao assinar.')
     }
     setAssinando(false)
   }
 
   if (isAssinado) {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 text-green-700 rounded-md text-sm font-medium">
-        <CheckCircle className="w-4 h-4" /> Documento Assinado
+      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 text-green-700 rounded-lg text-xs font-medium">
+        <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+        Documento assinado
       </div>
     )
   }
 
   return (
     <Dialog open={aberto} onOpenChange={setAberto}>
-      <DialogTrigger render={
-        <Button variant="outline" className="gap-2 bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-800" disabled={desabilitado}>
-          <PenTool className="w-4 h-4" /> Assinar Documento
-        </Button>
-      } />
-      <DialogContent>
+      <DialogTrigger
+        render={
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={desabilitado}
+            className="gap-1.5 h-9 text-sm text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+          >
+            <PenTool className="w-3.5 h-3.5" />
+            Assinar
+          </Button>
+        }
+      />
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-emerald-600" />
-            Assinatura Eletrônica Interna
+            Assinar Documento
           </DialogTitle>
-          <DialogDescription className="pt-4">
-            Ao assinar, o documento passará para o status <strong>"Assinado"</strong> e será bloqueado para edições adicionais. 
-            Uma assinatura criptográfica com timestamp será atrelada ao seu usuário.
+          <DialogDescription className="pt-2">
+            Ao assinar, o documento recebe status <strong>Assinado</strong> e fica bloqueado para edicao.
+            Um hash criptografico com timestamp sera vinculado ao seu usuario como registro de autoria.
             <br /><br />
-            Você confirma a integridade e validade deste documento?
+            Voce confirma a integridade e validade deste documento?
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="mt-6">
-          <Button variant="ghost" onClick={() => setAberto(false)} disabled={assinando}>Cancelar</Button>
-          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleAssinar} disabled={assinando}>
-            {assinando ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Assinando...</> : 'Confirmar e Assinar'}
+        <DialogFooter className="mt-2 gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setAberto(false)}
+            disabled={assinando}
+          >
+            Cancelar
+          </Button>
+          <Button
+            size="sm"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+            onClick={handleAssinar}
+            disabled={assinando}
+          >
+            {assinando
+              ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Assinando...</>
+              : <><ShieldCheck className="w-3.5 h-3.5" /> Confirmar e Assinar</>}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -2,7 +2,7 @@ import {
   Document, Packer, Paragraph, TextRun, HeadingLevel,
   AlignmentType, BorderStyle, Table, TableRow, TableCell,
   WidthType, ShadingType, Header, Footer, PageNumber,
-  NumberFormat, convertInchesToTwip, type ISectionOptions,
+  NumberFormat, convertInchesToTwip,
 } from 'docx'
 import type { PayloadDocumento } from './tipos'
 
@@ -16,19 +16,24 @@ function rodapeTexto(payload: PayloadDocumento): string {
   return partes.join('   |   ')
 }
 
+function ehMinuta(statusDocumento: string | null): boolean {
+  return !['assinado', 'publicado'].includes(statusDocumento ?? '')
+}
+
 export async function gerarDocx(payload: PayloadDocumento): Promise<Buffer> {
   const { cabecalho } = payload
+  const minuta = ehMinuta(payload.statusDocumento)
 
-  const secaoNomeOrg = cabecalho.nomeSecretaria
-    ? `${cabecalho.nomeOrganizacao}\n${cabecalho.nomeSecretaria}`
-    : cabecalho.nomeOrganizacao
+  const nomeOrg = cabecalho.nomeSecretaria
+    ? `${cabecalho.nomeOrganizacao.toUpperCase()}  |  ${cabecalho.nomeSecretaria}`
+    : cabecalho.nomeOrganizacao.toUpperCase()
 
   const paragrafos: ElementoDoc[] = [
-    // Cabecalho interno (sem logo — logo requer imagem binária)
+    // Cabecalho interno
     new Paragraph({
       children: [
         new TextRun({
-          text: secaoNomeOrg.toUpperCase(),
+          text: nomeOrg,
           bold: true,
           size: 28,
           color: '1e3a5f',
@@ -42,11 +47,11 @@ export async function gerarDocx(payload: PayloadDocumento): Promise<Buffer> {
       },
     }),
 
-    // Tipo do documento
+    // Tipo do documento (com sufixo MINUTA quando aplicavel)
     new Paragraph({
       children: [
         new TextRun({
-          text: payload.tipoDocumento,
+          text: minuta ? `${payload.tipoDocumento} (MINUTA)` : payload.tipoDocumento,
           bold: true,
           size: 24,
           color: '1e3a5f',
@@ -183,7 +188,7 @@ export async function gerarDocx(payload: PayloadDocumento): Promise<Buffer> {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `${cabecalho.municipio} - ${cabecalho.estado}  |  ${payload.tipoDocumento}`,
+                  text: `${cabecalho.municipio} - ${cabecalho.estado}  |  ${payload.tipoDocumento}${minuta ? '  [MINUTA]' : ''}`,
                   size: 16,
                   color: '64748b',
                   font: 'Arial',

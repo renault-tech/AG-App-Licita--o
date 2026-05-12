@@ -35,9 +35,9 @@ export default async function GestaoUsuariosPage() {
     .order('created_at', { ascending: true })
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-bold text-gray-900">Gestao de Usuarios</h1>
+        <h2 className="text-base font-semibold text-gray-900">Gestao de Usuarios</h2>
         <p className="text-sm text-gray-500 mt-0.5">Convide colaboradores e gerencie papeis de acesso.</p>
       </div>
 

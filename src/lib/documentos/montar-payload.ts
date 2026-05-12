@@ -89,6 +89,7 @@ export async function montarPayloadDFD(processoId: string): Promise<PayloadDocum
     dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
     secoes,
     rodapeIA: dfd.gerado_por_ia ?? false,
+    statusDocumento: dfd.status ?? null,
   }
 }
 
@@ -139,6 +140,7 @@ export async function montarPayloadETP(processoId: string): Promise<PayloadDocum
     dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
     secoes,
     rodapeIA: etp.gerado_por_ia ?? false,
+    statusDocumento: etp.status ?? null,
   }
 }
 
@@ -187,6 +189,7 @@ export async function montarPayloadTR(processoId: string): Promise<PayloadDocume
     dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
     secoes,
     rodapeIA: tr.gerado_por_ia ?? false,
+    statusDocumento: tr.status ?? null,
   }
 }
 
@@ -238,6 +241,7 @@ export async function montarPayloadRiscos(processoId: string): Promise<PayloadDo
     dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
     secoes,
     rodapeIA: mapa.gerado_por_ia ?? false,
+    statusDocumento: mapa.status ?? null,
   }
 }
 
@@ -285,6 +289,7 @@ export async function montarPayloadEdital(processoId: string): Promise<PayloadDo
     dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
     secoes,
     rodapeIA: edital.gerado_por_ia ?? false,
+    statusDocumento: edital.status ?? null,
   }
 }
 
@@ -332,5 +337,6 @@ export async function montarPayloadParecer(processoId: string): Promise<PayloadD
     dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
     secoes,
     rodapeIA: parecer.gerado_por_ia ?? false,
+    statusDocumento: parecer.status ?? null,
   }
 }

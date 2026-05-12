@@ -1,0 +1,1 @@
+ALTER TABLE organizacoes ADD COLUMN IF NOT EXISTS assinatura_config jsonb DEFAULT NULL;

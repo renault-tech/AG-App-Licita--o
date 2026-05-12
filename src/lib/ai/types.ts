@@ -5,6 +5,7 @@ export interface AIRequestOptions {
   systemPrompt?: string
   maxTokens?: number
   temperature?: number
+  provider?: AIProvider
 }
 
 export interface AIResponse {

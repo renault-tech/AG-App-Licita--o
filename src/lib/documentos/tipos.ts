@@ -24,4 +24,6 @@ export interface PayloadDocumento {
   dataGeracao: string
   secoes: SecaoDoc[]
   rodapeIA: boolean
+  /** Status do documento na tabela de origem: determina exibicao da marca d'agua MINUTA */
+  statusDocumento: string | null
 }

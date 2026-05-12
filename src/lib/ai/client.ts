@@ -11,19 +11,19 @@ const adapters: Record<AIProvider, AIAdapter> = {
   openrouter: openrouterAdapter,
 }
 
-function getActiveAdapter(): AIAdapter {
-  const provider = (process.env.AI_PROVIDER ?? 'gemini') as AIProvider
+function getActiveAdapter(providerOverride?: AIProvider): AIAdapter {
+  const provider = (providerOverride ?? process.env.AI_PROVIDER ?? 'gemini') as AIProvider
   const adapter = adapters[provider]
   if (!adapter) throw new Error(`Provedor de IA desconhecido: ${provider}`)
   return adapter
 }
 
 export async function gerarTextoIA(options: AIRequestOptions): Promise<AIResponse> {
-  const adapter = getActiveAdapter()
+  const adapter = getActiveAdapter(options.provider)
   return adapter.generate(options)
 }
 
-export function getProviderInfo(): { provider: AIProvider; model: string } {
-  const adapter = getActiveAdapter()
+export function getProviderInfo(providerOverride?: AIProvider): { provider: AIProvider; model: string } {
+  const adapter = getActiveAdapter(providerOverride)
   return { provider: adapter.provider, model: adapter.model }
 }
