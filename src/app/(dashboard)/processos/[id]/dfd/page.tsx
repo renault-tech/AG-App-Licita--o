@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 
 import { obterDFD, obterParticipacoesComItens, verificarPrazoAdesao } from '@/lib/actions/dfd'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
+import { getPermissoesOrg, resolverPodeEditar } from '@/lib/cached-permissions'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import EditorDFD from './editor-dfd'
 import PainelAdesao from './painel-adesao'
@@ -26,9 +27,10 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
   if (!usuarioRaw) return notFound()
 
   // Carrega DFD (cria se nao existir)
-  const [dfdInicial, papel] = await Promise.all([
+  const [dfdInicial, papel, permissoesOrg] = await Promise.all([
     obterDFD(processoId),
     obterPapelUsuario(),
+    getPermissoesOrg(),
   ])
 
   if (!dfdInicial) return notFound()
@@ -45,6 +47,7 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
 
   const papelUsuario = papel ?? 'requisitante'
   const statusAdesao = dfd.status_adesao
+  const podeEditar = resolverPodeEditar(permissoesOrg, papel, 'dfd')
 
   // Determina a view correta baseado no contexto do usuario:
   // 1. Se o DFD esta em consolidacao (prazo encerrado ou consolidado) e usuario e da secretaria iniciadora:
@@ -179,6 +182,7 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
         dfd={dfd}
         processoId={processoId}
         papelUsuario={papelUsuario}
+        podeEditar={podeEditar}
       />
     </div>
   )

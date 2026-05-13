@@ -5,14 +5,16 @@ import EditorEdital from './editor-edital'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import BotaoAssinatura from '@/components/assinatura/botao-assinatura'
 import { Info } from 'lucide-react'
+import { getPermissoesOrg, resolverPodeEditar } from '@/lib/cached-permissions'
 
 export default async function EditalPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const [edital, papel] = await Promise.all([obterEdital(id), obterPapelUsuario()])
+  const [edital, papel, permissoesOrg] = await Promise.all([obterEdital(id), obterPapelUsuario(), getPermissoesOrg()])
   if (!edital) return notFound()
 
   const podeAssinar = ['setor_licitacao', 'admin_organizacao', 'admin_plataforma'].includes(papel ?? '')
+  const podeEditar = resolverPodeEditar(permissoesOrg, papel, 'edital')
 
   return (
     <div className="space-y-4">
@@ -39,7 +41,7 @@ export default async function EditalPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
       </div>
-      <EditorEdital edital={edital} processoId={id} papelUsuario={papel ?? 'requisitante'} />
+      <EditorEdital edital={edital} processoId={id} papelUsuario={papel ?? 'requisitante'} podeEditar={podeEditar} />
     </div>
   )
 }

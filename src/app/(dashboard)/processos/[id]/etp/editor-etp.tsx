@@ -34,7 +34,7 @@ const SECOES = [
   { id: 'providencias',           num: '8', label: 'Providencias Previas',             placeholder: 'O que o orgao precisa providenciar antes de receber o objeto?' },
 ] as const
 
-export default function EditorETP({ etp, processoId, papelUsuario }: { etp: any; processoId: string; papelUsuario: PapelUsuario }) {
+export default function EditorETP({ etp, processoId, papelUsuario, podeEditar = true }: { etp: any; processoId: string; papelUsuario: PapelUsuario; podeEditar?: boolean }) {
   const [formData, setFormData] = useState<FormData>({
     descricao_necessidade:  etp.descricao_necessidade  || '',
     requisitos_contratacao: etp.requisitos_contratacao || '',
@@ -75,6 +75,11 @@ export default function EditorETP({ etp, processoId, papelUsuario }: { etp: any;
   return (
     <Card className="border-gray-200 shadow-sm">
       <CardContent className="p-6 space-y-5">
+        {!podeEditar && (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            Visualizacao somente leitura. Seu perfil nao tem permissao de editar este documento.
+          </p>
+        )}
         {SECOES.map(({ id, num, label, placeholder }) => {
           const foiIA = iaEditado.has(id)
           return (
@@ -97,7 +102,7 @@ export default function EditorETP({ etp, processoId, papelUsuario }: { etp: any;
                   size="sm"
                   className="h-7 text-xs text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100 gap-1 shrink-0"
                   onClick={() => handleIA(id as keyof FormData)}
-                  disabled={iaLoading === id}
+                  disabled={iaLoading === id || !podeEditar}
                 >
                   {iaLoading === id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
                   IA
@@ -108,7 +113,8 @@ export default function EditorETP({ etp, processoId, papelUsuario }: { etp: any;
                 placeholder={placeholder}
                 value={formData[id as keyof FormData]}
                 onChange={(e) => setFormData(prev => ({ ...prev, [id]: e.target.value }))}
-                className={`resize-y ${foiIA ? 'border-purple-200 bg-purple-50/30' : ''}`}
+                readOnly={!podeEditar}
+                className={`resize-y ${foiIA ? 'border-purple-200 bg-purple-50/30' : ''} ${!podeEditar ? 'bg-gray-50 cursor-default' : ''}`}
               />
             </div>
           )
@@ -131,7 +137,7 @@ export default function EditorETP({ etp, processoId, papelUsuario }: { etp: any;
           />
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={handleSalvar} disabled={salvando} className="bg-blue-700 hover:bg-blue-800 text-white gap-2 h-9 text-sm">
+          <Button onClick={handleSalvar} disabled={salvando || !podeEditar} className="bg-blue-700 hover:bg-blue-800 text-white gap-2 h-9 text-sm">
             {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><Save className="w-4 h-4" /> Salvar ETP</>}
           </Button>
           <Link href={`/processos/${processoId}/tr`}>

@@ -5,14 +5,16 @@ import EditorTR from './editor-tr'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import BotaoAssinatura from '@/components/assinatura/botao-assinatura'
 import { Info } from 'lucide-react'
+import { getPermissoesOrg, resolverPodeEditar } from '@/lib/cached-permissions'
 
 export default async function TRPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const [tr, papel] = await Promise.all([obterTR(id), obterPapelUsuario()])
+  const [tr, papel, permissoesOrg] = await Promise.all([obterTR(id), obterPapelUsuario(), getPermissoesOrg()])
   if (!tr) return notFound()
 
   const podeAssinar = ['setor_licitacao', 'admin_organizacao', 'admin_plataforma'].includes(papel ?? '')
+  const podeEditar = resolverPodeEditar(permissoesOrg, papel, 'tr')
 
   return (
     <div className="space-y-4">
@@ -39,7 +41,7 @@ export default async function TRPage({ params }: { params: Promise<{ id: string 
           </div>
         </div>
       </div>
-      <EditorTR tr={tr} processoId={id} papelUsuario={papel ?? 'requisitante'} />
+      <EditorTR tr={tr} processoId={id} papelUsuario={papel ?? 'requisitante'} podeEditar={podeEditar} />
     </div>
   )
 }

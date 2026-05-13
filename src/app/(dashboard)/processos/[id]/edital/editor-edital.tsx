@@ -14,7 +14,7 @@ import Link from 'next/link'
 
 type Secao = { id: string; titulo: string; texto: string }
 
-export default function EditorEdital({ edital, processoId, papelUsuario }: { edital: any; processoId: string; papelUsuario: PapelUsuario }) {
+export default function EditorEdital({ edital, processoId, papelUsuario, podeEditar = true }: { edital: any; processoId: string; papelUsuario: PapelUsuario; podeEditar?: boolean }) {
   const modalidade = (edital.processos_licitatorios?.modalidade || 'dispensa') as ModalidadeLicitacao
   const [secoes, setSecoes] = useState<Secao[]>(
     Array.isArray(edital.conteudo) ? edital.conteudo : []
@@ -61,6 +61,11 @@ export default function EditorEdital({ edital, processoId, papelUsuario }: { edi
       </CardHeader>
 
       <CardContent className="p-5 space-y-4">
+        {!podeEditar && (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            Visualizacao somente leitura. Seu perfil nao tem permissao de editar este documento.
+          </p>
+        )}
         {secoes.map((secao, index) => {
           const foiIA = iaEditados.has(secao.id)
           return (
@@ -87,7 +92,7 @@ export default function EditorEdital({ edital, processoId, papelUsuario }: { edi
                   size="sm"
                   className="h-7 text-xs text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100 gap-1 shrink-0"
                   onClick={() => handleRevisarIA(secao.id)}
-                  disabled={iaLoadingId === secao.id}
+                  disabled={iaLoadingId === secao.id || !podeEditar}
                 >
                   {iaLoadingId === secao.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
                   Revisao Juridica
@@ -98,7 +103,8 @@ export default function EditorEdital({ edital, processoId, papelUsuario }: { edi
                 rows={5}
                 value={secao.texto}
                 onChange={(e) => atualiza(secao.id, 'texto', e.target.value)}
-                className="resize-y text-sm text-gray-800 leading-relaxed"
+                readOnly={!podeEditar}
+                className={`resize-y text-sm text-gray-800 leading-relaxed ${!podeEditar ? 'bg-gray-50 cursor-default' : ''}`}
                 placeholder="Conteudo da clausula..."
               />
             </div>
@@ -122,7 +128,7 @@ export default function EditorEdital({ edital, processoId, papelUsuario }: { edi
           />
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={handleSalvar} disabled={salvando} className="bg-blue-700 hover:bg-blue-800 text-white gap-2 h-9 text-sm">
+          <Button onClick={handleSalvar} disabled={salvando || !podeEditar} className="bg-blue-700 hover:bg-blue-800 text-white gap-2 h-9 text-sm">
             {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><Save className="w-4 h-4" /> Salvar Edital</>}
           </Button>
           <Link href={`/processos/${processoId}/parecer`}>

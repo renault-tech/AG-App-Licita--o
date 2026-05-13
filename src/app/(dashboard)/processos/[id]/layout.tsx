@@ -9,11 +9,11 @@ import {
 } from 'lucide-react'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import {
-  TABS_VISIVEIS_POR_PAPEL,
   ACESSO_RESTRITO_PROCESSO,
   getTabDesignada,
   LABEL_PAPEL,
 } from '@/lib/permissions'
+import { getPermissoesOrg } from '@/lib/cached-permissions'
 import type { PapelUsuario } from '@/types/database'
 
 const ETAPAS = [
@@ -73,15 +73,27 @@ export default async function ProcessoLayout({
     }
   }
 
-  // Requisitante nao acessa etapas de revisao em diante
-  if (papel === 'requisitante') {
-    const etapasRestritas = ['revisao', 'autorizacao', 'publicacao']
-    if (etapasRestritas.includes(etapaAtiva)) {
-      redirect(`/processos/${id}/dfd`)
-    }
+  const todasEtapas = ETAPAS.map(e => e.slug)
+  const permissoesOrg = await getPermissoesOrg()
+
+  // Admins veem tudo; papeis restritos nao tem nav; demais usam o banco
+  const tabsPermitidas: string[] =
+    !papel || ACESSO_RESTRITO_PROCESSO.includes(papel)
+      ? []
+      : ['admin_organizacao', 'admin_plataforma'].includes(papel)
+      ? todasEtapas
+      : permissoesOrg[papel]?.permissoes.filter(p => p.pode_ver).map(p => p.tab_slug) ?? todasEtapas
+
+  // Redirecionar se a etapa ativa nao e visivel para o papel
+  if (
+    papel &&
+    !ACESSO_RESTRITO_PROCESSO.includes(papel) &&
+    tabsPermitidas.length > 0 &&
+    !tabsPermitidas.includes(etapaAtiva)
+  ) {
+    redirect(`/processos/${id}/${tabsPermitidas[0]}`)
   }
 
-  const tabsPermitidas = papel ? (TABS_VISIVEIS_POR_PAPEL[papel] ?? []) : []
   const etapasVisiveis = ETAPAS.filter(e => tabsPermitidas.includes(e.slug))
   const etapaAtivaIndex = etapasVisiveis.findIndex(e => e.slug === etapaAtiva)
 

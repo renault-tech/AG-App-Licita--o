@@ -4,12 +4,15 @@ import { notFound } from 'next/navigation'
 import EditorETP from './editor-etp'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import { Info } from 'lucide-react'
+import { getPermissoesOrg, resolverPodeEditar } from '@/lib/cached-permissions'
 
 export default async function ETPPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const [etp, papel] = await Promise.all([obterETP(id), obterPapelUsuario()])
+  const [etp, papel, permissoesOrg] = await Promise.all([obterETP(id), obterPapelUsuario(), getPermissoesOrg()])
   if (!etp) return notFound()
+
+  const podeEditar = resolverPodeEditar(permissoesOrg, papel, 'etp')
 
   return (
     <div className="space-y-4">
@@ -28,7 +31,7 @@ export default async function ETPPage({ params }: { params: Promise<{ id: string
           </div>
         </div>
       </div>
-      <EditorETP etp={etp} processoId={id} papelUsuario={papel ?? 'requisitante'} />
+      <EditorETP etp={etp} processoId={id} papelUsuario={papel ?? 'requisitante'} podeEditar={podeEditar} />
     </div>
   )
 }

@@ -4,12 +4,15 @@ import { notFound } from 'next/navigation'
 import EditorRiscos from './editor-riscos'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import { Info } from 'lucide-react'
+import { getPermissoesOrg, resolverPodeEditar } from '@/lib/cached-permissions'
 
 export default async function MapaRiscosPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const [mapa, papel] = await Promise.all([obterMapaRiscos(id), obterPapelUsuario()])
+  const [mapa, papel, permissoesOrg] = await Promise.all([obterMapaRiscos(id), obterPapelUsuario(), getPermissoesOrg()])
   if (!mapa) return notFound()
+
+  const podeEditar = resolverPodeEditar(permissoesOrg, papel, 'riscos')
 
   return (
     <div className="space-y-4">
@@ -28,7 +31,7 @@ export default async function MapaRiscosPage({ params }: { params: Promise<{ id:
           </div>
         </div>
       </div>
-      <EditorRiscos mapa={mapa} processoId={id} papelUsuario={papel ?? 'requisitante'} />
+      <EditorRiscos mapa={mapa} processoId={id} papelUsuario={papel ?? 'requisitante'} podeEditar={podeEditar} />
     </div>
   )
 }

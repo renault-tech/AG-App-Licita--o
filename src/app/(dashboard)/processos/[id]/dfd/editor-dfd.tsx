@@ -11,7 +11,6 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 
 import {
@@ -293,14 +292,16 @@ export default function EditorDFD({
   dfd,
   processoId,
   papelUsuario,
+  podeEditar = true,
 }: {
   dfd: DFDCompleto
   processoId: string
   papelUsuario: PapelUsuario
+  podeEditar?: boolean
 }) {
   const assinado = dfd.status === 'assinado'
   const emAdesao = dfd.status_adesao === 'aguardando_adesao'
-  const readonly = assinado || emAdesao
+  const readonly = assinado || emAdesao || !podeEditar
 
   const [objeto, setObjeto] = useState(dfd.objeto)
   const [justificativa, setJustificativa] = useState(dfd.justificativa_necessidade ?? '')

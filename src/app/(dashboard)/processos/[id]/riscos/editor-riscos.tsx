@@ -40,7 +40,7 @@ const NIVEL_BADGE: Record<string, string> = {
   Baixo:    'bg-green-50 text-green-700 border-green-200',
 }
 
-export default function EditorRiscos({ mapa, processoId, papelUsuario }: { mapa: any; processoId: string; papelUsuario: PapelUsuario }) {
+export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEditar = true }: { mapa: any; processoId: string; papelUsuario: PapelUsuario; podeEditar?: boolean }) {
   const [riscos, setRiscos] = useState<any[]>(Array.isArray(mapa.riscos) ? mapa.riscos : [])
   const [salvando, setSalvando]   = useState(false)
   const [iaLoading, setIaLoading] = useState(false)
@@ -98,19 +98,24 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario }: { mapa:
             variant="outline"
             size="sm"
             onClick={handleIA}
-            disabled={iaLoading}
+            disabled={iaLoading || !podeEditar}
             className="h-8 text-xs text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100 gap-1.5"
           >
             {iaLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
             Sugerir com IA
           </Button>
-          <Button variant="outline" size="sm" onClick={addRisco} className="h-8 text-xs gap-1.5">
+          <Button variant="outline" size="sm" onClick={addRisco} disabled={!podeEditar} className="h-8 text-xs gap-1.5">
             <Plus className="w-3.5 h-3.5" /> Adicionar
           </Button>
         </div>
       </CardHeader>
 
       <CardContent className="p-5 space-y-3">
+        {!podeEditar && (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            Visualizacao somente leitura. Seu perfil nao tem permissao de editar este documento.
+          </p>
+        )}
         {riscos.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center text-gray-400 bg-gray-50 border border-dashed border-gray-200 rounded-xl">
             <ShieldAlert className="w-10 h-10 mb-3 text-gray-300" />
@@ -212,7 +217,7 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario }: { mapa:
           />
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={handleSalvar} disabled={salvando} className="bg-blue-700 hover:bg-blue-800 text-white gap-2 h-9 text-sm">
+          <Button onClick={handleSalvar} disabled={salvando || !podeEditar} className="bg-blue-700 hover:bg-blue-800 text-white gap-2 h-9 text-sm">
             {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><Save className="w-4 h-4" /> Salvar Riscos</>}
           </Button>
           <Link href={`/processos/${processoId}/edital`}>
