@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, BookOpen, Bot, Building2, Users,
-  HelpCircle,
+  HelpCircle, Settings2,
 } from 'lucide-react'
 
 const NAV = [
@@ -37,6 +37,12 @@ const NAV = [
     label: 'Usuarios',
     icon: Users,
     tooltip: 'Visualize e administre todos os usuarios de todas as organizacoes.',
+  },
+  {
+    href: '/admin/configuracoes-plataforma',
+    label: 'Configuracoes',
+    icon: Settings2,
+    tooltip: 'Parametros globais da plataforma: prazos de alerta para pareceres e outras configuracoes.',
   },
 ]
 

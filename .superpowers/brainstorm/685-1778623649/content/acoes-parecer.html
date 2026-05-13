@@ -1,0 +1,62 @@
+<h2>Ações disponíveis para o procurador</h2>
+<p class="subtitle">O que o procurador pode fazer dentro do parecer, além de redigir o texto?</p>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="ia" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Gerar minuta com IA</h3>
+      <p>Botão que usa Claude para redigir uma minuta do parecer com base nos documentos do processo (DFD, TR, ETP). Já existe na página atual mas pode ser destacado.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="status_analise" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Marcar como "Em análise"</h3>
+      <p>Ao abrir o parecer pela primeira vez, o procurador clica para sinalizar que está trabalhando. Move da aba Pendentes para Em análise. Útil quando há vários procuradores.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="aprovado" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Aprovar / Aprovar com ressalvas</h3>
+      <p>Dois botões distintos. "Aprovar" avança o processo para autorização. "Aprovar com ressalvas" também avança mas registra observações obrigatórias.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="devolver" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>Devolver para correção</h3>
+      <p>Com campo obrigatório para descrever o motivo. Notifica o setor de licitação. Processo volta para a etapa de revisão.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="exportar" onclick="toggleSelect(this)">
+    <div class="letter">E</div>
+    <div class="content">
+      <h3>Exportar PDF / DOCX</h3>
+      <p>Já existe na página atual. Gera o parecer em formato oficial com cabeçalho institucional.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="assinar" onclick="toggleSelect(this)">
+    <div class="letter">F</div>
+    <div class="content">
+      <h3>Assinar eletronicamente</h3>
+      <p>Já existe. Integração com o adapter de assinatura configurado pela organização.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="docs_processo" onclick="toggleSelect(this)">
+    <div class="letter">G</div>
+    <div class="content">
+      <h3>Painel de documentos do processo</h3>
+      <p>Dentro da tela do parecer, um painel lateral ou colapsável mostrando os documentos do processo (DFD, TR, ETP, Edital) para consulta sem sair da página.</p>
+    </div>
+  </div>
+</div>
+
+<p style="font-size:12px;color:#888;margin-top:16px;">Selecione todas as ações que devem estar disponíveis (multi-seleção)</p>

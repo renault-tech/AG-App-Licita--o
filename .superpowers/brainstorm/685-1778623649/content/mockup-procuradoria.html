@@ -1,0 +1,135 @@
+<h2>Mockup — Área da Procuradoria</h2>
+<p class="subtitle">Layout completo da rota /procuradoria com abas e painel de parecer</p>
+
+<div class="mockup" style="font-family:system-ui,sans-serif;font-size:13px;">
+  <div class="mockup-header">http://localhost:3000/procuradoria</div>
+  <div class="mockup-body" style="padding:0;">
+
+    <!-- Navbar simulada -->
+    <div style="background:#1A365D;color:white;padding:10px 20px;display:flex;align-items:center;gap:20px;font-size:12px;">
+      <span style="font-weight:700;font-size:14px;">LicitaIA</span>
+      <span style="opacity:0.6;">Painel</span>
+      <span style="opacity:0.6;">Processos</span>
+      <span style="border-bottom:2px solid #B7935E;padding-bottom:2px;color:#B7935E;font-weight:600;">Procuradoria</span>
+      <span style="opacity:0.6;margin-left:auto;">Dr. João Silva</span>
+    </div>
+
+    <div style="padding:24px;background:#F8F9FC;min-height:480px;">
+
+      <!-- Cabeçalho da área -->
+      <div style="margin-bottom:20px;">
+        <h2 style="margin:0;font-size:18px;font-weight:700;color:#1A365D;">Procuradoria</h2>
+        <p style="margin:4px 0 0;font-size:12px;color:#74777F;">Fila de pareceres jurídicos — Art. 53 da Lei 14.133/21</p>
+      </div>
+
+      <!-- KPIs rápidos -->
+      <div style="display:flex;gap:12px;margin-bottom:20px;">
+        <div style="background:white;border:1px solid #E3E2E6;border-radius:8px;padding:12px 16px;flex:1;border-left:3px solid #E53E3E;">
+          <div style="font-size:22px;font-weight:700;color:#E53E3E;">3</div>
+          <div style="font-size:11px;color:#74777F;margin-top:2px;">Pendentes</div>
+        </div>
+        <div style="background:white;border:1px solid #E3E2E6;border-radius:8px;padding:12px 16px;flex:1;border-left:3px solid #B7935E;">
+          <div style="font-size:22px;font-weight:700;color:#B7935E;">1</div>
+          <div style="font-size:11px;color:#74777F;margin-top:2px;">Em análise</div>
+        </div>
+        <div style="background:white;border:1px solid #E3E2E6;border-radius:8px;padding:12px 16px;flex:1;border-left:3px solid #38A169;">
+          <div style="font-size:22px;font-weight:700;color:#38A169;">12</div>
+          <div style="font-size:11px;color:#74777F;margin-top:2px;">Emitidos este mês</div>
+        </div>
+      </div>
+
+      <!-- Abas -->
+      <div style="display:flex;gap:0;border-bottom:2px solid #E3E2E6;margin-bottom:0;">
+        <div style="padding:8px 18px;font-weight:600;font-size:12px;color:#1A365D;border-bottom:2px solid #B7935E;margin-bottom:-2px;background:white;border-radius:6px 6px 0 0;">
+          Pendentes <span style="background:#E53E3E;color:white;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;">3</span>
+        </div>
+        <div style="padding:8px 18px;font-size:12px;color:#74777F;cursor:pointer;">
+          Em análise <span style="background:#E3E2E6;color:#555;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;">1</span>
+        </div>
+        <div style="padding:8px 18px;font-size:12px;color:#74777F;cursor:pointer;">Histórico</div>
+      </div>
+
+      <!-- Lista de itens -->
+      <div style="background:white;border:1px solid #E3E2E6;border-top:none;border-radius:0 0 8px 8px;">
+
+        <!-- Item 1 — urgente -->
+        <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid #F4F3F7;">
+          <div style="width:36px;height:36px;background:#FFF5F5;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="font-size:14px;">⚖️</span>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:600;color:#1A1C1E;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              PL-2026-0042 — Aquisição de 50 computadores para as escolas municipais
+            </div>
+            <div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:#74777F;flex-wrap:wrap;">
+              <span>Pregão Eletrônico</span>
+              <span>·</span>
+              <span>R$ 182.500,00</span>
+              <span>·</span>
+              <span>Sec. de Educação</span>
+              <span>·</span>
+              <span>Enviado há <b style="color:#E53E3E;">8 dias</b></span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+            <span style="background:#FFF5F5;color:#E53E3E;border:1px solid #FEB2B2;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:600;">URGENTE</span>
+            <button style="background:#1A365D;color:white;border:none;border-radius:6px;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;">Abrir parecer →</button>
+          </div>
+        </div>
+
+        <!-- Item 2 -->
+        <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid #F4F3F7;">
+          <div style="width:36px;height:36px;background:#F0F7FF;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="font-size:14px;">⚖️</span>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:600;color:#1A1C1E;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              PL-2026-0038 — Contratação de serviço de limpeza predial
+            </div>
+            <div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:#74777F;flex-wrap:wrap;">
+              <span>Concorrência</span>
+              <span>·</span>
+              <span>R$ 540.000,00</span>
+              <span>·</span>
+              <span>Sec. de Administração</span>
+              <span>·</span>
+              <span>Enviado há 3 dias</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+            <span style="background:#F0F7FF;color:#2B6CB0;border:1px solid #BEE3F8;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:600;">PENDENTE</span>
+            <button style="background:#1A365D;color:white;border:none;border-radius:6px;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;">Abrir parecer →</button>
+          </div>
+        </div>
+
+        <!-- Item 3 -->
+        <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;">
+          <div style="width:36px;height:36px;background:#F0FFF4;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="font-size:14px;">⚖️</span>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:600;color:#1A1C1E;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              PL-2026-0035 — Dispensa — Reforma da quadra esportiva
+            </div>
+            <div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:#74777F;flex-wrap:wrap;">
+              <span>Dispensa</span>
+              <span>·</span>
+              <span>R$ 48.000,00</span>
+              <span>·</span>
+              <span>Sec. de Esportes</span>
+              <span>·</span>
+              <span>Enviado ontem</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+            <span style="background:#F0FFF4;color:#276749;border:1px solid #9AE6B4;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:600;">NOVO</span>
+            <button style="background:#1A365D;color:white;border:none;border-radius:6px;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;">Abrir parecer →</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="font-size:12px;color:#888;margin-top:16px;text-align:center;">Mockup da fila — aba Pendentes. O painel do parecer em si permanece em /processos/[id]/parecer com o painel lateral de documentos adicionado. Esse layout parece certo?</p>

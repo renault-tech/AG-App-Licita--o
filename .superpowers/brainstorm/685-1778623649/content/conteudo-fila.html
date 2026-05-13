@@ -1,0 +1,70 @@
+<h2>O que aparece em cada item da fila de pareceres?</h2>
+<p class="subtitle">Quais informações o procurador precisa ver antes de abrir o processo?</p>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="objeto" onclick="toggleSelect(this)">
+    <div class="letter">1</div>
+    <div class="content">
+      <h3>Objeto do processo</h3>
+      <p>Ex: "Aquisição de 50 computadores para as escolas municipais"</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="numero" onclick="toggleSelect(this)">
+    <div class="letter">2</div>
+    <div class="content">
+      <h3>Número do processo</h3>
+      <p>Ex: "PL-2026-0042"</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="modalidade" onclick="toggleSelect(this)">
+    <div class="letter">3</div>
+    <div class="content">
+      <h3>Modalidade</h3>
+      <p>Pregão, Concorrência, Dispensa, Inexigibilidade etc.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="valor" onclick="toggleSelect(this)">
+    <div class="letter">4</div>
+    <div class="content">
+      <h3>Valor estimado</h3>
+      <p>Valor total estimado da contratação</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="secretaria" onclick="toggleSelect(this)">
+    <div class="letter">5</div>
+    <div class="content">
+      <h3>Secretaria requisitante</h3>
+      <p>Qual setor enviou o processo para a procuradoria</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="data" onclick="toggleSelect(this)">
+    <div class="letter">6</div>
+    <div class="content">
+      <h3>Data de envio para procuradoria</h3>
+      <p>Quando o processo chegou na fila — para priorização</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="status" onclick="toggleSelect(this)">
+    <div class="letter">7</div>
+    <div class="content">
+      <h3>Status do parecer</h3>
+      <p>Pendente / Em análise / Aprovado / Devolvido</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="prazo" onclick="toggleSelect(this)">
+    <div class="letter">8</div>
+    <div class="content">
+      <h3>Prazo / urgência</h3>
+      <p>Badge visual de urgência (ex: aguardando há X dias)</p>
+    </div>
+  </div>
+</div>
+
+<p style="font-size:12px;color:#888;margin-top:16px;">Selecione todos que devem aparecer na lista (multi-seleção)</p>

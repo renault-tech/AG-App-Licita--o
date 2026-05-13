@@ -1,0 +1,47 @@
+<h2>Layout da Fila de Pareceres</h2>
+<p class="subtitle">Como o procurador acessa e trabalha os pareceres pendentes?</p>
+
+<div class="section">
+  <p class="label">Contexto atual</p>
+  <p style="font-size:13px;color:#555;margin-bottom:16px;">
+    Hoje o procurador só chega ao parecer via link direto no processo. Não há visão consolidada das pendências. O dashboard já mostra uma lista simples, mas não é uma área de trabalho dedicada.
+  </p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Rota dedicada <code>/procuradoria</code></h3>
+      <p>Área separada da navbar com fila de pareceres pendentes, histórico e filtros. O procurador tem seu "escritório" próprio, desacoplado do fluxo de processos.</p>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pontos fortes</h4><ul><li>Visão completa de todas as pendências</li><li>Filtros e busca independentes</li><li>Histórico de pareceres emitidos</li></ul></div>
+        <div class="cons"><h4>Contra</h4><ul><li>Mais código novo</li><li>Precisa de link extra na navbar</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Página dentro de <code>/processos</code></h3>
+      <p>Uma rota <code>/processos?papel=procurador</code> que filtra a lista de processos para mostrar apenas os que estão na etapa de parecer. Reutiliza o componente de lista existente.</p>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pontos fortes</h4><ul><li>Menos código — reusa o existente</li><li>Sem mudança na navbar</li></ul></div>
+        <div class="cons"><h4>Contra</h4><ul><li>UX genérica, não focada no procurador</li><li>Sem histórico consolidado</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Expandir o Dashboard do Procurador</h3>
+      <p>O dashboard já tem uma seção para o procurador. Torná-la mais completa: fila com filtros, contador de pendências, atalho para abrir cada parecer — tudo na mesma página.</p>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pontos fortes</h4><ul><li>Sem nova rota</li><li>Tudo em um lugar</li></ul></div>
+        <div class="cons"><h4>Contra</h4><ul><li>Dashboard fica pesado</li><li>Não é uma área de trabalho real</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

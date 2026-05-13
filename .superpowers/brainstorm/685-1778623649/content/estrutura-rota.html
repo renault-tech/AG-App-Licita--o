@@ -1,0 +1,47 @@
+<h2>Estrutura da área /procuradoria</h2>
+<p class="subtitle">Como organizar as seções dentro da rota dedicada?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Página única com abas: Pendentes | Em análise | Histórico</h3>
+      <p>Uma rota <code>/procuradoria</code> com 3 abas. Pendentes = status "pendente". Em análise = status "em_analise". Histórico = aprovados e devolvidos.</p>
+      <div style="margin-top:10px;padding:10px;background:#f8f8f8;border-radius:6px;font-size:12px;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <span style="padding:3px 10px;background:#1A365D;color:white;border-radius:4px;font-size:11px;">Pendentes (3)</span>
+          <span style="padding:3px 10px;background:#eee;color:#555;border-radius:4px;font-size:11px;">Em análise (1)</span>
+          <span style="padding:3px 10px;background:#eee;color:#555;border-radius:4px;font-size:11px;">Histórico</span>
+        </div>
+        <div style="border:1px solid #e0e0e0;border-radius:4px;padding:8px;font-size:11px;color:#333;">
+          Lista de processos com todos os 8 campos
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Página única sem abas, com seções visuais</h3>
+      <p>Tudo em scroll vertical: primeiro bloco "Ação necessária" (pendentes), depois "Em andamento", depois "Histórico recente". Sem troca de aba.</p>
+      <div style="margin-top:10px;padding:10px;background:#f8f8f8;border-radius:6px;font-size:12px;">
+        <div style="padding:6px;background:#FFF3CD;border-radius:4px;margin-bottom:6px;font-size:11px;font-weight:600;">Ação necessária — 3 pendentes</div>
+        <div style="padding:6px;background:#E8F4FD;border-radius:4px;margin-bottom:6px;font-size:11px;font-weight:600;">Em andamento — 1</div>
+        <div style="padding:6px;background:#eee;border-radius:4px;font-size:11px;font-weight:600;">Histórico recente</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Duas rotas: <code>/procuradoria</code> (fila) + <code>/procuradoria/historico</code></h3>
+      <p>A rota principal é só a fila de trabalho (pendentes + em análise). Histórico fica em rota separada, acessível via link discreto. Foco máximo na ação.</p>
+      <div style="margin-top:10px;padding:10px;background:#f8f8f8;border-radius:6px;font-size:12px;">
+        <div style="font-size:11px;color:#1A365D;font-weight:600;">/procuradoria — Fila de trabalho</div>
+        <div style="font-size:11px;color:#888;margin-top:4px;">/procuradoria/historico — Pareceres emitidos</div>
+      </div>
+    </div>
+  </div>
+</div>
