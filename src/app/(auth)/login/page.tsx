@@ -51,8 +51,8 @@ function LoginForm() {
   return (
     <Card className="shadow-lg border-0">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-xl font-semibold text-gray-800">Acesso ao Sistema</CardTitle>
-        <CardDescription>Entre com seu e-mail institucional e senha</CardDescription>
+        <CardTitle className="text-2xl font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>Acesso ao Sistema</CardTitle>
+        <CardDescription className="text-sm text-[#74777F]">Entre com seu e-mail institucional e senha</CardDescription>
       </CardHeader>
 
       <form onSubmit={handleLogin}>
@@ -91,9 +91,9 @@ function LoginForm() {
               <><LogIn className="w-4 h-4 mr-2" /> Entrar</>
             )}
           </Button>
-          <p className="text-sm text-center text-gray-500">
+          <p className="text-sm text-center text-[#74777F]">
             Ainda sem acesso?{' '}
-            <Link href="/cadastro" className="text-blue-600 hover:underline font-medium">
+            <Link href="/cadastro" className="text-[#1A365D] hover:underline font-semibold">
               Solicite seu cadastro
             </Link>
           </p>

@@ -34,7 +34,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         isAdminPlataforma={papelAtual === 'admin_plataforma'}
         papel={papelAtual}
       />
-      <main className="flex-1 max-w-[1200px] mx-auto w-full px-6 py-8 pb-24">
+      <main className="flex-1 max-w-[1400px] mx-auto w-full px-6 md:px-8 lg:px-12 py-10 pb-32">
         {children}
       </main>
       {papelAtual && <DemoSwitcher papelAtual={papelAtual as PapelUsuario} />}

@@ -138,6 +138,52 @@
   --sidebar-ring:             #ADC7F7;
 }
 
+/* ── Zoom support ──────────────────────────────────────────── */
+html {
+  zoom: var(--zoom-level, 1);
+}
+
+/* ── Typography scale ──────────────────────────────────────── */
+:root {
+  /* Headline — Plus Jakarta Sans (--font-heading) */
+  --type-headline-xl:        700 48px/56px var(--font-heading, ui-sans-serif);
+  --type-headline-lg:        700 32px/40px var(--font-heading, ui-sans-serif);
+  --type-headline-md:        600 24px/32px var(--font-heading, ui-sans-serif);
+  --type-headline-sm:        600 20px/28px var(--font-heading, ui-sans-serif);
+
+  /* Body — Source Serif 4 (--font-body) */
+  --type-body-lg:            400 18px/28px var(--font-body, serif);
+  --type-body-md:            400 16px/24px var(--font-body, serif);
+
+  /* Label — Inter (--font-inter) */
+  --type-label-lg:           600 16px/22px var(--font-inter, ui-sans-serif);
+  --type-label-md:           600 14px/20px var(--font-inter, ui-sans-serif);
+  --type-label-sm:           500 12px/16px var(--font-inter, ui-sans-serif);
+
+  /* Mobile overrides */
+  --type-headline-xl-mobile: 700 32px/40px var(--font-heading, ui-sans-serif);
+  --type-headline-lg-mobile: 700 24px/32px var(--font-heading, ui-sans-serif);
+
+  /* Elevation (navy-tinted shadows) */
+  --elevation-0: none;
+  --elevation-1: 0 0 0 1px #E2E8F0;
+  --elevation-2: 0 0 0 1px #E2E8F0, 0px 4px 12px rgba(26, 54, 93, 0.05);
+  --elevation-3: 0px 12px 32px rgba(26, 54, 93, 0.10);
+
+  /* Spacing scale (8px base) */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-8: 64px;
+  --space-10: 80px;
+  --section-padding-desktop: 80px;
+  --section-padding-mobile: 40px;
+  --gutter: 24px;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -145,10 +191,49 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading, var(--font-inter));
     font-weight: 700;
     color: var(--navy);
+    letter-spacing: -0.01em;
+  }
+  h1 { font-size: 32px; line-height: 40px; }
+  h2 { font-size: 24px; line-height: 32px; }
+  h3 { font-size: 20px; line-height: 28px; }
+  h4 { font-size: 18px; line-height: 24px; }
+
+  /* Ensure minimum readable text */
+  p, span, a, li, td, th, label, input, textarea, select, button {
+    font-size: inherit;
+  }
+}
+
+/* ── Utility classes ───────────────────────────────────────── */
+@layer utilities {
+  .type-headline-xl { font: var(--type-headline-xl); letter-spacing: -0.02em; color: var(--navy); }
+  .type-headline-lg { font: var(--type-headline-lg); letter-spacing: -0.01em; color: var(--navy); }
+  .type-headline-md { font: var(--type-headline-md); color: var(--navy); }
+  .type-headline-sm { font: var(--type-headline-sm); color: var(--navy); }
+  .type-body-lg     { font: var(--type-body-lg); color: var(--foreground); }
+  .type-body-md     { font: var(--type-body-md); color: var(--foreground); }
+  .type-label-lg    { font: var(--type-label-lg); letter-spacing: 0.01em; }
+  .type-label-md    { font: var(--type-label-md); letter-spacing: 0.05em; }
+  .type-label-sm    { font: var(--type-label-sm); }
+
+  .elevation-0 { box-shadow: var(--elevation-0); }
+  .elevation-1 { box-shadow: var(--elevation-1); }
+  .elevation-2 { box-shadow: var(--elevation-2); }
+  .elevation-3 { box-shadow: var(--elevation-3); }
+
+  .kicker {
+    font: var(--type-label-md);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
   }
 }

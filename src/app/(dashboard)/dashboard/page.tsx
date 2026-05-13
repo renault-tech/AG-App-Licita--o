@@ -40,8 +40,8 @@ function StatusBadge({ status, config }: { status: string; config: typeof STATUS
   const cfg = config[status] ?? config['rascunho']
   return (
     <span
-      className="text-[11px] font-medium px-2 py-0.5 border shrink-0"
-      style={{ backgroundColor: cfg.bg, color: cfg.color, borderColor: cfg.border, borderRadius: '2px' }}
+      className="text-xs font-medium px-2.5 py-1 border shrink-0"
+      style={{ backgroundColor: cfg.bg, color: cfg.color, borderColor: cfg.border, borderRadius: '3px' }}
     >
       {cfg.label}
     </span>
@@ -55,24 +55,24 @@ function ProcessoRow({ p, href }: { p: any; href: string }) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-4 px-6 py-4 hover:bg-[#FAFAFA] transition-colors group"
+      className="flex items-center gap-4 px-6 py-5 hover:bg-[#FAFAFA] transition-colors group"
     >
       <div
-        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
         style={{ backgroundColor: '#1A365D0D' }}
       >
-        <FileText className="w-4 h-4" style={{ color: '#1A365D' }} />
+        <FileText className="w-[18px] h-[18px]" style={{ color: '#1A365D' }} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-[#1A1C1E] truncate">
+        <p className="text-[15px] font-semibold text-[#1A1C1E] truncate">
           {p.numero_processo ? `${p.numero_processo} - ` : ''}{p.objeto}
         </p>
-        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-          <span className="text-xs text-[#74777F]">{modalidade}</span>
+        <div className="flex items-center gap-2.5 mt-1 flex-wrap">
+          <span className="text-sm text-[#74777F]">{modalidade}</span>
           {p.valor_estimado > 0 && (
             <>
               <span className="text-[#C4C6CF]">|</span>
-              <span className="text-xs text-[#43474E] font-medium">
+              <span className="text-sm text-[#43474E] font-medium">
                 R$ {(p.valor_estimado as number).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </>
@@ -81,8 +81,8 @@ function ProcessoRow({ p, href }: { p: any; href: string }) {
       </div>
       <div className="flex items-center gap-3 shrink-0">
         <span
-          className="text-[11px] font-medium px-2 py-0.5 border hidden sm:inline"
-          style={{ backgroundColor: statusCfg.bg, color: statusCfg.color, borderColor: statusCfg.border, borderRadius: '2px' }}
+          className="text-xs font-medium px-2.5 py-1 border hidden sm:inline"
+          style={{ backgroundColor: statusCfg.bg, color: statusCfg.color, borderColor: statusCfg.border, borderRadius: '3px' }}
         >
           {statusCfg.label}
         </span>
@@ -96,15 +96,15 @@ function SectionKpi({ label, valor, sub, icon: Icon, color }: {
   label: string; valor: number | string; sub: string; icon: React.ElementType; color: string
 }) {
   return (
-    <div className="bg-white border border-[#E3E2E6] rounded-xl p-5 transition-shadow hover:shadow-[0_4px_12px_rgba(26,54,93,0.06)]">
-      <div className="flex items-start justify-between mb-4">
-        <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#74777F' }}>{label}</p>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color}10` }}>
-          <Icon className="w-4 h-4" style={{ color }} />
+    <div className="bg-white border border-[#E3E2E6] rounded-xl p-6 transition-shadow hover:shadow-[0_4px_12px_rgba(26,54,93,0.06)]">
+      <div className="flex items-start justify-between mb-5">
+        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#74777F' }}>{label}</p>
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color}10` }}>
+          <Icon className="w-5 h-5" style={{ color }} />
         </div>
       </div>
-      <p className="text-3xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>{valor}</p>
-      <p className="text-xs text-[#74777F] mt-1">{sub}</p>
+      <p className="text-4xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>{valor}</p>
+      <p className="text-sm text-[#74777F] mt-1.5">{sub}</p>
     </div>
   )
 }
@@ -132,11 +132,11 @@ async function DashboardRequisitante({
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <p className="text-[11px] font-semibold text-[#B7935E] uppercase tracking-widest mb-1">Minhas Demandas</p>
-          <h1 className="text-2xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+          <p className="text-xs font-semibold text-[#B7935E] uppercase tracking-widest mb-1.5">Minhas Demandas</p>
+          <h1 className="text-3xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
             {saudacao}, {primeiroNome}.
           </h1>
-          {org && <p className="text-sm text-[#74777F] mt-1">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
+          {org && <p className="text-[15px] text-[#74777F] mt-1.5">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
         </div>
         <Link href="/processos/novo">
           <Button
@@ -149,7 +149,7 @@ async function DashboardRequisitante({
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
         <SectionKpi label="MINHAS DEMANDAS"  valor={processos.length} sub="Total criadas"   icon={FileText}     color="#1A365D" />
         <SectionKpi label="EM ELABORACAO"    valor={emAndamento}      sub="Em andamento"    icon={Clock}        color="#B7935E" />
         <SectionKpi label="CONCLUIDAS"       valor={concluidos}       sub="Publicadas ou assinadas" icon={CheckCircle} color="#1A6637" />
@@ -158,10 +158,10 @@ async function DashboardRequisitante({
       <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
         <CardHeader className="px-6 py-5 border-b border-[#E3E2E6] flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-base font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+            <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
               Meus Processos
             </CardTitle>
-            <CardDescription className="text-xs mt-0.5 text-[#74777F]">
+            <CardDescription className="text-sm mt-1 text-[#74777F]">
               Processos licitatorios que voce criou
             </CardDescription>
           </div>
@@ -183,7 +183,7 @@ async function DashboardRequisitante({
               <h3 className="text-base font-semibold text-[#1A365D] mb-1" style={{ fontFamily: 'var(--font-heading)' }}>
                 Nenhuma demanda ainda
               </h3>
-              <p className="text-sm text-[#74777F] max-w-sm leading-relaxed">
+              <p className="text-[15px] text-[#74777F] max-w-sm leading-relaxed">
                 Clique em "Nova Demanda" para iniciar a formalizacao de uma necessidade de contratacao.
               </p>
               <Link href="/processos/novo" className="mt-6">
@@ -207,8 +207,8 @@ async function DashboardRequisitante({
         <div className="flex items-start gap-3 p-4 rounded-xl text-sm border" style={{ backgroundColor: '#FFF8EC', borderColor: '#F0D9A8' }}>
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#B7935E' }} />
           <div>
-            <p className="font-semibold text-[#7A5A1E]">Saldo de creditos baixo</p>
-            <p className="text-[#9A7A4A] text-xs mt-0.5">
+            <p className="font-semibold text-[#7A5A1E] text-[15px]">Saldo de creditos baixo</p>
+            <p className="text-[#9A7A4A] text-sm mt-0.5">
               Voce tem apenas {saldo} credito{saldo !== 1 ? 's' : ''} restante{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponiveis com saldo zerado.
             </p>
           </div>
@@ -251,11 +251,11 @@ async function DashboardSetorLicitacao({
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <p className="text-[11px] font-semibold text-[#B7935E] uppercase tracking-widest mb-1">Setor de Licitacoes</p>
-          <h1 className="text-2xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+          <p className="text-xs font-semibold text-[#B7935E] uppercase tracking-widest mb-1.5">Setor de Licitacoes</p>
+          <h1 className="text-3xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
             {saudacao}, {primeiroNome}.
           </h1>
-          {org && <p className="text-sm text-[#74777F] mt-1">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
+          {org && <p className="text-[15px] text-[#74777F] mt-1.5">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
         </div>
         <Link href="/processos/novo">
           <Button className="text-white h-9 px-5 text-sm font-semibold gap-2 rounded-lg" style={{ backgroundColor: '#B7935E' }}>
@@ -265,7 +265,7 @@ async function DashboardSetorLicitacao({
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         {totalAvisosAbertos > 0 && (
           <Link href="/processos/aviso-compra-conjunta/novo" className="col-span-2 lg:col-span-4">
             <div className="flex items-center gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors cursor-pointer">
@@ -292,10 +292,10 @@ async function DashboardSetorLicitacao({
       <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
         <CardHeader className="px-6 py-5 border-b border-[#E3E2E6] flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-base font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+            <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
               Em Andamento
             </CardTitle>
-            <CardDescription className="text-xs mt-0.5 text-[#74777F]">
+            <CardDescription className="text-sm mt-1 text-[#74777F]">
               Processos em elaboracao ou revisao
             </CardDescription>
           </div>
@@ -314,8 +314,8 @@ async function DashboardSetorLicitacao({
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: '#1A365D0D' }}>
                 <Gavel className="w-6 h-6" style={{ color: '#1A365D' }} />
               </div>
-              <p className="text-sm font-semibold text-[#1A365D] mb-1">Nenhum processo em andamento</p>
-              <p className="text-xs text-[#74777F] max-w-xs leading-relaxed">
+              <p className="text-[15px] font-semibold text-[#1A365D] mb-1.5">Nenhum processo em andamento</p>
+              <p className="text-sm text-[#74777F] max-w-sm leading-relaxed">
                 Todos os processos foram concluidos ou nenhum foi iniciado ainda.
               </p>
             </div>
@@ -336,10 +336,10 @@ async function DashboardSetorLicitacao({
             <div className="flex items-center gap-2">
               <Archive className="w-4 h-4" style={{ color: '#74777F' }} />
               <div>
-                <CardTitle className="text-base font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+                <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
                   Arquivo
                 </CardTitle>
-                <CardDescription className="text-xs mt-0.5 text-[#74777F]">
+                <CardDescription className="text-sm mt-1 text-[#74777F]">
                   Processos publicados ou concluidos
                 </CardDescription>
               </div>
@@ -359,8 +359,8 @@ async function DashboardSetorLicitacao({
         <div className="flex items-start gap-3 p-4 rounded-xl text-sm border" style={{ backgroundColor: '#FFF8EC', borderColor: '#F0D9A8' }}>
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#B7935E' }} />
           <div>
-            <p className="font-semibold text-[#7A5A1E]">Saldo de creditos baixo</p>
-            <p className="text-[#9A7A4A] text-xs mt-0.5">
+            <p className="font-semibold text-[#7A5A1E] text-[15px]">Saldo de creditos baixo</p>
+            <p className="text-[#9A7A4A] text-sm mt-0.5">
               Voce tem apenas {saldo} credito{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponiveis com saldo zerado.
             </p>
           </div>
@@ -404,14 +404,14 @@ async function DashboardProcurador({
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-[11px] font-semibold text-[#B7935E] uppercase tracking-widest mb-1">Procuradoria</p>
-        <h1 className="text-2xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+        <p className="text-xs font-semibold text-[#B7935E] uppercase tracking-widest mb-1.5">Procuradoria</p>
+        <h1 className="text-3xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
           {saudacao}, {primeiroNome}.
         </h1>
-        {org && <p className="text-sm text-[#74777F] mt-1">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
+        {org && <p className="text-[15px] text-[#74777F] mt-1.5">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
         <SectionKpi label="FILA DE PARECERES" valor={fila.length}      sub="Aguardando analise juridica" icon={Scale}        color="#1A365D" />
         <SectionKpi label="APROVADOS"         valor={historico.length} sub="Pareceres favoraveis"        icon={CheckCircle2} color="#1A6637" />
         <SectionKpi label="TOTAL"             valor={pareceresList.length} sub="Processos avaliados"     icon={Gavel}        color="#B7935E" />
@@ -420,10 +420,10 @@ async function DashboardProcurador({
       {/* Fila de pareceres */}
       <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
         <CardHeader className="px-6 py-5 border-b border-[#E3E2E6]">
-          <CardTitle className="text-base font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+          <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
             Fila de Pareceres
           </CardTitle>
-          <CardDescription className="text-xs mt-0.5 text-[#74777F]">
+          <CardDescription className="text-sm mt-1 text-[#74777F]">
             Processos aguardando analise juridica (Art. 53, Lei 14.133/21)
           </CardDescription>
         </CardHeader>
@@ -433,8 +433,8 @@ async function DashboardProcurador({
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: '#1A365D0D' }}>
                 <Scale className="w-6 h-6" style={{ color: '#1A365D' }} />
               </div>
-              <p className="text-sm font-semibold text-[#1A365D] mb-1">Nenhum processo aguardando</p>
-              <p className="text-xs text-[#74777F] max-w-xs leading-relaxed">
+              <p className="text-[15px] font-semibold text-[#1A365D] mb-1.5">Nenhum processo aguardando</p>
+              <p className="text-sm text-[#74777F] max-w-sm leading-relaxed">
                 Quando um processo for encaminhado para a procuradoria, ele aparecera aqui.
               </p>
             </div>
@@ -454,15 +454,15 @@ async function DashboardProcurador({
                       <Scale className="w-4 h-4" style={{ color: '#B7935E' }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#1A1C1E] truncate">
+                      <p className="text-[15px] font-semibold text-[#1A1C1E] truncate">
                         {proc.numero_processo ? `${proc.numero_processo} - ` : ''}{proc.objeto}
                       </p>
-                      <p className="text-xs text-[#74777F] mt-0.5">{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
+                      <p className="text-sm text-[#74777F] mt-0.5">{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <span
-                        className="text-[11px] font-medium px-2 py-0.5 border hidden sm:inline"
-                        style={{ backgroundColor: parecerCfg.bg, color: parecerCfg.color, borderColor: parecerCfg.border, borderRadius: '2px' }}
+                        className="text-xs font-medium px-2.5 py-1 border hidden sm:inline"
+                        style={{ backgroundColor: parecerCfg.bg, color: parecerCfg.color, borderColor: parecerCfg.border, borderRadius: '3px' }}
                       >
                         {parecerCfg.label}
                       </span>
@@ -483,10 +483,10 @@ async function DashboardProcurador({
             <div className="flex items-center gap-2">
               <Archive className="w-4 h-4" style={{ color: '#74777F' }} />
               <div>
-                <CardTitle className="text-base font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+                <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
                   Historico de Pareceres
                 </CardTitle>
-                <CardDescription className="text-xs mt-0.5 text-[#74777F]">
+                <CardDescription className="text-sm mt-1 text-[#74777F]">
                   Pareceres ja emitidos pela procuradoria
                 </CardDescription>
               </div>
@@ -508,16 +508,16 @@ async function DashboardProcurador({
                       <CheckCircle2 className="w-4 h-4" style={{ color: '#1A6637' }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#1A1C1E] truncate">
+                      <p className="text-[15px] font-semibold text-[#1A1C1E] truncate">
                         {proc.numero_processo ? `${proc.numero_processo} - ` : ''}{proc.objeto}
                       </p>
-                      <p className="text-xs text-[#74777F] mt-0.5">{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
+                      <p className="text-sm text-[#74777F] mt-0.5">{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       {parecerCfg && (
                         <span
-                          className="text-[11px] font-medium px-2 py-0.5 border hidden sm:inline"
-                          style={{ backgroundColor: parecerCfg.bg, color: parecerCfg.color, borderColor: parecerCfg.border, borderRadius: '2px' }}
+                          className="text-xs font-medium px-2.5 py-1 border hidden sm:inline"
+                          style={{ backgroundColor: parecerCfg.bg, color: parecerCfg.color, borderColor: parecerCfg.border, borderRadius: '3px' }}
                         >
                           {parecerCfg.label}
                         </span>
@@ -574,14 +574,14 @@ async function DashboardAutoridadeCompetente({
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-[11px] font-semibold text-[#B7935E] uppercase tracking-widest mb-1">Autoridade Competente</p>
-        <h1 className="text-2xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+        <p className="text-xs font-semibold text-[#B7935E] uppercase tracking-widest mb-1.5">Autoridade Competente</p>
+        <h1 className="text-3xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
           {saudacao}, {primeiroNome}.
         </h1>
-        {org && <p className="text-sm text-[#74777F] mt-1">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
+        {org && <p className="text-[15px] text-[#74777F] mt-1.5">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
         <SectionKpi label="AGUARDANDO"   valor={pendentes.length}   sub="Processos para autorizar" icon={Clock}        color="#B7935E" />
         <SectionKpi label="AUTORIZADOS"  valor={autorizados.length} sub="Processos autorizados"    icon={ShieldCheck}  color="#1A6637" />
         <SectionKpi label="TOTAL"        valor={autorizacoesList.length} sub="Processos avaliados" icon={FileText}     color="#1A365D" />
@@ -590,10 +590,10 @@ async function DashboardAutoridadeCompetente({
       {/* Fila de autorizacao */}
       <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
         <CardHeader className="px-6 py-5 border-b border-[#E3E2E6]">
-          <CardTitle className="text-base font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+          <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
             Aguardando Autorizacao
           </CardTitle>
-          <CardDescription className="text-xs mt-0.5 text-[#74777F]">
+          <CardDescription className="text-sm mt-1 text-[#74777F]">
             Processos com parecer favoravel, aguardando sua decisao (Art. 72, Lei 14.133/21)
           </CardDescription>
         </CardHeader>
@@ -603,8 +603,8 @@ async function DashboardAutoridadeCompetente({
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: '#1A365D0D' }}>
                 <ShieldCheck className="w-6 h-6" style={{ color: '#1A365D' }} />
               </div>
-              <p className="text-sm font-semibold text-[#1A365D] mb-1">Nenhum processo aguardando</p>
-              <p className="text-xs text-[#74777F] max-w-xs leading-relaxed">
+              <p className="text-[15px] font-semibold text-[#1A365D] mb-1.5">Nenhum processo aguardando</p>
+              <p className="text-sm text-[#74777F] max-w-sm leading-relaxed">
                 Quando um processo receber parecer favoravel, ele aparecera aqui para sua autorizacao.
               </p>
             </div>
@@ -624,15 +624,15 @@ async function DashboardAutoridadeCompetente({
                       <ShieldCheck className="w-4 h-4" style={{ color: '#1A365D' }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#1A1C1E] truncate">
+                      <p className="text-[15px] font-semibold text-[#1A1C1E] truncate">
                         {proc.numero_processo ? `${proc.numero_processo} - ` : ''}{proc.objeto}
                       </p>
-                      <p className="text-xs text-[#74777F] mt-0.5">{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
+                      <p className="text-sm text-[#74777F] mt-0.5">{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <span
-                        className="text-[11px] font-medium px-2 py-0.5 border hidden sm:inline"
-                        style={{ backgroundColor: autCfg.bg, color: autCfg.color, borderColor: autCfg.border, borderRadius: '2px' }}
+                        className="text-xs font-medium px-2.5 py-1 border hidden sm:inline"
+                        style={{ backgroundColor: autCfg.bg, color: autCfg.color, borderColor: autCfg.border, borderRadius: '3px' }}
                       >
                         {autCfg.label}
                       </span>
@@ -653,10 +653,10 @@ async function DashboardAutoridadeCompetente({
             <div className="flex items-center gap-2">
               <Archive className="w-4 h-4" style={{ color: '#74777F' }} />
               <div>
-                <CardTitle className="text-base font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+                <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
                   Historico de Autorizacoes
                 </CardTitle>
-                <CardDescription className="text-xs mt-0.5 text-[#74777F]">
+                <CardDescription className="text-sm mt-1 text-[#74777F]">
                   Processos ja autorizados pela autoridade competente
                 </CardDescription>
               </div>
@@ -677,15 +677,15 @@ async function DashboardAutoridadeCompetente({
                       <ShieldCheck className="w-4 h-4" style={{ color: '#1A6637' }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#1A1C1E] truncate">
+                      <p className="text-[15px] font-semibold text-[#1A1C1E] truncate">
                         {proc.numero_processo ? `${proc.numero_processo} - ` : ''}{proc.objeto}
                       </p>
-                      <p className="text-xs text-[#74777F] mt-0.5">{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
+                      <p className="text-sm text-[#74777F] mt-0.5">{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <span
-                        className="text-[11px] font-medium px-2 py-0.5 border hidden sm:inline"
-                        style={{ backgroundColor: '#F0FAF4', color: '#1A6637', borderColor: '#B3DFC5', borderRadius: '2px' }}
+                        className="text-xs font-medium px-2.5 py-1 border hidden sm:inline"
+                        style={{ backgroundColor: '#F0FAF4', color: '#1A6637', borderColor: '#B3DFC5', borderRadius: '3px' }}
                       >
                         Autorizado
                       </span>
@@ -726,11 +726,11 @@ async function DashboardAdmin({
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <p className="text-[11px] font-semibold text-[#B7935E] uppercase tracking-widest mb-1">Painel de Controle</p>
-          <h1 className="text-2xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+          <p className="text-xs font-semibold text-[#B7935E] uppercase tracking-widest mb-1.5">Painel de Controle</p>
+          <h1 className="text-3xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
             {saudacao}, {primeiroNome}.
           </h1>
-          {org && <p className="text-sm text-[#74777F] mt-1">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
+          {org && <p className="text-[15px] text-[#74777F] mt-1.5">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
         </div>
         <Link href="/processos/novo">
           <Button className="text-white h-9 px-5 text-sm font-semibold gap-2 rounded-lg" style={{ backgroundColor: '#B7935E' }}>
@@ -740,7 +740,7 @@ async function DashboardAdmin({
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         <SectionKpi label="PROCESSOS"     valor={processos.length} sub="Total criados"   icon={FileText}    color="#1A365D" />
         <SectionKpi label="EM ELABORACAO" valor={emAndamento}      sub="Em andamento"    icon={Clock}       color="#B7935E" />
         <SectionKpi label="PUBLICADOS"    valor={publicados}       sub={`de ${arquivo.length} concluidos`} icon={CheckCircle} color="#1A6637" />
@@ -750,10 +750,10 @@ async function DashboardAdmin({
       <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
         <CardHeader className="px-6 py-5 border-b border-[#E3E2E6] flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-base font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+            <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
               Processos Licitatorios
             </CardTitle>
-            <CardDescription className="text-xs mt-0.5 text-[#74777F]">
+            <CardDescription className="text-sm mt-1 text-[#74777F]">
               Todos os processos da organizacao
             </CardDescription>
           </div>
@@ -775,7 +775,7 @@ async function DashboardAdmin({
               <h3 className="text-base font-semibold text-[#1A365D] mb-1" style={{ fontFamily: 'var(--font-heading)' }}>
                 Nenhum processo ainda
               </h3>
-              <p className="text-sm text-[#74777F] max-w-sm leading-relaxed">
+              <p className="text-[15px] text-[#74777F] max-w-sm leading-relaxed">
                 Clique em "Novo Processo" para iniciar a elaboracao do primeiro processo licitatorio.
               </p>
               <Link href="/processos/novo" className="mt-6">
@@ -799,8 +799,8 @@ async function DashboardAdmin({
         <div className="flex items-start gap-3 p-4 rounded-xl text-sm border" style={{ backgroundColor: '#FFF8EC', borderColor: '#F0D9A8' }}>
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#B7935E' }} />
           <div>
-            <p className="font-semibold text-[#7A5A1E]">Saldo de creditos baixo</p>
-            <p className="text-[#9A7A4A] text-xs mt-0.5">
+            <p className="font-semibold text-[#7A5A1E] text-[15px]">Saldo de creditos baixo</p>
+            <p className="text-[#9A7A4A] text-sm mt-0.5">
               Voce tem apenas {saldo} credito{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponiveis com saldo zerado.
             </p>
           </div>

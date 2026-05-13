@@ -18,13 +18,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               LicitaIA
             </span>
           </div>
-          <p className="text-[11px] font-semibold text-[#B7935E] uppercase tracking-widest mt-2 ml-11">
+          <p className="text-xs font-semibold text-[#B7935E] uppercase tracking-widest mt-2 ml-11">
             Lei 14.133/21
           </p>
         </div>
 
         <div className="space-y-6">
-          <p className="text-white/80 text-sm leading-relaxed" style={{ fontFamily: 'var(--font-body)' }}>
+          <p className="text-white/80 text-[15px] leading-relaxed" style={{ fontFamily: 'var(--font-body)' }}>
             Plataforma de automacao de processos licitatorios para prefeituras e orgaos publicos. Do DFD ao edital, com auxilio de inteligencia artificial.
           </p>
           <div className="flex flex-col gap-3">
@@ -35,7 +35,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             ].map(item => (
               <div key={item} className="flex items-center gap-2.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#B7935E] shrink-0" />
-                <span className="text-white/70 text-[13px]">{item}</span>
+                <span className="text-white/70 text-sm">{item}</span>
               </div>
             ))}
           </div>
@@ -62,7 +62,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 LicitaIA
               </span>
             </div>
-            <p className="text-[11px] font-semibold text-[#B7935E] uppercase tracking-widest">
+            <p className="text-xs font-semibold text-[#B7935E] uppercase tracking-widest">
               Lei 14.133/21
             </p>
           </div>

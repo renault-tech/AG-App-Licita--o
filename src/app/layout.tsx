@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Plus_Jakarta_Sans, Source_Serif_4 } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
+import ZoomControl from '@/components/layout/zoom-control'
 import './globals.css'
 
 const inter = Inter({
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" className={`${inter.variable} ${jakarta.variable} ${sourceSerif.variable} h-full antialiased`}>
       <body className="min-h-full">
         {children}
+        <ZoomControl />
         <Toaster richColors position="top-right" />
       </body>
     </html>
