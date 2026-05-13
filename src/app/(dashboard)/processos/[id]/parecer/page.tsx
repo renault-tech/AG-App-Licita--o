@@ -1,5 +1,6 @@
 import { obterParecer } from '@/lib/actions/parecer'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
+import { buscarPrecedentes, obterResumoProcesso } from '@/lib/actions/procuradoria'
 import { notFound } from 'next/navigation'
 import EditorParecer from './editor-parecer'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
@@ -8,10 +9,23 @@ import BotaoAssinatura from '@/components/assinatura/botao-assinatura'
 export default async function ParecerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const [parecer, papel] = await Promise.all([obterParecer(id), obterPapelUsuario()])
+  const [parecer, papel, precedentes, resumo] = await Promise.all([
+    obterParecer(id),
+    obterPapelUsuario(),
+    buscarPrecedentes(id),
+    obterResumoProcesso(id),
+  ])
+
   if (!parecer) return notFound()
 
   const podeAssinar = ['procurador', 'admin_organizacao', 'admin_plataforma'].includes(papel ?? '')
+
+  const documentosDisponiveis = {
+    dfd:    !!resumo?.justificativa,
+    etp:    !!resumo?.resultados_pretendidos,
+    tr:     !!resumo?.requisitos_tecnicos,
+    edital: true,
+  }
 
   return (
     <div className="space-y-4">
@@ -37,7 +51,13 @@ export default async function ParecerPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       </div>
-      <EditorParecer parecer={parecer} processoId={id} />
+      <EditorParecer
+        parecer={parecer as any}
+        processoId={id}
+        precedentes={precedentes}
+        resumo={resumo}
+        documentosDisponiveis={documentosDisponiveis}
+      />
     </div>
   )
 }
