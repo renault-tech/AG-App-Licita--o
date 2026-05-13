@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
-import { LogOut, Settings, FileText, LayoutDashboard, Users, Zap, ChevronDown, Menu, X, Building2, TrendingUp, ShieldCheck, Bell, Share2 } from 'lucide-react'
+import { LogOut, Settings, FileText, LayoutDashboard, Users, Zap, ChevronDown, Menu, X, Building2, TrendingUp, ShieldCheck, Bell, Share2, Scale } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
 import {
@@ -24,6 +24,7 @@ interface NavbarProps {
   notificacoes?: Notificacao[]
   naoLidas?: number
   isAdminPlataforma?: boolean
+  papel?: string | null
 }
 
 const NAV_LINKS = [
@@ -39,6 +40,7 @@ export default function Navbar({
   notificacoes = [],
   naoLidas = 0,
   isAdminPlataforma = false,
+  papel = null,
 }: NavbarProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -103,6 +105,19 @@ export default function Navbar({
                 {label}
               </Link>
             ))}
+            {['procurador', 'admin_organizacao', 'admin_plataforma'].includes(papel ?? '') && (
+              <Link
+                href="/procuradoria"
+                className={`relative inline-flex items-center gap-1.5 px-3 text-[13px] font-semibold tracking-wide transition-colors border-b-2 ${
+                  isActive('/procuradoria')
+                    ? 'border-[#B7935E] text-[#1A365D]'
+                    : 'border-transparent text-[#43474E] hover:text-[#1A365D] hover:border-[#B7935E]/30'
+                }`}
+              >
+                <Scale className="w-3.5 h-3.5" />
+                Procuradoria
+              </Link>
+            )}
             {isAdminPlataforma && (
               <Link
                 href="/admin/painel"
@@ -238,6 +253,20 @@ export default function Navbar({
                 {label}
               </Link>
             ))}
+            {['procurador', 'admin_organizacao', 'admin_plataforma'].includes(papel ?? '') && (
+              <Link
+                href="/procuradoria"
+                onClick={() => setMenuMobileAberto(false)}
+                className={`flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
+                  isActive('/procuradoria')
+                    ? 'bg-[#1A365D]/5 text-[#1A365D] border-l-2 border-[#B7935E]'
+                    : 'text-[#43474E] hover:bg-[#F4F3F7] hover:text-[#1A365D]'
+                }`}
+              >
+                <Scale className="w-4 h-4" />
+                Procuradoria
+              </Link>
+            )}
             {isAdminPlataforma && (
               <Link
                 href="/admin/painel"

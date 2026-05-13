@@ -32,6 +32,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         notificacoes={notificacoes}
         naoLidas={naoLidas}
         isAdminPlataforma={papelAtual === 'admin_plataforma'}
+        papel={papelAtual}
       />
       <main className="flex-1 max-w-[1200px] mx-auto w-full px-6 py-8 pb-24">
         {children}
