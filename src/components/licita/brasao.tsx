@@ -21,9 +21,10 @@ export function Brasao({ size = 40, theme = 'petroleo', brasaoUrl }: BrasaoProps
   }
 
   const palettes: Record<ThemeName, { outer: string; inner: string; star: string; text: string }> = {
-    petroleo: { outer: '#1F3B4E', inner: '#284A62', star: '#A8693D', text: '#FFFFFF' },
-    grafite:  { outer: '#171A1F', inner: '#2E3239', star: '#3A8C6E', text: '#FBFBF8' },
-    brasao:   { outer: '#1F4A33', inner: '#2E6248', star: '#9C6A14', text: '#FAF8F1' },
+    petroleo: { outer: '#1F3B4E', inner: '#2C506A', star: '#B56B30', text: '#FFFFFF' },
+    grafite:  { outer: '#111111', inner: '#282828', star: '#0F6FBA', text: '#F8F8F8' },
+    brasao:   { outer: '#1A4828', inner: '#266038', star: '#9C6A14', text: '#FAF7EC' },
+    noite:    { outer: '#161C24', inner: '#1C242E', star: '#4A90D9', text: '#E8EDF2' },
   }
 
   const p = palettes[theme]

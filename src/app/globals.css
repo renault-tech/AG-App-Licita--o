@@ -50,40 +50,40 @@
 }
 
 /* ----------------------------------------------------------------
- * LicitaIA · Design system v3 — 3 temas trocáveis
+ * LicitaIA · Design system v4 — 4 temas trocáveis
  * ---------------------------------------------------------------- */
 
 :root,
 [data-theme="petroleo"] {
-  /* Paleta */
+  /* Paleta — Petróleo: azul naval profundo, quente, editorial */
   --bg:           #F7F5F0;
   --surface:      #FFFFFF;
-  --surfaceAlt:   #FBF9F4;
-  --surfaceSink:  #F1EEE6;
-  --ink:          #15181E;
-  --inkSoft:      #3A3F49;
-  --muted:        #6B6F78;
-  --mutedSoft:    #A0A4AC;
-  --hairline:     #E8E2D6;
-  --hairlineSoft: #EFEAE0;
+  --surfaceAlt:   #F3F0E8;
+  --surfaceSink:  #EAE5D8;
+  --ink:          #0E1215;
+  --inkSoft:      #2C3540;
+  --muted:        #607080;
+  --mutedSoft:    #9CAABB;
+  --hairline:     #D6CEBD;
+  --hairlineSoft: #E5DFD0;
   --rule:         #1F3B4E;
 
   --primary:      #1F3B4E;
-  --primarySoft:  #284A62;
-  --primaryWash:  #EEF1F4;
+  --primarySoft:  #2C506A;
+  --primaryWash:  #E0ECF6;
   --primaryInk:   #FFFFFF;
 
-  --accent:       #A8693D;
-  --accentSoft:   #D8B89A;
-  --accentWash:   #F5EDE3;
+  --accent:       #B56B30;
+  --accentSoft:   #DEB08A;
+  --accentWash:   #FAF0E6;
   --accentInk:    #FFFFFF;
 
-  --success:      #2F6A4C;
-  --successWash:  #E7EFE9;
-  --warn:         #9C6D1F;
-  --warnWash:     #F6ECD8;
-  --danger:       #9C3A3A;
-  --dangerWash:   #F4E3E1;
+  --success:      #2A6644;
+  --successWash:  #DDF0E6;
+  --warn:         #A06010;
+  --warnWash:     #FDF0D8;
+  --danger:       #A03030;
+  --dangerWash:   #FAE0DC;
 
   --statusRascunho:  var(--muted);
   --statusRevisao:   var(--warn);
@@ -92,12 +92,11 @@
   --statusAnalise:   var(--accent);
   --statusDevolvido: var(--danger);
 
-  /* Tipografia */
-  --font-heading: "New York","Charter","Iowan Old Style",Georgia,serif;
+  /* Tipografia — serif editorial */
+  --font-heading: var(--font-newsreader),Georgia,"Times New Roman",serif;
   --font-body:    var(--font-inter),-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
-  --font-mono:    var(--font-mono),"SF Mono",Menlo,monospace;
 
-  /* Forma */
+  /* Forma — arredondado, acolhedor */
   --r-sm: 6px;
   --r-md: 10px;
   --r-lg: 14px;
@@ -106,220 +105,272 @@
   --rule-med:  1px;
   --rule-strong: 1.5px;
 
-  /* Shadcn semantic tokens (mantidos para compatibilidade) */
+  /* Shadcn compat */
   --background:            #F7F5F0;
-  --foreground:            #15181E;
+  --foreground:            #0E1215;
   --card:                  #FFFFFF;
-  --card-foreground:       #15181E;
+  --card-foreground:       #0E1215;
   --popover:               #FFFFFF;
-  --popover-foreground:    #15181E;
+  --popover-foreground:    #0E1215;
   --primary-foreground:    #FFFFFF;
-  --secondary:             #F1EEE6;
+  --secondary:             #EAE5D8;
   --secondary-foreground:  #1F3B4E;
-  --muted-foreground:      #6B6F78;
+  --muted-foreground:      #607080;
   --accent-foreground:     #FFFFFF;
-  --destructive:           #9C3A3A;
-  --border:                #E8E2D6;
-  --input:                 #E8E2D6;
+  --destructive:           #A03030;
+  --border:                #D6CEBD;
+  --input:                 #D6CEBD;
   --ring:                  #1F3B4E;
-
-  /* Radius */
   --radius: 0.625rem;
-
-  /* Sidebar */
-  --sidebar:                  #FFFFFF;
-  --sidebar-foreground:       #15181E;
-  --sidebar-primary:          #1F3B4E;
+  --sidebar:                    #FFFFFF;
+  --sidebar-foreground:         #0E1215;
+  --sidebar-primary:            #1F3B4E;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent:           #F1EEE6;
-  --sidebar-accent-foreground: #1F3B4E;
-  --sidebar-border:           #E8E2D6;
-  --sidebar-ring:             #1F3B4E;
-
-  /* Chart tokens */
+  --sidebar-accent:             #EAE5D8;
+  --sidebar-accent-foreground:  #1F3B4E;
+  --sidebar-border:             #D6CEBD;
+  --sidebar-ring:               #1F3B4E;
   --chart-1: #1F3B4E;
-  --chart-2: #A8693D;
-  --chart-3: #2F6A4C;
-  --chart-4: #D8B89A;
-  --chart-5: #6B6F78;
-
-  /* Legacy compat */
-  --navy:      #1F3B4E;
-  --gold:      #A8693D;
+  --chart-2: #B56B30;
+  --chart-3: #2A6644;
+  --chart-4: #DEB08A;
+  --chart-5: #607080;
+  --navy: #1F3B4E;
+  --gold: #B56B30;
 }
 
 [data-theme="grafite"] {
-  --bg:           #F2F1ED;
-  --surface:      #FBFBF8;
-  --surfaceAlt:   #F6F5F1;
-  --surfaceSink:  #ECEAE4;
-  --ink:          #171A1F;
-  --inkSoft:      #2E3239;
-  --muted:        #62666E;
-  --mutedSoft:    #9DA0A6;
-  --hairline:     #D8D5CC;
-  --hairlineSoft: #E3E1D9;
-  --rule:         #171A1F;
+  /* Paleta — Grafite: monocromo frio, tech, minimalista extremo */
+  --bg:           #EBEBEB;
+  --surface:      #F8F8F8;
+  --surfaceAlt:   #EFEFEF;
+  --surfaceSink:  #E0E0E0;
+  --ink:          #111111;
+  --inkSoft:      #282828;
+  --muted:        #666666;
+  --mutedSoft:    #999999;
+  --hairline:     #CCCCCC;
+  --hairlineSoft: #DCDCDC;
+  --rule:         #111111;
 
-  --primary:      #171A1F;
-  --primarySoft:  #2E3239;
-  --primaryWash:  #E7E5DE;
-  --primaryInk:   #FBFBF8;
+  --primary:      #111111;
+  --primarySoft:  #333333;
+  --primaryWash:  #E4E4E4;
+  --primaryInk:   #F8F8F8;
 
-  --accent:       #3A8C6E;
-  --accentSoft:   #A8D0BD;
-  --accentWash:   #E4F0EA;
-  --accentInk:    #FBFBF8;
+  --accent:       #0F6FBA;
+  --accentSoft:   #79B4E0;
+  --accentWash:   #DCEEF9;
+  --accentInk:    #FFFFFF;
 
-  --success:      #3A8C6E;
-  --successWash:  #E4F0EA;
-  --warn:         #B07D1A;
-  --warnWash:     #F4EAD0;
-  --danger:       #A93838;
-  --dangerWash:   #F2DEDC;
+  --success:      #226B45;
+  --successWash:  #D8EEE1;
+  --warn:         #8A6000;
+  --warnWash:     #F5EAC8;
+  --danger:       #B03030;
+  --dangerWash:   #F5DADA;
 
-  --font-heading: var(--font-inter-tight),var(--font-inter),system-ui,sans-serif;
+  /* Tipografia — sem serifa, condensada, técnica */
+  --font-heading: var(--font-inter-tight),var(--font-inter),"Helvetica Neue",system-ui,sans-serif;
   --font-body:    var(--font-inter),system-ui,sans-serif;
 
-  --r-sm: 3px;
-  --r-md: 5px;
+  /* Forma — quase sem arredondamento, industrial */
+  --r-sm: 2px;
+  --r-md: 4px;
   --r-lg: 6px;
   --r-pill: 4px;
   --rule-hair: 1px;
   --rule-med:  1px;
-  --rule-strong: 1.5px;
+  --rule-strong: 2px;
 
   /* Shadcn compat */
-  --background:          #F2F1ED;
-  --foreground:          #171A1F;
-  --card:                #FBFBF8;
-  --card-foreground:     #171A1F;
-  --popover:             #FBFBF8;
-  --popover-foreground:  #171A1F;
-  --primary-foreground:  #FBFBF8;
-  --secondary:           #ECEAE4;
-  --secondary-foreground: #171A1F;
-  --muted-foreground:    #62666E;
-  --accent-foreground:   #FBFBF8;
-  --destructive:         #A93838;
-  --border:              #D8D5CC;
-  --input:               #D8D5CC;
-  --ring:                #171A1F;
-  --radius: 0.375rem;
-  --sidebar:                  #FBFBF8;
-  --sidebar-foreground:       #171A1F;
-  --sidebar-primary:          #171A1F;
-  --sidebar-primary-foreground: #FBFBF8;
-  --sidebar-accent:           #ECEAE4;
-  --sidebar-accent-foreground: #171A1F;
-  --sidebar-border:           #D8D5CC;
-  --sidebar-ring:             #171A1F;
-  --navy:      #171A1F;
-  --gold:      #3A8C6E;
+  --background:          #EBEBEB;
+  --foreground:          #111111;
+  --card:                #F8F8F8;
+  --card-foreground:     #111111;
+  --popover:             #F8F8F8;
+  --popover-foreground:  #111111;
+  --primary-foreground:  #F8F8F8;
+  --secondary:           #E0E0E0;
+  --secondary-foreground: #111111;
+  --muted-foreground:    #666666;
+  --accent-foreground:   #FFFFFF;
+  --destructive:         #B03030;
+  --border:              #CCCCCC;
+  --input:               #CCCCCC;
+  --ring:                #111111;
+  --radius: 0.25rem;
+  --sidebar:                    #F8F8F8;
+  --sidebar-foreground:         #111111;
+  --sidebar-primary:            #111111;
+  --sidebar-primary-foreground: #F8F8F8;
+  --sidebar-accent:             #E0E0E0;
+  --sidebar-accent-foreground:  #111111;
+  --sidebar-border:             #CCCCCC;
+  --sidebar-ring:               #111111;
+  --chart-1: #111111;
+  --chart-2: #0F6FBA;
+  --chart-3: #226B45;
+  --chart-4: #999999;
+  --chart-5: #666666;
+  --navy: #111111;
+  --gold: #0F6FBA;
 }
 
 [data-theme="brasao"] {
-  --bg:           #F4F1E8;
-  --surface:      #FAF8F1;
-  --surfaceAlt:   #EFEBDE;
-  --surfaceSink:  #E8E4D2;
-  --ink:          #1A1D17;
-  --inkSoft:      #383B33;
-  --muted:        #6F7268;
-  --mutedSoft:    #A09F92;
-  --hairline:     #D9D2BD;
-  --hairlineSoft: #E5DFCB;
-  --rule:         #1A1D17;
+  /* Paleta — Brasão: verde republicano + ouro, papel envelhecido */
+  --bg:           #F0ECD8;
+  --surface:      #FAF7EC;
+  --surfaceAlt:   #EDE8D0;
+  --surfaceSink:  #E0D9BC;
+  --ink:          #18200F;
+  --inkSoft:      #303820;
+  --muted:        #706850;
+  --mutedSoft:    #A09878;
+  --hairline:     #C8BC90;
+  --hairlineSoft: #DDD3A8;
+  --rule:         #18200F;
 
-  --primary:      #1F4A33;
-  --primarySoft:  #2E6248;
-  --primaryWash:  #E3ECDF;
-  --primaryInk:   #FAF8F1;
+  --primary:      #1A4828;
+  --primarySoft:  #266038;
+  --primaryWash:  #D8EAD6;
+  --primaryInk:   #FAF7EC;
 
   --accent:       #9C6A14;
-  --accentSoft:   #D7B36C;
-  --accentWash:   #F1E7CB;
-  --accentInk:    #FAF8F1;
+  --accentSoft:   #D4A855;
+  --accentWash:   #F5E8C0;
+  --accentInk:    #FAF7EC;
 
-  --success:      #1F4A33;
-  --successWash:  #E3ECDF;
-  --warn:         #A06A1D;
-  --warnWash:     #F3E7C6;
-  --danger:       #8A3128;
-  --dangerWash:   #EFD9D3;
+  --success:      #1A4828;
+  --successWash:  #D8EAD6;
+  --warn:         #9C6A14;
+  --warnWash:     #F5E8C0;
+  --danger:       #8A2020;
+  --dangerWash:   #F0D0C8;
 
-  --font-heading: var(--font-newsreader),Georgia,serif;
+  /* Tipografia — newsreader com serifa clássica */
+  --font-heading: var(--font-newsreader),Georgia,"Times New Roman",serif;
   --font-body:    var(--font-inter),system-ui,sans-serif;
 
+  /* Forma — cantos retos, formal e clássico */
   --r-sm: 0px;
-  --r-md: 0px;
-  --r-lg: 2px;
-  --r-pill: 0px;
+  --r-md: 2px;
+  --r-lg: 4px;
+  --r-pill: 2px;
+  --rule-hair: 0.5px;
+  --rule-med:  1px;
+  --rule-strong: 2px;
+
+  /* Shadcn compat */
+  --background:          #F0ECD8;
+  --foreground:          #18200F;
+  --card:                #FAF7EC;
+  --card-foreground:     #18200F;
+  --popover:             #FAF7EC;
+  --popover-foreground:  #18200F;
+  --primary-foreground:  #FAF7EC;
+  --secondary:           #E0D9BC;
+  --secondary-foreground: #18200F;
+  --muted-foreground:    #706850;
+  --accent-foreground:   #FAF7EC;
+  --destructive:         #8A2020;
+  --border:              #C8BC90;
+  --input:               #C8BC90;
+  --ring:                #1A4828;
+  --radius: 0.125rem;
+  --sidebar:                    #FAF7EC;
+  --sidebar-foreground:         #18200F;
+  --sidebar-primary:            #1A4828;
+  --sidebar-primary-foreground: #FAF7EC;
+  --sidebar-accent:             #E0D9BC;
+  --sidebar-accent-foreground:  #18200F;
+  --sidebar-border:             #C8BC90;
+  --sidebar-ring:               #1A4828;
+  --chart-1: #1A4828;
+  --chart-2: #9C6A14;
+  --chart-3: #706850;
+  --chart-4: #D4A855;
+  --chart-5: #A09878;
+  --navy: #1A4828;
+  --gold: #9C6A14;
+}
+
+[data-theme="noite"] {
+  /* Paleta — Noite: dark institucional, azul profundo quase preto */
+  --bg:           #0D1117;
+  --surface:      #161C24;
+  --surfaceAlt:   #1C242E;
+  --surfaceSink:  #0A0E13;
+  --ink:          #E8EDF2;
+  --inkSoft:      #B8C4D0;
+  --muted:        #7A8A9A;
+  --mutedSoft:    #4A5A6A;
+  --hairline:     #253040;
+  --hairlineSoft: #1E2A38;
+  --rule:         #4A90D9;
+
+  --primary:      #4A90D9;
+  --primarySoft:  #6AAAE8;
+  --primaryWash:  #0F2035;
+  --primaryInk:   #FFFFFF;
+
+  --accent:       #E8A030;
+  --accentSoft:   #F0C070;
+  --accentWash:   #2A1C00;
+  --accentInk:    #0D1117;
+
+  --success:      #3AAA70;
+  --successWash:  #0A2018;
+  --warn:         #D4900A;
+  --warnWash:     #221600;
+  --danger:       #D45050;
+  --dangerWash:   #220A0A;
+
+  /* Tipografia — inter tight, clean, legível no escuro */
+  --font-heading: var(--font-inter-tight),var(--font-inter),"Helvetica Neue",system-ui,sans-serif;
+  --font-body:    var(--font-inter),system-ui,sans-serif;
+
+  /* Forma — arredondado moderno */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-pill: 999px;
   --rule-hair: 0.5px;
   --rule-med:  1px;
   --rule-strong: 1.5px;
 
   /* Shadcn compat */
-  --background:          #F4F1E8;
-  --foreground:          #1A1D17;
-  --card:                #FAF8F1;
-  --card-foreground:     #1A1D17;
-  --popover:             #FAF8F1;
-  --popover-foreground:  #1A1D17;
-  --primary-foreground:  #FAF8F1;
-  --secondary:           #E8E4D2;
-  --secondary-foreground: #1A1D17;
-  --muted-foreground:    #6F7268;
-  --accent-foreground:   #FAF8F1;
-  --destructive:         #8A3128;
-  --border:              #D9D2BD;
-  --input:               #D9D2BD;
-  --ring:                #1F4A33;
-  --radius: 0.125rem;
-  --sidebar:                  #FAF8F1;
-  --sidebar-foreground:       #1A1D17;
-  --sidebar-primary:          #1F4A33;
-  --sidebar-primary-foreground: #FAF8F1;
-  --sidebar-accent:           #E8E4D2;
-  --sidebar-accent-foreground: #1A1D17;
-  --sidebar-border:           #D9D2BD;
-  --sidebar-ring:             #1F4A33;
-  --navy:      #1F4A33;
-  --gold:      #9C6A14;
-}
-
-.dark {
-  --background:            #1A1C1E;
-  --foreground:            #E3E2E6;
-  --card:                  #2F3033;
-  --card-foreground:       #E3E2E6;
-  --popover:               #2F3033;
-  --popover-foreground:    #E3E2E6;
-  --primary:               #ADC7F7;
-  --primary-foreground:    #002045;
-  --secondary:             #43474E;
-  --secondary-foreground:  #E3E2E6;
-  --muted:                 #43474E;
-  --muted-foreground:      #C4C6CF;
-  --accent:                #D4A970;
-  --accent-foreground:     #2B1700;
-  --destructive:           #FFB4AB;
-  --border:                #43474E;
-  --input:                 #43474E;
-  --ring:                  #ADC7F7;
-  --chart-1: #ADC7F7;
-  --chart-2: #D4A970;
-  --chart-3: #86A0CD;
-  --chart-4: #C4C6CF;
-  --chart-5: #E3E2E6;
-  --sidebar:                  #2F3033;
-  --sidebar-foreground:       #E3E2E6;
-  --sidebar-primary:          #ADC7F7;
-  --sidebar-primary-foreground: #002045;
-  --sidebar-accent:           #43474E;
-  --sidebar-accent-foreground: #E3E2E6;
-  --sidebar-border:           #43474E;
-  --sidebar-ring:             #ADC7F7;
+  --background:          #0D1117;
+  --foreground:          #E8EDF2;
+  --card:                #161C24;
+  --card-foreground:     #E8EDF2;
+  --popover:             #1C242E;
+  --popover-foreground:  #E8EDF2;
+  --primary-foreground:  #FFFFFF;
+  --secondary:           #1C242E;
+  --secondary-foreground: #B8C4D0;
+  --muted-foreground:    #7A8A9A;
+  --accent-foreground:   #0D1117;
+  --destructive:         #D45050;
+  --border:              #253040;
+  --input:               #253040;
+  --ring:                #4A90D9;
+  --radius: 0.625rem;
+  --sidebar:                    #161C24;
+  --sidebar-foreground:         #E8EDF2;
+  --sidebar-primary:            #4A90D9;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent:             #1C242E;
+  --sidebar-accent-foreground:  #B8C4D0;
+  --sidebar-border:             #253040;
+  --sidebar-ring:               #4A90D9;
+  --chart-1: #4A90D9;
+  --chart-2: #E8A030;
+  --chart-3: #3AAA70;
+  --chart-4: #D45050;
+  --chart-5: #7A8A9A;
+  --navy: #4A90D9;
+  --gold: #E8A030;
 }
 
 /* ── Tailwind aliases para tokens LicitaIA ─────────────────── */
