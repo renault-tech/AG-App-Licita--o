@@ -89,15 +89,16 @@ export async function gerarSecao(params: {
       const res = await gerarTextoIA({ prompt, maxTokens: 800, temperature: 0.3, provider: iaProvider })
       textoFinal = res.text
       iaOk = true
-    } catch {
-      // Se o provider configurado na org falhou, tentar o env default
+    } catch (err) {
+      console.error(`[IA] Falha no provider '${iaProvider ?? envProvider}' para campo '${params.tipoCampo}':`, err instanceof Error ? err.message : err)
+      // Tentar fallback: env default (se diferente do provider configurado na org)
       if (iaProvider && iaProvider !== envProvider) {
         try {
           const res = await gerarTextoIA({ prompt, maxTokens: 800, temperature: 0.3, provider: envProvider })
           textoFinal = res.text
           iaOk = true
-        } catch {
-          // fallback silencioso para template
+        } catch (err2) {
+          console.error(`[IA] Falha no fallback '${envProvider}' para campo '${params.tipoCampo}':`, err2 instanceof Error ? err2.message : err2)
         }
       }
     }

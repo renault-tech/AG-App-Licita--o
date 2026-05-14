@@ -123,6 +123,7 @@ export default function NovoProcessoPage() {
 
   async function handleGerar() {
     setGerando(true)
+    try { localStorage.removeItem('licitaia_wizard_aviso') } catch {}
     const res = await gerarDocumentos(dados)
     setGerando(false)
     if (!res.success || !res.documentos) {

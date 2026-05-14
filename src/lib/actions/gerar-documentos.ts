@@ -77,11 +77,10 @@ export async function gerarDocumentos(
     )
 
   try {
-    const [secoesDFD, secoesETP, secoesTR] = await Promise.all([
-      Promise.all(params('dfd', CAMPOS_DFD)),
-      Promise.all(params('etp', CAMPOS_ETP)),
-      Promise.all(params('tr', CAMPOS_TR)),
-    ])
+    // Gerar cada documento sequencialmente para evitar sobrecarga de rate limit nas APIs de IA
+    const secoesDFD = await Promise.all(params('dfd', CAMPOS_DFD))
+    const secoesETP = await Promise.all(params('etp', CAMPOS_ETP))
+    const secoesTR = await Promise.all(params('tr', CAMPOS_TR))
 
     return {
       success: true,
