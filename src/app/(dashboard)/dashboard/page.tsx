@@ -1,22 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import {
   FileText, PlusCircle, Clock, CheckCircle, ArrowRight,
-  AlertCircle, Gavel, Zap, Scale, ShieldCheck, Filter,
-  Archive, CheckCircle2, Share2,
+  AlertCircle, Gavel, Zap, Scale, ShieldCheck,
+  Filter, CheckCircle2, Share2,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import type { PapelUsuario } from '@/types/database'
-
-// ─── helpers compartilhados ───────────────────────────────────────────────────
-
-const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; border: string }> = {
-  rascunho:   { label: 'Rascunho',   bg: '#F4F3F7', color: '#43474E', border: '#E3E2E6' },
-  em_revisao: { label: 'Em Revisão', bg: '#FFF8EC', color: '#7A5A1E', border: '#F0D9A8' },
-  assinado:   { label: 'Assinado',   bg: '#EFF4FF', color: '#1A365D', border: '#C4D4F0' },
-  publicado:  { label: 'Publicado',  bg: '#F0FAF4', color: '#1A6637', border: '#B3DFC5' },
-}
+import { KPICard } from '@/components/licita/kpi-card'
+import { StatusPill } from '@/components/licita/status-pill'
+import type { StatusProcesso } from '@/components/licita/status-pill'
 
 const MODALIDADE_LABEL: Record<string, string> = {
   pregao_eletronico:   'Pregão Eletrônico',
@@ -29,50 +22,120 @@ const MODALIDADE_LABEL: Record<string, string> = {
   inexigibilidade:     'Inexigibilidade',
 }
 
-const PARECER_STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; border: string }> = {
-  pendente:              { label: 'Aguardando Parecer', bg: '#FFF8EC', color: '#7A5A1E', border: '#F0D9A8'  },
-  aprovado:              { label: 'Aprovado',           bg: '#F0FAF4', color: '#1A6637', border: '#B3DFC5'  },
-  aprovado_com_ressalvas:{ label: 'Aprovado c/ Ressalvas', bg: '#EFF4FF', color: '#1A365D', border: '#C4D4F0' },
-  devolvido:             { label: 'Devolvido',          bg: '#FFF0F0', color: '#BA1A1A', border: '#FFBBB5'  },
+const PARECER_STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
+  pendente:               { label: 'Aguardando Parecer',    bg: 'var(--warnWash)',    color: 'var(--warn)'    },
+  aprovado:               { label: 'Aprovado',              bg: 'var(--successWash)', color: 'var(--success)' },
+  aprovado_com_ressalvas: { label: 'Aprovado c/ Ressalvas', bg: 'var(--primaryWash)', color: 'var(--primary)' },
+  devolvido:              { label: 'Devolvido',             bg: 'var(--dangerWash)',  color: 'var(--danger)'  },
 }
 
-function StatusBadge({ status, config }: { status: string; config: typeof STATUS_CONFIG }) {
-  const cfg = config[status] ?? config['rascunho']
+const AUTORIZACAO_STATUS: Record<string, { label: string; bg: string; color: string }> = {
+  pendente:   { label: 'Aguardando Autorização', bg: 'var(--warnWash)',    color: 'var(--warn)'    },
+  autorizado: { label: 'Autorizado',             bg: 'var(--successWash)', color: 'var(--success)' },
+  devolvido:  { label: 'Devolvido',              bg: 'var(--dangerWash)',  color: 'var(--danger)'  },
+}
+
+function SectionHeader({
+  supTitle, title, subtitle, action,
+}: {
+  supTitle: string; title: string; subtitle?: string; action?: React.ReactNode
+}) {
   return (
-    <span
-      className="text-xs font-medium px-2.5 py-1 border shrink-0"
-      style={{ backgroundColor: cfg.bg, color: cfg.color, borderColor: cfg.border, borderRadius: '3px' }}
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--accent)' }}>
+          {supTitle}
+        </p>
+        <h1
+          className="text-3xl font-bold leading-tight"
+          style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}
+        >
+          {title}
+        </h1>
+        {subtitle && (
+          <p className="text-[15px] mt-1.5" style={{ color: 'var(--muted)' }}>{subtitle}</p>
+        )}
+      </div>
+      {action}
+    </div>
+  )
+}
+
+function ListCard({
+  title, subtitle, action, children,
+}: {
+  title: string; subtitle?: string; action?: React.ReactNode; children: React.ReactNode
+}) {
+  return (
+    <div
+      className="rounded-[var(--r-lg)] border overflow-hidden"
+      style={{ background: 'var(--surface)', borderColor: 'var(--hairline)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
     >
-      {cfg.label}
-    </span>
+      <div
+        className="flex flex-row items-center justify-between px-6 py-5 border-b"
+        style={{ background: 'var(--surfaceAlt)', borderColor: 'var(--hairline)' }}
+      >
+        <div>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+            {title}
+          </h2>
+          {subtitle && <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>{subtitle}</p>}
+        </div>
+        {action}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function EmptyState({ icon: Icon, title, body, cta }: {
+  icon: React.ElementType; title: string; body: string; cta?: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center px-6">
+      <div
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+        style={{ background: 'var(--primaryWash)' }}
+      >
+        <Icon className="w-6 h-6" style={{ color: 'var(--primary)' }} />
+      </div>
+      <p className="text-[15px] font-semibold mb-1.5" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+        {title}
+      </p>
+      <p className="text-sm max-w-sm leading-relaxed" style={{ color: 'var(--muted)' }}>{body}</p>
+      {cta && <div className="mt-6">{cta}</div>}
+    </div>
   )
 }
 
 function ProcessoRow({ p, href }: { p: any; href: string }) {
   const modalidade = MODALIDADE_LABEL[p.modalidade] ?? p.modalidade
-  const statusCfg = STATUS_CONFIG[p.status] ?? STATUS_CONFIG['rascunho']
+  const status = (p.status as StatusProcesso) ?? 'rascunho'
 
   return (
     <Link
       href={href}
-      className="flex items-center gap-4 px-6 py-5 hover:bg-[#FAFAFA] transition-colors group"
+      className="flex items-center gap-4 px-6 py-5 transition-colors group"
+      style={{ borderBottom: '1px solid var(--hairline)' }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surfaceAlt)' }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
     >
       <div
-        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-        style={{ backgroundColor: '#1A365D0D' }}
+        className="w-10 h-10 rounded-[var(--r-md)] flex items-center justify-center shrink-0"
+        style={{ background: 'var(--primaryWash)' }}
       >
-        <FileText className="w-[18px] h-[18px]" style={{ color: '#1A365D' }} />
+        <FileText className="w-[18px] h-[18px]" style={{ color: 'var(--primary)' }} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[15px] font-semibold text-[#1A1C1E] truncate">
-          {p.numero_processo ? `${p.numero_processo} - ` : ''}{p.objeto}
+        <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
+          {p.numero_processo ? `${p.numero_processo} — ` : ''}{p.objeto}
         </p>
         <div className="flex items-center gap-2.5 mt-1 flex-wrap">
-          <span className="text-sm text-[#74777F]">{modalidade}</span>
+          <span className="text-sm" style={{ color: 'var(--muted)' }}>{modalidade}</span>
           {p.valor_estimado > 0 && (
             <>
-              <span className="text-[#C4C6CF]">|</span>
-              <span className="text-sm text-[#43474E] font-medium">
+              <span style={{ color: 'var(--hairline)' }}>|</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--inkSoft)' }}>
                 R$ {(p.valor_estimado as number).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </>
@@ -80,32 +143,54 @@ function ProcessoRow({ p, href }: { p: any; href: string }) {
         </div>
       </div>
       <div className="flex items-center gap-3 shrink-0">
-        <span
-          className="text-xs font-medium px-2.5 py-1 border hidden sm:inline"
-          style={{ backgroundColor: statusCfg.bg, color: statusCfg.color, borderColor: statusCfg.border, borderRadius: '3px' }}
-        >
-          {statusCfg.label}
+        <span className="hidden sm:block">
+          <StatusPill status={status} size="sm" />
         </span>
-        <ArrowRight className="w-4 h-4" style={{ color: '#C4C6CF' }} />
+        <ArrowRight className="w-4 h-4" style={{ color: 'var(--mutedSoft)' }} />
       </div>
     </Link>
   )
 }
 
-function SectionKpi({ label, valor, sub, icon: Icon, color }: {
-  label: string; valor: number | string; sub: string; icon: React.ElementType; color: string
-}) {
+function BadgePill({ label, bg, color }: { label: string; bg: string; color: string }) {
   return (
-    <div className="bg-white border border-[#E3E2E6] rounded-xl p-6 transition-shadow hover:shadow-[0_4px_12px_rgba(26,54,93,0.06)]">
-      <div className="flex items-start justify-between mb-5">
-        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#74777F' }}>{label}</p>
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color}10` }}>
-          <Icon className="w-5 h-5" style={{ color }} />
-        </div>
+    <span
+      className="text-xs font-medium px-2.5 py-1 rounded-[var(--r-pill)] hidden sm:inline"
+      style={{ background: bg, color }}
+    >
+      {label}
+    </span>
+  )
+}
+
+function SaldoBaixoAlert({ saldo }: { saldo: number }) {
+  return (
+    <div
+      className="flex items-start gap-3 p-4 rounded-[var(--r-md)] text-sm border"
+      style={{ background: 'var(--warnWash)', borderColor: 'var(--warn)' + '40' }}
+    >
+      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--warn)' }} />
+      <div>
+        <p className="font-semibold text-[15px]" style={{ color: 'var(--warn)' }}>Saldo de créditos baixo</p>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--inkSoft)' }}>
+          Você tem apenas {saldo} crédito{saldo !== 1 ? 's' : ''} restante{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponíveis com saldo zerado.
+        </p>
       </div>
-      <p className="text-4xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>{valor}</p>
-      <p className="text-sm text-[#74777F] mt-1.5">{sub}</p>
     </div>
+  )
+}
+
+function NewButton({ label, href }: { label: string; href: string }) {
+  return (
+    <Link href={href}>
+      <Button
+        className="text-white h-9 px-5 text-sm font-semibold gap-2 rounded-[var(--r-md)]"
+        style={{ background: 'var(--primary)' }}
+      >
+        <PlusCircle className="w-4 h-4" />
+        {label}
+      </Button>
+    </Link>
   )
 }
 
@@ -117,7 +202,6 @@ async function DashboardRequisitante({
   userId: string; org: any; saldo: number; primeiroNome: string; saudacao: string
 }) {
   const supabase = await createClient()
-
   const { data: meusProcessos } = await supabase
     .from('processos_licitatorios')
     .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at')
@@ -128,92 +212,49 @@ async function DashboardRequisitante({
   const emAndamento = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao').length
   const concluidos  = processos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado').length
 
+  const orgSub = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
+
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold text-[#B7935E] uppercase tracking-widest mb-1.5">Minhas Demandas</p>
-          <h1 className="text-3xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
-            {saudacao}, {primeiroNome}.
-          </h1>
-          {org && <p className="text-[15px] text-[#74777F] mt-1.5">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
-        </div>
-        <Link href="/processos/novo">
-          <Button
-            className="text-white h-9 px-5 text-sm font-semibold gap-2 rounded-lg"
-            style={{ backgroundColor: '#B7935E' }}
-          >
-            <PlusCircle className="w-4 h-4" />
-            Nova Demanda
-          </Button>
-        </Link>
-      </div>
+      <SectionHeader
+        supTitle="Minhas Demandas"
+        title={`${saudacao}, ${primeiroNome}.`}
+        subtitle={orgSub}
+        action={<NewButton label="Nova Demanda" href="/processos/novo" />}
+      />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-        <SectionKpi label="MINHAS DEMANDAS"  valor={processos.length} sub="Total criadas"   icon={FileText}     color="#1A365D" />
-        <SectionKpi label="EM ELABORACAO"    valor={emAndamento}      sub="Em andamento"    icon={Clock}        color="#B7935E" />
-        <SectionKpi label="CONCLUIDAS"       valor={concluidos}       sub="Publicadas ou assinadas" icon={CheckCircle} color="#1A6637" />
+        <KPICard label="Minhas Demandas" value={processos.length} sub="Total criadas"           icon={<FileText className="w-5 h-5" />} />
+        <KPICard label="Em Elaboração"   value={emAndamento}      sub="Em andamento"             icon={<Clock className="w-5 h-5" />}    accent />
+        <KPICard label="Concluídas"      value={concluidos}       sub="Publicadas ou assinadas"  icon={<CheckCircle className="w-5 h-5" />} />
       </div>
 
-      <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
-        <CardHeader className="px-6 py-5 border-b border-[#E3E2E6] flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
-              Meus Processos
-            </CardTitle>
-            <CardDescription className="text-sm mt-1 text-[#74777F]">
-              Processos licitatorios que voce criou
-            </CardDescription>
-          </div>
-          {processos.length > 0 && (
+      <ListCard
+        title="Meus Processos"
+        subtitle="Processos licitatórios que você criou"
+        action={
+          processos.length > 0 ? (
             <Link href="/processos/novo">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8 border-[#E3E2E6] text-[#1A365D] hover:bg-[#F4F3F7]">
-                <PlusCircle className="w-3.5 h-3.5" />
-                Novo
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}>
+                <PlusCircle className="w-3.5 h-3.5" /> Novo
               </Button>
             </Link>
-          )}
-        </CardHeader>
-        <CardContent className="p-0">
-          {processos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5" style={{ backgroundColor: '#1A365D0D' }}>
-                <Gavel className="w-7 h-7" style={{ color: '#1A365D' }} />
-              </div>
-              <h3 className="text-base font-semibold text-[#1A365D] mb-1" style={{ fontFamily: 'var(--font-heading)' }}>
-                Nenhuma demanda ainda
-              </h3>
-              <p className="text-[15px] text-[#74777F] max-w-sm leading-relaxed">
-                Clique em "Nova Demanda" para iniciar a formalizacao de uma necessidade de contratacao.
-              </p>
-              <Link href="/processos/novo" className="mt-6">
-                <Button className="text-white gap-2 text-sm h-9 px-5 rounded-lg" style={{ backgroundColor: '#B7935E' }}>
-                  <PlusCircle className="w-4 h-4" />
-                  Criar primeira demanda
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="divide-y divide-[#F4F3F7]">
-              {processos.map((p: any) => (
-                <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/dfd`} />
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          ) : undefined
+        }
+      >
+        {processos.length === 0 ? (
+          <EmptyState
+            icon={Gavel}
+            title="Nenhuma demanda ainda"
+            body='Clique em "Nova Demanda" para iniciar a formalização de uma necessidade de contratação.'
+            cta={<NewButton label="Criar primeira demanda" href="/processos/novo" />}
+          />
+        ) : (
+          <div>{processos.map((p: any) => <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/dfd`} />)}</div>
+        )}
+      </ListCard>
 
-      {saldo < 10 && (
-        <div className="flex items-start gap-3 p-4 rounded-xl text-sm border" style={{ backgroundColor: '#FFF8EC', borderColor: '#F0D9A8' }}>
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#B7935E' }} />
-          <div>
-            <p className="font-semibold text-[#7A5A1E] text-[15px]">Saldo de créditos baixo</p>
-            <p className="text-[#9A7A4A] text-sm mt-0.5">
-              Você tem apenas {saldo} crédito{saldo !== 1 ? 's' : ''} restante{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponíveis com saldo zerado.
-            </p>
-          </div>
-        </div>
-      )}
+      {saldo < 10 && <SaldoBaixoAlert saldo={saldo} />}
     </div>
   )
 }
@@ -240,132 +281,74 @@ async function DashboardSetorLicitacao({
     .eq('status', 'aberto')
 
   const totalAvisosAbertos = (avisosAbertosData as any[] | null ?? []).length
-
   const processos = (todosProcessos as any[] | null) ?? []
-
-  const ativos   = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao')
-  const arquivo  = processos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado')
+  const ativos    = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao')
+  const arquivo   = processos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado')
   const emRevisao = processos.filter((p: any) => p.status === 'em_revisao').length
+  const orgSub    = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold text-[#B7935E] uppercase tracking-widest mb-1.5">Setor de Licitacoes</p>
-          <h1 className="text-3xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
-            {saudacao}, {primeiroNome}.
-          </h1>
-          {org && <p className="text-[15px] text-[#74777F] mt-1.5">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
-        </div>
-        <Link href="/processos/novo">
-          <Button className="text-white h-9 px-5 text-sm font-semibold gap-2 rounded-lg" style={{ backgroundColor: '#B7935E' }}>
-            <PlusCircle className="w-4 h-4" />
-            Novo Processo
-          </Button>
-        </Link>
-      </div>
+      <SectionHeader
+        supTitle="Setor de Licitações"
+        title={`${saudacao}, ${primeiroNome}.`}
+        subtitle={orgSub}
+        action={<NewButton label="Novo Processo" href="/processos/novo" />}
+      />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         {totalAvisosAbertos > 0 && (
           <Link href="/processos/aviso-compra-conjunta/novo" className="col-span-2 lg:col-span-4">
-            <div className="flex items-center gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors cursor-pointer">
-              <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
-                <Share2 className="w-4 h-4 text-amber-600" />
+            <div
+              className="flex items-center gap-3 p-4 rounded-[var(--r-md)] border cursor-pointer transition-opacity hover:opacity-80"
+              style={{ background: 'var(--warnWash)', borderColor: 'var(--warn)' + '40' }}
+            >
+              <div className="w-9 h-9 rounded-[var(--r-sm)] flex items-center justify-center shrink-0" style={{ background: 'var(--warn)' + '20' }}>
+                <Share2 className="w-4 h-4" style={{ color: 'var(--warn)' }} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-amber-800">
+                <p className="text-sm font-semibold" style={{ color: 'var(--warn)' }}>
                   {totalAvisosAbertos} aviso{totalAvisosAbertos !== 1 ? 's' : ''} de compra conjunta aberto{totalAvisosAbertos !== 1 ? 's' : ''}
                 </p>
-                <p className="text-xs text-amber-600">Clique para criar ou gerenciar avisos</p>
+                <p className="text-xs" style={{ color: 'var(--muted)' }}>Clique para criar ou gerenciar avisos</p>
               </div>
-              <ArrowRight className="w-4 h-4 text-amber-400 shrink-0" />
+              <ArrowRight className="w-4 h-4 shrink-0" style={{ color: 'var(--warn)' }} />
             </div>
           </Link>
         )}
-        <SectionKpi label="PROCESSOS"      valor={processos.length} sub="Total na organizacao" icon={FileText}     color="#1A365D" />
-        <SectionKpi label="EM ELABORAÇÃO"  valor={ativos.length}    sub="Em andamento"         icon={Clock}        color="#B7935E" />
-        <SectionKpi label="EM REVISÃO"     valor={emRevisao}        sub="Aguardando análise"   icon={Filter}       color="#7A5A1E" />
-        <SectionKpi label="PUBLICADOS"     valor={arquivo.length}   sub="Concluidos"           icon={CheckCircle}  color="#1A6637" />
+        <KPICard label="Processos"     value={processos.length} sub="Total na organização" icon={<FileText className="w-5 h-5" />} />
+        <KPICard label="Em Elaboração" value={ativos.length}    sub="Em andamento"         icon={<Clock className="w-5 h-5" />}   accent />
+        <KPICard label="Em Revisão"    value={emRevisao}        sub="Aguardando análise"   icon={<Filter className="w-5 h-5" />} />
+        <KPICard label="Publicados"    value={arquivo.length}   sub="Concluídos"           icon={<CheckCircle className="w-5 h-5" />} />
       </div>
 
-      {/* Processos em andamento */}
-      <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
-        <CardHeader className="px-6 py-5 border-b border-[#E3E2E6] flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
-              Em Andamento
-            </CardTitle>
-            <CardDescription className="text-sm mt-1 text-[#74777F]">
-              Processos em elaboracao ou revisao
-            </CardDescription>
-          </div>
-          {processos.length > 0 && (
+      <ListCard
+        title="Em Andamento"
+        subtitle="Processos em elaboração ou revisão"
+        action={
+          processos.length > 0 ? (
             <Link href="/processos/novo">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8 border-[#E3E2E6] text-[#1A365D] hover:bg-[#F4F3F7]">
-                <PlusCircle className="w-3.5 h-3.5" />
-                Novo
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}>
+                <PlusCircle className="w-3.5 h-3.5" /> Novo
               </Button>
             </Link>
-          )}
-        </CardHeader>
-        <CardContent className="p-0">
-          {ativos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-14 text-center px-6">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: '#1A365D0D' }}>
-                <Gavel className="w-6 h-6" style={{ color: '#1A365D' }} />
-              </div>
-              <p className="text-[15px] font-semibold text-[#1A365D] mb-1.5">Nenhum processo em andamento</p>
-              <p className="text-sm text-[#74777F] max-w-sm leading-relaxed">
-                Todos os processos foram concluidos ou nenhum foi iniciado ainda.
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-[#F4F3F7]">
-              {ativos.map((p: any) => (
-                <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/dfd`} />
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          ) : undefined
+        }
+      >
+        {ativos.length === 0 ? (
+          <EmptyState icon={Gavel} title="Nenhum processo em andamento" body="Todos os processos foram concluídos ou nenhum foi iniciado ainda." />
+        ) : (
+          <div>{ativos.map((p: any) => <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/dfd`} />)}</div>
+        )}
+      </ListCard>
 
-      {/* Arquivo */}
       {arquivo.length > 0 && (
-        <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
-          <CardHeader className="px-6 py-5 border-b border-[#E3E2E6]">
-            <div className="flex items-center gap-2">
-              <Archive className="w-4 h-4" style={{ color: '#74777F' }} />
-              <div>
-                <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
-                  Arquivo
-                </CardTitle>
-                <CardDescription className="text-sm mt-1 text-[#74777F]">
-                  Processos publicados ou concluidos
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-[#F4F3F7]">
-              {arquivo.map((p: any) => (
-                <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/publicacao`} />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <ListCard title="Arquivo" subtitle="Processos publicados ou concluídos">
+          <div>{arquivo.map((p: any) => <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/publicacao`} />)}</div>
+        </ListCard>
       )}
 
-      {saldo < 10 && (
-        <div className="flex items-start gap-3 p-4 rounded-xl text-sm border" style={{ backgroundColor: '#FFF8EC', borderColor: '#F0D9A8' }}>
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#B7935E' }} />
-          <div>
-            <p className="font-semibold text-[#7A5A1E] text-[15px]">Saldo de créditos baixo</p>
-            <p className="text-[#9A7A4A] text-sm mt-0.5">
-              Você tem apenas {saldo} crédito{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponíveis com saldo zerado.
-            </p>
-          </div>
-        </div>
-      )}
+      {saldo < 10 && <SaldoBaixoAlert saldo={saldo} />}
     </div>
   )
 }
@@ -386,9 +369,7 @@ async function DashboardProcurador({
     .order('created_at', { ascending: false })
 
   const pareceresList = (pareceres as any[] | null) ?? []
-
   const processoIds = pareceresList.map((p: any) => p.processo_id)
-
   let processosMap: Record<string, any> = {}
   if (processoIds.length > 0) {
     const { data: procs } = await supabase
@@ -400,136 +381,93 @@ async function DashboardProcurador({
 
   const fila     = pareceresList.filter((p: any) => p.status === 'pendente' || p.status === 'devolvido')
   const historico = pareceresList.filter((p: any) => p.status === 'aprovado' || p.status === 'aprovado_com_ressalvas')
+  const orgSub   = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
 
   return (
     <div className="space-y-8">
-      <div>
-        <p className="text-xs font-semibold text-[#B7935E] uppercase tracking-widest mb-1.5">Procuradoria</p>
-        <h1 className="text-3xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
-          {saudacao}, {primeiroNome}.
-        </h1>
-        {org && <p className="text-[15px] text-[#74777F] mt-1.5">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
-      </div>
+      <SectionHeader supTitle="Procuradoria" title={`${saudacao}, ${primeiroNome}.`} subtitle={orgSub} />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-        <SectionKpi label="FILA DE PARECERES" valor={fila.length}      sub="Aguardando analise juridica" icon={Scale}        color="#1A365D" />
-        <SectionKpi label="APROVADOS"         valor={historico.length} sub="Pareceres favoraveis"        icon={CheckCircle2} color="#1A6637" />
-        <SectionKpi label="TOTAL"             valor={pareceresList.length} sub="Processos avaliados"     icon={Gavel}        color="#B7935E" />
+        <KPICard label="Fila de Pareceres" value={fila.length}          sub="Aguardando análise jurídica" icon={<Scale className="w-5 h-5" />}       accent />
+        <KPICard label="Aprovados"         value={historico.length}     sub="Pareceres favoráveis"        icon={<CheckCircle2 className="w-5 h-5" />} />
+        <KPICard label="Total"             value={pareceresList.length} sub="Processos avaliados"         icon={<Gavel className="w-5 h-5" />}        />
       </div>
 
-      {/* Fila de pareceres */}
-      <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
-        <CardHeader className="px-6 py-5 border-b border-[#E3E2E6]">
-          <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
-            Fila de Pareceres
-          </CardTitle>
-          <CardDescription className="text-sm mt-1 text-[#74777F]">
-            Processos aguardando analise juridica (Art. 53, Lei 14.133/21)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          {fila.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-14 text-center px-6">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: '#1A365D0D' }}>
-                <Scale className="w-6 h-6" style={{ color: '#1A365D' }} />
-              </div>
-              <p className="text-[15px] font-semibold text-[#1A365D] mb-1.5">Nenhum processo aguardando</p>
-              <p className="text-sm text-[#74777F] max-w-sm leading-relaxed">
-                Quando um processo for encaminhado para a procuradoria, ele aparecera aqui.
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-[#F4F3F7]">
-              {fila.map((par: any) => {
-                const proc = processosMap[par.processo_id]
-                if (!proc) return null
-                const parecerCfg = PARECER_STATUS_CONFIG[par.status] ?? PARECER_STATUS_CONFIG['pendente']
-                return (
-                  <Link
-                    key={par.id}
-                    href={`/processos/${par.processo_id}/parecer`}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-[#FAFAFA] transition-colors group"
-                  >
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#B7935E10' }}>
-                      <Scale className="w-4 h-4" style={{ color: '#B7935E' }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[15px] font-semibold text-[#1A1C1E] truncate">
-                        {proc.numero_processo ? `${proc.numero_processo} - ` : ''}{proc.objeto}
-                      </p>
-                      <p className="text-sm text-[#74777F] mt-0.5">{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span
-                        className="text-xs font-medium px-2.5 py-1 border hidden sm:inline"
-                        style={{ backgroundColor: parecerCfg.bg, color: parecerCfg.color, borderColor: parecerCfg.border, borderRadius: '3px' }}
-                      >
-                        {parecerCfg.label}
-                      </span>
-                      <ArrowRight className="w-4 h-4" style={{ color: '#C4C6CF' }} />
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <ListCard
+        title="Fila de Pareceres"
+        subtitle="Processos aguardando análise jurídica (Art. 53, Lei 14.133/21)"
+      >
+        {fila.length === 0 ? (
+          <EmptyState icon={Scale} title="Nenhum processo aguardando" body="Quando um processo for encaminhado para a procuradoria, ele aparecerá aqui." />
+        ) : (
+          <div>
+            {fila.map((par: any) => {
+              const proc = processosMap[par.processo_id]
+              if (!proc) return null
+              const cfg = PARECER_STATUS_CONFIG[par.status] ?? PARECER_STATUS_CONFIG['pendente']
+              return (
+                <Link
+                  key={par.id}
+                  href={`/processos/${par.processo_id}/parecer`}
+                  className="flex items-center gap-4 px-6 py-4 transition-colors"
+                  style={{ borderBottom: '1px solid var(--hairline)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surfaceAlt)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                >
+                  <div className="w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center shrink-0" style={{ background: 'var(--accentWash)' }}>
+                    <Scale className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
+                      {proc.numero_processo ? `${proc.numero_processo} — ` : ''}{proc.objeto}
+                    </p>
+                    <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <BadgePill label={cfg.label} bg={cfg.bg} color={cfg.color} />
+                    <ArrowRight className="w-4 h-4" style={{ color: 'var(--mutedSoft)' }} />
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        )}
+      </ListCard>
 
-      {/* Historico */}
       {historico.length > 0 && (
-        <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
-          <CardHeader className="px-6 py-5 border-b border-[#E3E2E6]">
-            <div className="flex items-center gap-2">
-              <Archive className="w-4 h-4" style={{ color: '#74777F' }} />
-              <div>
-                <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
-                  Historico de Pareceres
-                </CardTitle>
-                <CardDescription className="text-sm mt-1 text-[#74777F]">
-                  Pareceres ja emitidos pela procuradoria
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-[#F4F3F7]">
-              {historico.map((par: any) => {
-                const proc = processosMap[par.processo_id]
-                if (!proc) return null
-                const parecerCfg = PARECER_STATUS_CONFIG[par.status]
-                return (
-                  <Link
-                    key={par.id}
-                    href={`/processos/${par.processo_id}/parecer`}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-[#FAFAFA] transition-colors group"
-                  >
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#1A6637' + '10' }}>
-                      <CheckCircle2 className="w-4 h-4" style={{ color: '#1A6637' }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[15px] font-semibold text-[#1A1C1E] truncate">
-                        {proc.numero_processo ? `${proc.numero_processo} - ` : ''}{proc.objeto}
-                      </p>
-                      <p className="text-sm text-[#74777F] mt-0.5">{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      {parecerCfg && (
-                        <span
-                          className="text-xs font-medium px-2.5 py-1 border hidden sm:inline"
-                          style={{ backgroundColor: parecerCfg.bg, color: parecerCfg.color, borderColor: parecerCfg.border, borderRadius: '3px' }}
-                        >
-                          {parecerCfg.label}
-                        </span>
-                      )}
-                      <ArrowRight className="w-4 h-4" style={{ color: '#C4C6CF' }} />
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
+        <ListCard title="Histórico de Pareceres" subtitle="Pareceres já emitidos pela procuradoria">
+          <div>
+            {historico.map((par: any) => {
+              const proc = processosMap[par.processo_id]
+              if (!proc) return null
+              const cfg = PARECER_STATUS_CONFIG[par.status]
+              return (
+                <Link
+                  key={par.id}
+                  href={`/processos/${par.processo_id}/parecer`}
+                  className="flex items-center gap-4 px-6 py-4 transition-colors"
+                  style={{ borderBottom: '1px solid var(--hairline)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surfaceAlt)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                >
+                  <div className="w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center shrink-0" style={{ background: 'var(--successWash)' }}>
+                    <CheckCircle2 className="w-4 h-4" style={{ color: 'var(--success)' }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
+                      {proc.numero_processo ? `${proc.numero_processo} — ` : ''}{proc.objeto}
+                    </p>
+                    <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    {cfg && <BadgePill label={cfg.label} bg={cfg.bg} color={cfg.color} />}
+                    <ArrowRight className="w-4 h-4" style={{ color: 'var(--mutedSoft)' }} />
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </ListCard>
       )}
     </div>
   )
@@ -551,7 +489,6 @@ async function DashboardAutoridadeCompetente({
     .order('created_at', { ascending: false })
 
   const autorizacoesList = (autorizacoes as any[] | null) ?? []
-
   const processoIds = autorizacoesList.map((a: any) => a.processo_id)
   let processosMap: Record<string, any> = {}
   if (processoIds.length > 0) {
@@ -562,147 +499,82 @@ async function DashboardAutoridadeCompetente({
     ;(procs ?? []).forEach((p: any) => { processosMap[p.id] = p })
   }
 
-  const pendentes    = autorizacoesList.filter((a: any) => a.status === 'pendente' || a.status === 'devolvido')
-  const autorizados  = autorizacoesList.filter((a: any) => a.status === 'autorizado')
+  const pendentes   = autorizacoesList.filter((a: any) => a.status === 'pendente' || a.status === 'devolvido')
+  const autorizados = autorizacoesList.filter((a: any) => a.status === 'autorizado')
+  const orgSub      = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
 
-  const AUTORIZACAO_STATUS: Record<string, { label: string; bg: string; color: string; border: string }> = {
-    pendente:   { label: 'Aguardando Autorização', bg: '#FFF8EC', color: '#7A5A1E', border: '#F0D9A8' },
-    autorizado: { label: 'Autorizado',             bg: '#F0FAF4', color: '#1A6637', border: '#B3DFC5' },
-    devolvido:  { label: 'Devolvido',              bg: '#FFF0F0', color: '#BA1A1A', border: '#FFBBB5' },
+  function AutRow({ aut, icon: Icon, iconBg, iconColor }: { aut: any; icon: React.ElementType; iconBg: string; iconColor: string }) {
+    const proc = processosMap[aut.processo_id]
+    if (!proc) return null
+    const cfg = AUTORIZACAO_STATUS[aut.status] ?? AUTORIZACAO_STATUS['pendente']
+    return (
+      <Link
+        href={`/processos/${aut.processo_id}/autorizacao`}
+        className="flex items-center gap-4 px-6 py-4 transition-colors"
+        style={{ borderBottom: '1px solid var(--hairline)' }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surfaceAlt)' }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+      >
+        <div className="w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
+          <Icon className="w-4 h-4" style={{ color: iconColor }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
+            {proc.numero_processo ? `${proc.numero_processo} — ` : ''}{proc.objeto}
+          </p>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <BadgePill label={cfg.label} bg={cfg.bg} color={cfg.color} />
+          <ArrowRight className="w-4 h-4" style={{ color: 'var(--mutedSoft)' }} />
+        </div>
+      </Link>
+    )
   }
 
   return (
     <div className="space-y-8">
-      <div>
-        <p className="text-xs font-semibold text-[#B7935E] uppercase tracking-widest mb-1.5">Autoridade Competente</p>
-        <h1 className="text-3xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
-          {saudacao}, {primeiroNome}.
-        </h1>
-        {org && <p className="text-[15px] text-[#74777F] mt-1.5">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
-      </div>
+      <SectionHeader supTitle="Autoridade Competente" title={`${saudacao}, ${primeiroNome}.`} subtitle={orgSub} />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-        <SectionKpi label="AGUARDANDO"   valor={pendentes.length}   sub="Processos para autorizar" icon={Clock}        color="#B7935E" />
-        <SectionKpi label="AUTORIZADOS"  valor={autorizados.length} sub="Processos autorizados"    icon={ShieldCheck}  color="#1A6637" />
-        <SectionKpi label="TOTAL"        valor={autorizacoesList.length} sub="Processos avaliados" icon={FileText}     color="#1A365D" />
+        <KPICard label="Aguardando"  value={pendentes.length}        sub="Processos para autorizar" icon={<Clock className="w-5 h-5" />}      accent />
+        <KPICard label="Autorizados" value={autorizados.length}      sub="Processos autorizados"    icon={<ShieldCheck className="w-5 h-5" />} />
+        <KPICard label="Total"       value={autorizacoesList.length} sub="Processos avaliados"      icon={<FileText className="w-5 h-5" />}    />
       </div>
 
-      {/* Fila de autorizacao */}
-      <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
-        <CardHeader className="px-6 py-5 border-b border-[#E3E2E6]">
-          <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
-            Aguardando Autorizacao
-          </CardTitle>
-          <CardDescription className="text-sm mt-1 text-[#74777F]">
-            Processos com parecer favoravel, aguardando sua decisao (Art. 72, Lei 14.133/21)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          {pendentes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-14 text-center px-6">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: '#1A365D0D' }}>
-                <ShieldCheck className="w-6 h-6" style={{ color: '#1A365D' }} />
-              </div>
-              <p className="text-[15px] font-semibold text-[#1A365D] mb-1.5">Nenhum processo aguardando</p>
-              <p className="text-sm text-[#74777F] max-w-sm leading-relaxed">
-                Quando um processo receber parecer favoravel, ele aparecera aqui para sua autorizacao.
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-[#F4F3F7]">
-              {pendentes.map((aut: any) => {
-                const proc = processosMap[aut.processo_id]
-                if (!proc) return null
-                const autCfg = AUTORIZACAO_STATUS[aut.status] ?? AUTORIZACAO_STATUS['pendente']
-                return (
-                  <Link
-                    key={aut.id}
-                    href={`/processos/${aut.processo_id}/autorizacao`}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-[#FAFAFA] transition-colors group"
-                  >
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#1A365D0D' }}>
-                      <ShieldCheck className="w-4 h-4" style={{ color: '#1A365D' }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[15px] font-semibold text-[#1A1C1E] truncate">
-                        {proc.numero_processo ? `${proc.numero_processo} - ` : ''}{proc.objeto}
-                      </p>
-                      <p className="text-sm text-[#74777F] mt-0.5">{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span
-                        className="text-xs font-medium px-2.5 py-1 border hidden sm:inline"
-                        style={{ backgroundColor: autCfg.bg, color: autCfg.color, borderColor: autCfg.border, borderRadius: '3px' }}
-                      >
-                        {autCfg.label}
-                      </span>
-                      <ArrowRight className="w-4 h-4" style={{ color: '#C4C6CF' }} />
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <ListCard
+        title="Aguardando Autorização"
+        subtitle="Processos com parecer favorável, aguardando sua decisão (Art. 72, Lei 14.133/21)"
+      >
+        {pendentes.length === 0 ? (
+          <EmptyState
+            icon={ShieldCheck}
+            title="Nenhum processo aguardando"
+            body="Quando um processo receber parecer favorável, ele aparecerá aqui para sua autorização."
+          />
+        ) : (
+          <div>
+            {pendentes.map((aut: any) => (
+              <AutRow key={aut.id} aut={aut} icon={ShieldCheck} iconBg="var(--primaryWash)" iconColor="var(--primary)" />
+            ))}
+          </div>
+        )}
+      </ListCard>
 
-      {/* Historico de autorizacoes */}
       {autorizados.length > 0 && (
-        <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
-          <CardHeader className="px-6 py-5 border-b border-[#E3E2E6]">
-            <div className="flex items-center gap-2">
-              <Archive className="w-4 h-4" style={{ color: '#74777F' }} />
-              <div>
-                <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
-                  Historico de Autorizacoes
-                </CardTitle>
-                <CardDescription className="text-sm mt-1 text-[#74777F]">
-                  Processos ja autorizados pela autoridade competente
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-[#F4F3F7]">
-              {autorizados.map((aut: any) => {
-                const proc = processosMap[aut.processo_id]
-                if (!proc) return null
-                return (
-                  <Link
-                    key={aut.id}
-                    href={`/processos/${aut.processo_id}/autorizacao`}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-[#FAFAFA] transition-colors group"
-                  >
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#1A6637' + '10' }}>
-                      <ShieldCheck className="w-4 h-4" style={{ color: '#1A6637' }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[15px] font-semibold text-[#1A1C1E] truncate">
-                        {proc.numero_processo ? `${proc.numero_processo} - ` : ''}{proc.objeto}
-                      </p>
-                      <p className="text-sm text-[#74777F] mt-0.5">{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span
-                        className="text-xs font-medium px-2.5 py-1 border hidden sm:inline"
-                        style={{ backgroundColor: '#F0FAF4', color: '#1A6637', borderColor: '#B3DFC5', borderRadius: '3px' }}
-                      >
-                        Autorizado
-                      </span>
-                      <ArrowRight className="w-4 h-4" style={{ color: '#C4C6CF' }} />
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
+        <ListCard title="Histórico de Autorizações" subtitle="Processos já autorizados pela autoridade competente">
+          <div>
+            {autorizados.map((aut: any) => (
+              <AutRow key={aut.id} aut={aut} icon={ShieldCheck} iconBg="var(--successWash)" iconColor="var(--success)" />
+            ))}
+          </div>
+        </ListCard>
       )}
     </div>
   )
 }
 
-// ─── View: Admin / Setor (view completa) ──────────────────────────────────────
+// ─── View: Admin ──────────────────────────────────────────────────────────────
 
 async function DashboardAdmin({
   org, saldo, primeiroNome, saudacao, organizacaoId,
@@ -717,95 +589,54 @@ async function DashboardAdmin({
     .eq('organizacao_id', organizacaoId)
     .order('created_at', { ascending: false })
 
-  const processos = (todosProcessos as any[] | null) ?? []
+  const processos   = (todosProcessos as any[] | null) ?? []
   const emAndamento = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao').length
   const publicados  = processos.filter((p: any) => p.status === 'publicado').length
   const arquivo     = processos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado')
+  const orgSub      = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold text-[#B7935E] uppercase tracking-widest mb-1.5">Painel de Controle</p>
-          <h1 className="text-3xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
-            {saudacao}, {primeiroNome}.
-          </h1>
-          {org && <p className="text-[15px] text-[#74777F] mt-1.5">{org.nome}&nbsp;&bull;&nbsp;{org.municipio} / {org.estado}</p>}
-        </div>
-        <Link href="/processos/novo">
-          <Button className="text-white h-9 px-5 text-sm font-semibold gap-2 rounded-lg" style={{ backgroundColor: '#B7935E' }}>
-            <PlusCircle className="w-4 h-4" />
-            Novo Processo
-          </Button>
-        </Link>
-      </div>
+      <SectionHeader
+        supTitle="Painel de Controle"
+        title={`${saudacao}, ${primeiroNome}.`}
+        subtitle={orgSub}
+        action={<NewButton label="Novo Processo" href="/processos/novo" />}
+      />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-        <SectionKpi label="PROCESSOS"     valor={processos.length} sub="Total criados"   icon={FileText}    color="#1A365D" />
-        <SectionKpi label="EM ELABORACAO" valor={emAndamento}      sub="Em andamento"    icon={Clock}       color="#B7935E" />
-        <SectionKpi label="PUBLICADOS"    valor={publicados}       sub={`de ${arquivo.length} concluidos`} icon={CheckCircle} color="#1A6637" />
-        <SectionKpi label="CREDITOS IA"   valor={saldo}            sub="Disponiveis"     icon={Zap}         color="#4A7196" />
+        <KPICard label="Processos"     value={processos.length} sub="Total criados"             icon={<FileText className="w-5 h-5" />} />
+        <KPICard label="Em Elaboração" value={emAndamento}      sub="Em andamento"               icon={<Clock className="w-5 h-5" />}    accent />
+        <KPICard label="Publicados"    value={publicados}       sub={`de ${arquivo.length} concluídos`} icon={<CheckCircle className="w-5 h-5" />} />
+        <KPICard label="Créditos IA"   value={saldo}            sub="Disponíveis"                icon={<Zap className="w-5 h-5" />}      />
       </div>
 
-      <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
-        <CardHeader className="px-6 py-5 border-b border-[#E3E2E6] flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
-              Processos Licitatorios
-            </CardTitle>
-            <CardDescription className="text-sm mt-1 text-[#74777F]">
-              Todos os processos da organizacao
-            </CardDescription>
-          </div>
-          {processos.length > 0 && (
+      <ListCard
+        title="Processos Licitatórios"
+        subtitle="Todos os processos da organização"
+        action={
+          processos.length > 0 ? (
             <Link href="/processos/novo">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8 border-[#E3E2E6] text-[#1A365D] hover:bg-[#F4F3F7]">
-                <PlusCircle className="w-3.5 h-3.5" />
-                Novo
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}>
+                <PlusCircle className="w-3.5 h-3.5" /> Novo
               </Button>
             </Link>
-          )}
-        </CardHeader>
-        <CardContent className="p-0">
-          {processos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5" style={{ backgroundColor: '#1A365D0D' }}>
-                <Gavel className="w-7 h-7" style={{ color: '#1A365D' }} />
-              </div>
-              <h3 className="text-base font-semibold text-[#1A365D] mb-1" style={{ fontFamily: 'var(--font-heading)' }}>
-                Nenhum processo ainda
-              </h3>
-              <p className="text-[15px] text-[#74777F] max-w-sm leading-relaxed">
-                Clique em "Novo Processo" para iniciar a elaboracao do primeiro processo licitatorio.
-              </p>
-              <Link href="/processos/novo" className="mt-6">
-                <Button className="text-white gap-2 text-sm h-9 px-5 rounded-lg" style={{ backgroundColor: '#B7935E' }}>
-                  <PlusCircle className="w-4 h-4" />
-                  Criar primeiro processo
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="divide-y divide-[#F4F3F7]">
-              {processos.map((p: any) => (
-                <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/dfd`} />
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          ) : undefined
+        }
+      >
+        {processos.length === 0 ? (
+          <EmptyState
+            icon={Gavel}
+            title="Nenhum processo ainda"
+            body='Clique em "Novo Processo" para iniciar a elaboração do primeiro processo licitatório.'
+            cta={<NewButton label="Criar primeiro processo" href="/processos/novo" />}
+          />
+        ) : (
+          <div>{processos.map((p: any) => <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/dfd`} />)}</div>
+        )}
+      </ListCard>
 
-      {saldo < 10 && (
-        <div className="flex items-start gap-3 p-4 rounded-xl text-sm border" style={{ backgroundColor: '#FFF8EC', borderColor: '#F0D9A8' }}>
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#B7935E' }} />
-          <div>
-            <p className="font-semibold text-[#7A5A1E] text-[15px]">Saldo de créditos baixo</p>
-            <p className="text-[#9A7A4A] text-sm mt-0.5">
-              Você tem apenas {saldo} crédito{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponíveis com saldo zerado.
-            </p>
-          </div>
-        </div>
-      )}
+      {saldo < 10 && <SaldoBaixoAlert saldo={saldo} />}
     </div>
   )
 }
@@ -823,7 +654,7 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .maybeSingle()
 
-  const usuario = usuarioData as { nome_completo: string; organizacao_id: string; papel: PapelUsuario } | null
+  const usuario      = usuarioData as { nome_completo: string; organizacao_id: string; papel: PapelUsuario } | null
   const organizacaoId = usuario?.organizacao_id
   if (!organizacaoId) return null
 
@@ -837,29 +668,16 @@ export default async function DashboardPage() {
   const org   = orgRes.data as { nome: string; municipio: string; estado: string } | null
   const saldo = (creditosRes.data as any)?.saldo ?? 0
 
-  const nomeUsuario  = usuario?.nome_completo || user.email || 'Gestor'
-  const primeiroNome = nomeUsuario.split(' ')[0]
-  const hora         = new Date().getHours()
-  const saudacao     = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
+  const nomeUsuario   = usuario?.nome_completo || user.email || 'Gestor'
+  const primeiroNome  = nomeUsuario.split(' ')[0]
+  const hora          = new Date().getHours()
+  const saudacao      = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
 
   const props = { org, saldo, primeiroNome, saudacao, organizacaoId }
 
-  if (papel === 'requisitante') {
-    return <DashboardRequisitante userId={user.id} {...props} />
-  }
-
-  if (papel === 'procurador') {
-    return <DashboardProcurador {...props} />
-  }
-
-  if (papel === 'autoridade_competente') {
-    return <DashboardAutoridadeCompetente {...props} />
-  }
-
-  if (papel === 'setor_licitacao') {
-    return <DashboardSetorLicitacao {...props} />
-  }
-
-  // admin_organizacao e admin_plataforma
+  if (papel === 'requisitante')          return <DashboardRequisitante userId={user.id} {...props} />
+  if (papel === 'procurador')            return <DashboardProcurador {...props} />
+  if (papel === 'autoridade_competente') return <DashboardAutoridadeCompetente {...props} />
+  if (papel === 'setor_licitacao')       return <DashboardSetorLicitacao {...props} />
   return <DashboardAdmin {...props} />
 }

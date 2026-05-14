@@ -1,29 +1,21 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import {
-  FileText, PlusCircle, ArrowRight, Clock,
-  CheckCircle, Gavel, Filter, Share2,
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { FileText, PlusCircle, ArrowRight, Clock, CheckCircle, Gavel, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import BotaoExcluirProcesso from './botao-excluir-processo'
-
-const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; border: string }> = {
-  rascunho:   { label: 'Rascunho',   bg: '#F4F3F7', color: '#43474E', border: '#E3E2E6' },
-  em_revisao: { label: 'Em Revisao', bg: '#FFF8EC', color: '#7A5A1E', border: '#F0D9A8' },
-  assinado:   { label: 'Assinado',   bg: '#EFF4FF', color: '#1A365D', border: '#C4D4F0' },
-  publicado:  { label: 'Publicado',  bg: '#F0FAF4', color: '#1A6637', border: '#B3DFC5' },
-}
+import { KPICard } from '@/components/licita/kpi-card'
+import { StatusPill } from '@/components/licita/status-pill'
+import type { StatusProcesso } from '@/components/licita/status-pill'
 
 const MODALIDADE_LABEL: Record<string, string> = {
-  pregao_eletronico:   'Pregao Eletronico',
-  pregao_presencial:   'Pregao Presencial',
-  concorrencia:        'Concorrencia',
+  pregao_eletronico:   'Pregão Eletrônico',
+  pregao_presencial:   'Pregão Presencial',
+  concorrencia:        'Concorrência',
   concurso:            'Concurso',
-  leilao:              'Leilao',
-  dialogo_competitivo: 'Dialogo Competitivo',
+  leilao:              'Leilão',
+  dialogo_competitivo: 'Diálogo Competitivo',
   dispensa:            'Dispensa',
   inexigibilidade:     'Inexigibilidade',
 }
@@ -44,7 +36,6 @@ export default async function ProcessosPage() {
   const organizacaoId = (usuarioData as any)?.organizacao_id
   if (!organizacaoId) redirect('/dashboard')
 
-  // Buscar processos conforme papel
   let query = supabase
     .from('processos_licitatorios')
     .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at')
@@ -60,8 +51,8 @@ export default async function ProcessosPage() {
   const lista = (processos as any[] | null) ?? []
 
   const totais = {
-    total: lista.length,
-    rascunho: lista.filter((p: any) => p.status === 'rascunho').length,
+    total:     lista.length,
+    rascunho:  lista.filter((p: any) => p.status === 'rascunho').length,
     emRevisao: lista.filter((p: any) => p.status === 'em_revisao').length,
     concluidos: lista.filter((p: any) => p.status === 'publicado' || p.status === 'assinado').length,
   }
@@ -71,18 +62,20 @@ export default async function ProcessosPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold text-[#B7935E] uppercase tracking-widest mb-1.5">Processos Licitatorios</p>
-          <h1 className="text-3xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--accent)' }}>
+            Processos Licitatórios
+          </p>
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
             Todos os Processos
           </h1>
-          <p className="text-[15px] text-[#74777F] mt-1.5">
+          <p className="text-[15px] mt-1.5" style={{ color: 'var(--muted)' }}>
             {totais.total} processo{totais.total !== 1 ? 's' : ''} encontrado{totais.total !== 1 ? 's' : ''}
           </p>
         </div>
         <Link href="/processos/novo">
           <Button
-            className="text-white h-10 px-5 text-sm font-semibold gap-2 rounded-lg"
-            style={{ backgroundColor: '#B7935E' }}
+            className="text-white h-10 px-5 text-sm font-semibold gap-2 rounded-[var(--r-md)]"
+            style={{ background: 'var(--primary)' }}
           >
             <PlusCircle className="w-4 h-4" />
             Novo Processo
@@ -90,134 +83,108 @@ export default async function ProcessosPage() {
         </Link>
       </div>
 
-      {/* KPIs resumo */}
+      {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white border border-[#E3E2E6] rounded-xl p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#1A365D10' }}>
-            <FileText className="w-5 h-5" style={{ color: '#1A365D' }} />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>{totais.total}</p>
-            <p className="text-sm text-[#74777F]">Total</p>
-          </div>
-        </div>
-        <div className="bg-white border border-[#E3E2E6] rounded-xl p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#43474E10' }}>
-            <Clock className="w-5 h-5" style={{ color: '#43474E' }} />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>{totais.rascunho}</p>
-            <p className="text-sm text-[#74777F]">Rascunhos</p>
-          </div>
-        </div>
-        <div className="bg-white border border-[#E3E2E6] rounded-xl p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#B7935E10' }}>
-            <Filter className="w-5 h-5" style={{ color: '#B7935E' }} />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>{totais.emRevisao}</p>
-            <p className="text-sm text-[#74777F]">Em Revisao</p>
-          </div>
-        </div>
-        <div className="bg-white border border-[#E3E2E6] rounded-xl p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#1A663710' }}>
-            <CheckCircle className="w-5 h-5" style={{ color: '#1A6637' }} />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>{totais.concluidos}</p>
-            <p className="text-sm text-[#74777F]">Concluidos</p>
-          </div>
-        </div>
+        <KPICard label="Total"     value={totais.total}     sub="Processos"    icon={<FileText className="w-5 h-5" />} />
+        <KPICard label="Rascunhos" value={totais.rascunho}  sub="Em edição"    icon={<Clock className="w-5 h-5" />}    />
+        <KPICard label="Em Revisão" value={totais.emRevisao} sub="Aguardando"  icon={<Filter className="w-5 h-5" />}   accent />
+        <KPICard label="Concluídos" value={totais.concluidos} sub="Publicados" icon={<CheckCircle className="w-5 h-5" />} />
       </div>
 
       {/* Lista */}
-      <Card className="border-[#E3E2E6] bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}>
-        <CardHeader className="px-6 py-5 border-b border-[#E3E2E6] flex flex-row items-center justify-between">
+      <div
+        className="rounded-[var(--r-lg)] border overflow-hidden"
+        style={{ background: 'var(--surface)', borderColor: 'var(--hairline)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
+      >
+        {/* Card header */}
+        <div
+          className="flex flex-row items-center justify-between px-6 py-5 border-b"
+          style={{ background: 'var(--surfaceAlt)', borderColor: 'var(--hairline)' }}
+        >
           <div>
-            <CardTitle className="text-lg font-semibold text-[#1A365D]" style={{ fontFamily: 'var(--font-heading)' }}>
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
               Processos
-            </CardTitle>
-            <CardDescription className="text-sm mt-1 text-[#74777F]">
-              {papel === 'requisitante' ? 'Processos que voce criou' : 'Todos os processos da organizacao'}
-            </CardDescription>
+            </h2>
+            <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
+              {papel === 'requisitante' ? 'Processos que você criou' : 'Todos os processos da organização'}
+            </p>
           </div>
           <Link href="/processos/novo">
-            <Button variant="outline" size="sm" className="gap-1.5 text-sm h-9 border-[#E3E2E6] text-[#1A365D] hover:bg-[#F4F3F7]">
-              <PlusCircle className="w-4 h-4" />
-              Novo
+            <Button variant="outline" size="sm" className="gap-1.5 text-sm h-9" style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}>
+              <PlusCircle className="w-4 h-4" /> Novo
             </Button>
           </Link>
-        </CardHeader>
-        <CardContent className="p-0">
-          {lista.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5" style={{ backgroundColor: '#1A365D0D' }}>
-                <Gavel className="w-7 h-7" style={{ color: '#1A365D' }} />
-              </div>
-              <h3 className="text-lg font-semibold text-[#1A365D] mb-1.5" style={{ fontFamily: 'var(--font-heading)' }}>
-                Nenhum processo encontrado
-              </h3>
-              <p className="text-[15px] text-[#74777F] max-w-sm leading-relaxed">
-                Clique em &quot;Novo Processo&quot; para iniciar a elaboracao do primeiro processo licitatorio.
-              </p>
-              <Link href="/processos/novo" className="mt-6">
-                <Button className="text-white gap-2 text-sm h-10 px-5 rounded-lg" style={{ backgroundColor: '#B7935E' }}>
-                  <PlusCircle className="w-4 h-4" />
-                  Criar primeiro processo
-                </Button>
-              </Link>
+        </div>
+
+        {/* Conteúdo */}
+        {lista.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5" style={{ background: 'var(--primaryWash)' }}>
+              <Gavel className="w-7 h-7" style={{ color: 'var(--primary)' }} />
             </div>
-          ) : (
-            <div className="divide-y divide-[#F4F3F7]">
-              {lista.map((p: any) => {
-                const modalidade = MODALIDADE_LABEL[p.modalidade] ?? p.modalidade
-                const statusCfg = STATUS_CONFIG[p.status] ?? STATUS_CONFIG['rascunho']
-                return (
-                  <div key={p.id} className="flex items-center gap-2 px-6 py-5 hover:bg-[#FAFAFA] transition-colors group">
-                    <Link
-                      href={`/processos/${p.id}/dfd`}
-                      className="flex items-center gap-4 flex-1 min-w-0"
+            <h3 className="text-lg font-semibold mb-1.5" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+              Nenhum processo encontrado
+            </h3>
+            <p className="text-[15px] max-w-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+              Clique em &quot;Novo Processo&quot; para iniciar a elaboração do primeiro processo licitatório.
+            </p>
+            <Link href="/processos/novo" className="mt-6">
+              <Button className="text-white gap-2 text-sm h-10 px-5 rounded-[var(--r-md)]" style={{ background: 'var(--primary)' }}>
+                <PlusCircle className="w-4 h-4" />
+                Criar primeiro processo
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <div>
+            {lista.map((p: any) => {
+              const modalidade = MODALIDADE_LABEL[p.modalidade] ?? p.modalidade
+              const status = (p.status as StatusProcesso) ?? 'rascunho'
+              return (
+                <div
+                  key={p.id}
+                  className="flex items-center gap-2 px-6 py-5 transition-colors group"
+                  style={{ borderBottom: '1px solid var(--hairline)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surfaceAlt)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                >
+                  <Link href={`/processos/${p.id}/dfd`} className="flex items-center gap-4 flex-1 min-w-0">
+                    <div
+                      className="w-10 h-10 rounded-[var(--r-md)] flex items-center justify-center shrink-0"
+                      style={{ background: 'var(--primaryWash)' }}
                     >
-                      <div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: '#1A365D0D' }}
-                      >
-                        <FileText className="w-[18px] h-[18px]" style={{ color: '#1A365D' }} />
+                      <FileText className="w-[18px] h-[18px]" style={{ color: 'var(--primary)' }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
+                        {p.numero_processo ? `${p.numero_processo} — ` : ''}{p.objeto}
+                      </p>
+                      <div className="flex items-center gap-2.5 mt-1 flex-wrap">
+                        <span className="text-sm" style={{ color: 'var(--muted)' }}>{modalidade}</span>
+                        {p.valor_estimado > 0 && (
+                          <>
+                            <span style={{ color: 'var(--hairline)' }}>|</span>
+                            <span className="text-sm font-medium" style={{ color: 'var(--inkSoft)' }}>
+                              R$ {(p.valor_estimado as number).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </span>
+                          </>
+                        )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[15px] font-semibold text-[#1A1C1E] truncate">
-                          {p.numero_processo ? `${p.numero_processo} - ` : ''}{p.objeto}
-                        </p>
-                        <div className="flex items-center gap-2.5 mt-1 flex-wrap">
-                          <span className="text-sm text-[#74777F]">{modalidade}</span>
-                          {p.valor_estimado > 0 && (
-                            <>
-                              <span className="text-[#C4C6CF]">|</span>
-                              <span className="text-sm text-[#43474E] font-medium">
-                                R$ {(p.valor_estimado as number).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span
-                          className="text-xs font-medium px-2.5 py-1 border hidden sm:inline"
-                          style={{ backgroundColor: statusCfg.bg, color: statusCfg.color, borderColor: statusCfg.border, borderRadius: '3px' }}
-                        >
-                          {statusCfg.label}
-                        </span>
-                        <ArrowRight className="w-4 h-4" style={{ color: '#C4C6CF' }} />
-                      </div>
-                    </Link>
-                    <BotaoExcluirProcesso processoId={p.id} objeto={p.objeto} />
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="hidden sm:block">
+                        <StatusPill status={status} size="sm" />
+                      </span>
+                      <ArrowRight className="w-4 h-4" style={{ color: 'var(--mutedSoft)' }} />
+                    </div>
+                  </Link>
+                  <BotaoExcluirProcesso processoId={p.id} objeto={p.objeto} />
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
