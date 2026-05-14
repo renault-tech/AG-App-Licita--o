@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { obterDeclaracao } from '@/lib/actions/declaracao'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
+import { StepPageHeader } from '@/components/licita/step-page-header'
 import EditorDeclaracao from './editor-declaracao'
 
 export default async function DeclaracaoPage({
@@ -16,8 +17,6 @@ export default async function DeclaracaoPage({
   if (!user) redirect('/login')
 
   const papel = await obterPapelUsuario()
-
-  // Procurador e autoridade competente têm acesso somente leitura
   const readonly = papel === 'procurador' || papel === 'autoridade_competente'
 
   const declaracao = await obterDeclaracao(id)
@@ -25,12 +24,10 @@ export default async function DeclaracaoPage({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-lg font-bold text-gray-900">Declaração do Setor Requisitante</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Documento que formaliza a necessidade da contratação pelo setor requisitante.
-        </p>
-      </div>
+      <StepPageHeader
+        title="Declaração do Setor Requisitante"
+        subtitle="Documento que formaliza a necessidade da contratação pelo setor requisitante."
+      />
       <EditorDeclaracao
         declaracao={declaracao}
         processoId={id}

@@ -3,7 +3,7 @@ import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { notFound } from 'next/navigation'
 import EditorRiscos from './editor-riscos'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
-import { Info } from 'lucide-react'
+import { StepPageHeader } from '@/components/licita/step-page-header'
 import { getPermissoesOrg, resolverPodeEditar } from '@/lib/cached-permissions'
 
 export default async function MapaRiscosPage({ params }: { params: Promise<{ id: string }> }) {
@@ -16,21 +16,12 @@ export default async function MapaRiscosPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-bold text-gray-900">Mapa de Riscos</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Identificação e tratamento de riscos do processo licitatório conforme Art. 22 da Lei 14.133/21.
-          </p>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <BotoesExportacao tipo="riscos" processoId={id} nomeDocumento="Mapa-de-Riscos" />
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg">
-            <Info className="w-3.5 h-3.5" />
-            Art. 22
-          </div>
-        </div>
-      </div>
+      <StepPageHeader
+        title="Mapa de Riscos"
+        subtitle="Identificação e tratamento de riscos do processo licitatório conforme Art. 22 da Lei 14.133/21."
+        artigo="Art. 22"
+        actions={<BotoesExportacao tipo="riscos" processoId={id} nomeDocumento="Mapa-de-Riscos" />}
+      />
       <EditorRiscos mapa={mapa} processoId={id} papelUsuario={papel ?? 'requisitante'} podeEditar={podeEditar} />
     </div>
   )

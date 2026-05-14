@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { obterOficio } from '@/lib/actions/oficio'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
+import { StepPageHeader } from '@/components/licita/step-page-header'
 import EditorOficio from './editor-oficio'
 
 export default async function OficioPage({
@@ -21,7 +22,6 @@ export default async function OficioPage({
   const oficio = await obterOficio(id)
   if (!oficio) return notFound()
 
-  // Buscar modalidade do processo para o prompt de IA
   const { data: processo } = await (supabase as any)
     .from('processos_licitatorios')
     .select('modalidade')
@@ -32,12 +32,10 @@ export default async function OficioPage({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-lg font-bold text-gray-900">Ofício de Abertura</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Comunica formalmente à Procuradoria a abertura do processo para emissão do Parecer Jurídico.
-        </p>
-      </div>
+      <StepPageHeader
+        title="Ofício de Abertura"
+        subtitle="Comunica formalmente à Procuradoria a abertura do processo para emissão do Parecer Jurídico."
+      />
       <EditorOficio
         oficio={oficio}
         processoId={id}

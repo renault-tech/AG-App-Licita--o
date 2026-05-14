@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
-import { Info } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-
+import { StepPageHeader } from '@/components/licita/step-page-header'
 import { obterDFD, obterParticipacoesComItens, verificarPrazoAdesao } from '@/lib/actions/dfd'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { getPermissoesOrg, resolverPodeEditar } from '@/lib/cached-permissions'
@@ -42,28 +41,17 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
   const dfdRecarregado = await obterDFD(processoId)
   if (!dfdRecarregado) return notFound()
 
-  // Alias nao-nulo para uso no restante da funcao
   const dfd = dfdRecarregado
-
   const papelUsuario = papel ?? 'requisitante'
   const statusAdesao = dfd.status_adesao
   const podeEditar = resolverPodeEditar(permissoesOrg, papel, 'dfd')
-
-  // Determina a view correta baseado no contexto do usuario:
-  // 1. Se o DFD esta em consolidacao (prazo encerrado ou consolidado) e usuario e da secretaria iniciadora:
-  //    mostra PainelConsolidacao
-  // 2. Se usuario pertence a uma secretaria convidada e o DFD esta aguardando adesao:
-  //    mostra PainelAdesao
-  // 3. Caso default: EditorDFD (criador/iniciador)
 
   let participacaoDoUsuario = null
   let ehIniciador = true
 
   if (dfd.tipo === 'compartilhado') {
-    // Busca todas participacoes com itens para consolidacao
     const partComItens = await obterParticipacoesComItens(dfd.id)
 
-    // Verifica se usuario e da secretaria iniciadora ou participante
     const { data: secUsuarioRaw } = await (supabase as any)
       .from('secretarias')
       .select('id')
@@ -89,22 +77,12 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
     if (ehIniciador && ['prazo_encerrado', 'consolidado'].includes(statusAdesao)) {
       return (
         <div className="space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">Documento de Formalizacao da Demanda</h1>
-              <p className="text-sm text-gray-500 mt-0.5">
-                Consolidacao das demandas de todas as secretarias participantes.
-              </p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <BotoesExportacao tipo="dfd" processoId={processoId} nomeDocumento="DFD" />
-              <div className="hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg">
-                <Info className="w-3.5 h-3.5" />
-                Art. 6&ordm;, X
-              </div>
-            </div>
-          </div>
-
+          <StepPageHeader
+            title="Documento de Formalização da Demanda"
+            subtitle="Consolidação das demandas de todas as secretarias participantes."
+            artigo="Art. 6º, X"
+            actions={<BotoesExportacao tipo="dfd" processoId={processoId} nomeDocumento="DFD" />}
+          />
           <PainelConsolidacao
             dfd={{
               id: dfd.id,
@@ -127,19 +105,11 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
     if (!ehIniciador && participacaoDoUsuario && statusAdesao === 'aguardando_adesao') {
       return (
         <div className="space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">Adesao ao Processo Compartilhado</h1>
-              <p className="text-sm text-gray-500 mt-0.5">
-                Manifeste o interesse da sua secretaria neste processo. Art. 6&ordm;, X da Lei 14.133/21.
-              </p>
-            </div>
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg">
-              <Info className="w-3.5 h-3.5" />
-              Art. 6&ordm;, X
-            </div>
-          </div>
-
+          <StepPageHeader
+            title="Adesão ao Processo Compartilhado"
+            subtitle="Manifeste o interesse da sua secretaria neste processo."
+            artigo="Art. 6º, X"
+          />
           <PainelAdesao
             dfd={{
               id: dfd.id,
@@ -162,22 +132,12 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
   // Default: editor completo (iniciador em rascunho ou aguardando adesao)
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-bold text-gray-900">Documento de Formalizacao da Demanda</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Formalize a necessidade de contratacao conforme Art. 6&ordm;, X da Lei 14.133/21.
-          </p>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <BotoesExportacao tipo="dfd" processoId={processoId} nomeDocumento="DFD" />
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg">
-            <Info className="w-3.5 h-3.5" />
-            Art. 6&ordm;, X
-          </div>
-        </div>
-      </div>
-
+      <StepPageHeader
+        title="Documento de Formalização da Demanda"
+        subtitle="Formalize a necessidade de contratação conforme Art. 6º, X da Lei 14.133/21."
+        artigo="Art. 6º, X"
+        actions={<BotoesExportacao tipo="dfd" processoId={processoId} nomeDocumento="DFD" />}
+      />
       <EditorDFD
         dfd={dfd}
         processoId={processoId}

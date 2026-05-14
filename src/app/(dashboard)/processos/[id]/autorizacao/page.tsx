@@ -2,15 +2,15 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import { obterAutorizacao } from '@/lib/actions/autorizacao'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
+import { StepPageHeader } from '@/components/licita/step-page-header'
 import PainelAutorizacao from './painel-autorizacao'
-import { Gavel } from 'lucide-react'
 
 const DOCUMENTOS_PROCESSO = [
-  { nome: 'DFD',           slug: 'dfd',    tabela: 'dfd' },
-  { nome: 'ETP',           slug: 'etp',    tabela: 'etp' },
-  { nome: 'TR',            slug: 'tr',     tabela: 'termo_referencia' },
-  { nome: 'Mapa de Riscos',slug: 'riscos', tabela: 'mapa_riscos' },
-  { nome: 'Edital',        slug: 'edital', tabela: 'edital' },
+  { nome: 'DFD',            slug: 'dfd',    tabela: 'dfd' },
+  { nome: 'ETP',            slug: 'etp',    tabela: 'etp' },
+  { nome: 'TR',             slug: 'tr',     tabela: 'termo_referencia' },
+  { nome: 'Mapa de Riscos', slug: 'riscos', tabela: 'mapa_riscos' },
+  { nome: 'Edital',         slug: 'edital', tabela: 'edital' },
 ]
 
 export default async function AutorizacaoPage({ params }: { params: Promise<{ id: string }> }) {
@@ -23,9 +23,11 @@ export default async function AutorizacaoPage({ params }: { params: Promise<{ id
   const papel = await obterPapelUsuario()
   if (!papel) redirect('/login')
 
-  const podeAutorizar = papel === 'autoridade_competente' || papel === 'admin_organizacao' || papel === 'admin_plataforma'
+  const podeAutorizar =
+    papel === 'autoridade_competente' ||
+    papel === 'admin_organizacao' ||
+    papel === 'admin_plataforma'
 
-  // Busca todos os dados em paralelo
   const docQueries = DOCUMENTOS_PROCESSO.map(d =>
     (supabase as any).from(d.tabela).select('status').eq('processo_id', id).maybeSingle()
   )
@@ -36,7 +38,6 @@ export default async function AutorizacaoPage({ params }: { params: Promise<{ id
     ...docQueries,
   ])
 
-  // Verifica que o processo existe
   const { data: processo } = await (supabase as any)
     .from('processos_licitatorios')
     .select('id')
@@ -55,19 +56,11 @@ export default async function AutorizacaoPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-bold text-gray-900">Autorizacao da Autoridade Competente</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Autorizacao para abertura do certame conforme Art. 72 da Lei 14.133/21.
-          </p>
-        </div>
-        <div className="hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg shrink-0">
-          <Gavel className="w-3.5 h-3.5" />
-          Art. 72
-        </div>
-      </div>
-
+      <StepPageHeader
+        title="Autorização da Autoridade Competente"
+        subtitle="Autorização para abertura do certame conforme Art. 72 da Lei 14.133/21."
+        artigo="Art. 72"
+      />
       <PainelAutorizacao
         processoId={id}
         autorizacao={autorizacao}

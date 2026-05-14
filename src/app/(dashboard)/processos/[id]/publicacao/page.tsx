@@ -2,8 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import { obterPublicacao } from '@/lib/actions/publicacao'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
+import { StepPageHeader } from '@/components/licita/step-page-header'
 import PainelPublicacao from './painel-publicacao'
-import { Globe } from 'lucide-react'
 
 export default async function PublicacaoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -41,19 +41,11 @@ export default async function PublicacaoPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-bold text-gray-900">Publicacao do Processo</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Registro da publicacao conforme Art. 54 da Lei 14.133/21.
-          </p>
-        </div>
-        <div className="hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg shrink-0">
-          <Globe className="w-3.5 h-3.5" />
-          Art. 54
-        </div>
-      </div>
-
+      <StepPageHeader
+        title="Publicação do Processo"
+        subtitle="Registro da publicação conforme Art. 54 da Lei 14.133/21."
+        artigo="Art. 54"
+      />
       <PainelPublicacao
         processoId={id}
         publicacao={publicacao}

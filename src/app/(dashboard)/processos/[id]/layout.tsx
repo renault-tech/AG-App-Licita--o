@@ -14,6 +14,8 @@ import {
   LABEL_PAPEL,
 } from '@/lib/permissions'
 import { getPermissoesOrg } from '@/lib/cached-permissions'
+import { StatusPill } from '@/components/licita/status-pill'
+import type { StatusProcesso } from '@/components/licita/status-pill'
 import type { PapelUsuario } from '@/types/database'
 
 const ETAPAS = [
@@ -100,21 +102,6 @@ export default async function ProcessoLayout({
   const etapaAtivaIndex = etapasVisiveis.findIndex(e => e.slug === etapaAtiva)
 
   const modalidade = MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade
-
-  const statusClasses: Record<string, string> = {
-    rascunho:   'bg-[#F4F3F7] text-[#43474E] border-[#E3E2E6]',
-    em_revisao: 'bg-[#FFF8EC] text-[#7A5A1E] border-[#F0D9A8]',
-    assinado:   'bg-[#EFF4FF] text-[#1A365D] border-[#C4D4F0]',
-    publicado:  'bg-[#F0FAF4] text-[#1A6637] border-[#B3DFC5]',
-  }
-  const statusLabel: Record<string, string> = {
-    rascunho:   'Rascunho',
-    em_revisao: 'Em Revisão',
-    assinado:   'Assinado',
-    publicado:  'Publicado',
-  }
-
-  // Layout simplificado para procurador e autoridade_competente
   const acessoRestrito = papel ? ACESSO_RESTRITO_PROCESSO.includes(papel) : false
 
   return (
@@ -122,52 +109,64 @@ export default async function ProcessoLayout({
 
       {/* Cabecalho do processo */}
       <div
-        className="bg-white border border-[#E3E2E6] rounded-xl p-4 mb-4"
-        style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}
+        className="rounded-[var(--r-lg)] border mb-4 p-4"
+        style={{
+          background: 'var(--surface)',
+          borderColor: 'var(--hairline)',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+        }}
       >
         <div className="flex items-start gap-3">
           <Link
             href="/dashboard"
-            className="mt-0.5 p-1.5 rounded-lg hover:bg-[#F4F3F7] text-[#74777F] hover:text-[#1A365D] transition-colors shrink-0"
+            className="mt-0.5 p-1.5 rounded-[var(--r-md)] shrink-0 transition-colors"
+            style={{ color: 'var(--muted)' }}
+            onMouseEnter={undefined}
             title="Voltar ao Painel"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
+              {/* Badge modalidade */}
               <span
-                className="text-xs font-medium px-2 py-0.5 border"
-                style={{ backgroundColor: '#EFF4FF', color: '#1A365D', borderColor: '#C4D4F0', borderRadius: '2px' }}
+                className="text-xs font-medium px-2 py-0.5"
+                style={{
+                  background: 'var(--primaryWash)',
+                  color: 'var(--primary)',
+                  borderRadius: '2px',
+                }}
               >
                 {modalidade}
               </span>
               {processo.numero_processo && (
-                <span className="text-xs text-[#74777F] font-mono">{processo.numero_processo}</span>
+                <span className="text-xs font-mono" style={{ color: 'var(--muted)' }}>
+                  {processo.numero_processo}
+                </span>
               )}
-              <span
-                className={`text-xs font-medium px-2 py-0.5 border ${statusClasses[processo.status] ?? statusClasses['rascunho']}`}
-                style={{ borderRadius: '2px' }}
-              >
-                {statusLabel[processo.status] ?? processo.status}
-              </span>
+              <StatusPill status={(processo.status as StatusProcesso) ?? 'rascunho'} size="sm" />
               {/* Badge do papel atual */}
               {papel && (
                 <span
-                  className="text-[10px] font-semibold px-2 py-0.5 border"
-                  style={{ backgroundColor: '#B7935E10', color: '#B7935E', borderColor: '#B7935E40', borderRadius: '2px' }}
+                  className="text-[10px] font-semibold px-2 py-0.5"
+                  style={{
+                    background: 'var(--accentWash)',
+                    color: 'var(--accent)',
+                    borderRadius: '2px',
+                  }}
                 >
                   {LABEL_PAPEL[papel]}
                 </span>
               )}
             </div>
             <h2
-              className="text-base font-semibold text-[#1A1C1E] mt-1 leading-snug"
-              style={{ fontFamily: 'var(--font-heading)' }}
+              className="text-base font-semibold mt-1 leading-snug"
+              style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}
             >
               {processo.objeto}
             </h2>
             {processo.valor_estimado > 0 && (
-              <p className="text-xs text-[#74777F] mt-0.5">
+              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
                 Valor estimado: R$ {(processo.valor_estimado as number).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             )}
@@ -175,19 +174,19 @@ export default async function ProcessoLayout({
         </div>
 
         {/* Navegacao por etapas */}
-        <div className="mt-4 pt-4 border-t border-[#F4F3F7]">
+        <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--hairline)' }}>
 
           {/* Layout restrito: procurador e autoridade_competente */}
           {acessoRestrito ? (
             <div className="flex items-center gap-3">
               <div
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold"
-                style={{ backgroundColor: '#1A365D0D', color: '#1A365D' }}
+                className="flex items-center gap-2 px-4 py-2 rounded-[var(--r-md)] text-sm font-semibold"
+                style={{ background: 'var(--primaryWash)', color: 'var(--primary)' }}
               >
-                <Scale className="w-4 h-4" style={{ color: '#B7935E' }} />
+                <Scale className="w-4 h-4" style={{ color: 'var(--accent)' }} />
                 {papel === 'procurador' ? 'Parecer Jurídico' : 'Autorização da Autoridade Competente'}
               </div>
-              <p className="text-xs text-[#74777F]">
+              <p className="text-xs" style={{ color: 'var(--muted)' }}>
                 {papel === 'procurador'
                   ? 'Análise a regularidade do processo conforme Art. 53 da Lei 14.133/21.'
                   : 'Autorize ou devolva o processo conforme Art. 72 da Lei 14.133/21.'}
@@ -199,30 +198,30 @@ export default async function ProcessoLayout({
               <nav className="hidden md:flex items-center" aria-label="Etapas do processo">
                 {etapasVisiveis.map((etapa, i) => {
                   const Icon = etapa.icon
-                  const isAtiva    = etapa.slug === etapaAtiva
+                  const isAtiva     = etapa.slug === etapaAtiva
                   const isConcluida = i < etapaAtivaIndex
+
+                  const circleStyle = isAtiva
+                    ? { backgroundColor: 'var(--primary)', borderColor: 'var(--primary)', color: '#fff' }
+                    : isConcluida
+                    ? { backgroundColor: 'var(--successWash)', borderColor: 'var(--success)', color: 'var(--success)' }
+                    : { backgroundColor: 'var(--surface)', borderColor: 'var(--hairline)', color: 'var(--muted)' }
+
+                  const labelColor = isAtiva
+                    ? 'var(--primary)'
+                    : isConcluida
+                    ? 'var(--success)'
+                    : 'var(--muted)'
 
                   return (
                     <div key={etapa.slug} className="flex items-center flex-1 min-w-0">
                       <Link
                         href={`/processos/${id}/${etapa.slug}`}
-                        className={`flex flex-col items-center gap-1 px-2 py-1 rounded-lg transition-all flex-1 min-w-0 ${
-                          isAtiva
-                            ? 'text-[#1A365D]'
-                            : isConcluida
-                            ? 'text-[#1A6637] hover:text-[#1A6637]'
-                            : 'text-[#74777F] hover:text-[#43474E]'
-                        }`}
+                        className="flex flex-col items-center gap-1 px-2 py-1 rounded-[var(--r-md)] transition-all flex-1 min-w-0"
                       >
                         <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all`}
-                          style={
-                            isAtiva
-                              ? { backgroundColor: '#1A365D', borderColor: '#1A365D', color: '#fff' }
-                              : isConcluida
-                              ? { backgroundColor: '#F0FAF4', borderColor: '#B3DFC5', color: '#1A6637' }
-                              : { backgroundColor: '#fff', borderColor: '#E3E2E6', color: '#74777F' }
-                          }
+                          className="w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all"
+                          style={circleStyle}
                         >
                           {isConcluida ? (
                             <CheckCircle2 className="w-4 h-4" />
@@ -230,14 +229,17 @@ export default async function ProcessoLayout({
                             <Icon className="w-3.5 h-3.5" />
                           )}
                         </div>
-                        <span className={`text-xs font-medium whitespace-nowrap ${isAtiva ? 'text-[#1A365D] font-semibold' : ''}`}>
+                        <span
+                          className={`text-xs font-medium whitespace-nowrap ${isAtiva ? 'font-semibold' : ''}`}
+                          style={{ color: labelColor }}
+                        >
                           {etapa.label}
                         </span>
                       </Link>
                       {i < etapasVisiveis.length - 1 && (
                         <div
                           className="h-0.5 flex-1 mx-1 rounded-full transition-all"
-                          style={{ backgroundColor: isConcluida ? '#B3DFC5' : '#E3E2E6' }}
+                          style={{ backgroundColor: isConcluida ? 'var(--success)' : 'var(--hairline)' }}
                         />
                       )}
                     </div>
@@ -248,20 +250,21 @@ export default async function ProcessoLayout({
               {/* Mobile: tabs scrollaveis */}
               <nav className="md:hidden flex gap-1 overflow-x-auto pb-1 -mx-1 px-1" aria-label="Etapas do processo">
                 {etapasVisiveis.map((etapa, i) => {
-                  const isAtiva    = etapa.slug === etapaAtiva
+                  const isAtiva     = etapa.slug === etapaAtiva
                   const isConcluida = i < etapaAtivaIndex
+
+                  const pillStyle = isAtiva
+                    ? { backgroundColor: 'var(--primary)', color: '#fff', borderColor: 'var(--primary)' }
+                    : isConcluida
+                    ? { backgroundColor: 'var(--successWash)', color: 'var(--success)', borderColor: 'var(--success)' }
+                    : { backgroundColor: 'var(--surface)', color: 'var(--muted)', borderColor: 'var(--hairline)' }
+
                   return (
                     <Link
                       key={etapa.slug}
                       href={`/processos/${id}/${etapa.slug}`}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all"
-                      style={
-                        isAtiva
-                          ? { backgroundColor: '#1A365D', color: '#fff', borderColor: '#1A365D' }
-                          : isConcluida
-                          ? { backgroundColor: '#F0FAF4', color: '#1A6637', borderColor: '#B3DFC5' }
-                          : { backgroundColor: '#fff', color: '#74777F', borderColor: '#E3E2E6' }
-                      }
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--r-pill)] text-xs font-medium whitespace-nowrap border transition-all"
+                      style={pillStyle}
                     >
                       {isConcluida && <CheckCircle2 className="w-3 h-3" />}
                       {etapa.label}
