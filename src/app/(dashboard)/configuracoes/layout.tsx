@@ -26,23 +26,26 @@ export default async function ConfiguracoesLayout({ children }: { children: Reac
     <div className="max-w-[1100px] mx-auto">
 
       {/* Cabecalho */}
-      <div className="mb-8 pb-6 border-b border-[#E3E2E6]">
+      <div className="mb-8 pb-6" style={{ borderBottom: '1px solid var(--hairline)' }}>
         <div className="flex items-center gap-3">
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ backgroundColor: '#1A365D' }}
+            className="w-10 h-10 rounded-[var(--r-md)] flex items-center justify-center shrink-0"
+            style={{ background: 'var(--primary)' }}
           >
             <Settings2 className="w-5 h-5 text-white" />
           </div>
           <div>
-            <p className="text-[10px] font-semibold text-[#B7935E] uppercase tracking-widest">
+            <p
+              className="text-[10px] font-semibold uppercase tracking-widest"
+              style={{ color: 'var(--accent)' }}
+            >
               Configurações
             </p>
             <h1
-              className="text-xl font-bold text-[#1A365D] leading-tight"
-              style={{ fontFamily: 'var(--font-heading)' }}
+              className="text-xl font-bold leading-tight"
+              style={{ color: 'var(--primary)', fontFamily: 'var(--font-heading)' }}
             >
-              Sua Organizacao
+              Sua Organização
             </h1>
           </div>
         </div>

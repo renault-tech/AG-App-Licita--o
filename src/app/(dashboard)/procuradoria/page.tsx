@@ -1,5 +1,6 @@
 import { listarPareceresOrg } from '@/lib/actions/procuradoria'
 import { obterConfiguracoes } from '@/lib/actions/configuracoes-plataforma'
+import { StepPageHeader } from '@/components/licita/step-page-header'
 import ListaPareceres from './lista-pareceres'
 
 export default async function ProcuradoriaPage() {
@@ -13,12 +14,11 @@ export default async function ProcuradoriaPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-bold text-gray-900">Procuradoria</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Fila de pareceres juridicos — Art. 53 da Lei 14.133/21
-        </p>
-      </div>
+      <StepPageHeader
+        title="Procuradoria"
+        subtitle="Fila de pareceres jurídicos — Art. 53 da Lei 14.133/21."
+        artigo="Art. 53"
+      />
       <ListaPareceres
         pareceres={pareceres}
         prazoUrgenciaDias={prazoUrgencia}
