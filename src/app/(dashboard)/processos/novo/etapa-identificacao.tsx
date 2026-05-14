@@ -53,6 +53,10 @@ export default function EtapaIdentificacao({ dados, onChange, secretarias, expan
   const modalidadesVisiveis = expandirModalidades ? MODALIDADES : MODALIDADES.slice(0, 4)
   const modalidadeSelecionada = MODALIDADES.find(m => m.value === dados.modalidade)
 
+  // Derivar label exibido no trigger (evita UUID quando valor vem do localStorage antes das opcoes carregarem)
+  const secretariaSelecionada = secretarias.find(s => s.id === dados.secretaria_id)
+  const categoriaSelecionada = CATEGORIAS.find(c => c.value === dados.categoria_objeto)
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -61,10 +65,16 @@ export default function EtapaIdentificacao({ dados, onChange, secretarias, expan
           <Tooltip texto="Qual secretaria ou setor esta solicitando esta contratacao? Sera usada no cabecalho de todos os documentos." />
         </div>
         <Select value={dados.secretaria_id} onValueChange={v => onChange('secretaria_id', v)}>
-          <SelectTrigger><SelectValue placeholder="Selecione a secretaria..." /></SelectTrigger>
-          <SelectContent>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecione a secretaria...">
+              {secretariaSelecionada
+                ? `${secretariaSelecionada.nome}${secretariaSelecionada.sigla ? ` (${secretariaSelecionada.sigla})` : ''}`
+                : null}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent className="max-w-sm">
             {secretarias.map(s => (
-              <SelectItem key={s.id} value={s.id}>
+              <SelectItem key={s.id} value={s.id} className="whitespace-normal">
                 {s.nome}{s.sigla ? ` (${s.sigla})` : ''}
               </SelectItem>
             ))}
@@ -78,9 +88,13 @@ export default function EtapaIdentificacao({ dados, onChange, secretarias, expan
           <Tooltip texto="Qual o tipo geral do que sera contratado? Isso ajuda o sistema a pre-preencher especificacoes e normas aplicaveis." />
         </div>
         <Select value={dados.categoria_objeto} onValueChange={v => onChange('categoria_objeto', v as CategoriaObjeto)}>
-          <SelectTrigger><SelectValue placeholder="Selecione a categoria..." /></SelectTrigger>
-          <SelectContent>
-            {CATEGORIAS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecione a categoria...">
+              {categoriaSelecionada ? categoriaSelecionada.label : null}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent className="max-w-sm">
+            {CATEGORIAS.map(c => <SelectItem key={c.value} value={c.value} className="whitespace-normal">{c.label}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>

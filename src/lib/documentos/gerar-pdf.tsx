@@ -1,5 +1,5 @@
 import {
-  Document, Page, Text, View, Image, StyleSheet, pdf,
+  Document, Page, Text, View, Image, StyleSheet, renderToBuffer,
 } from '@react-pdf/renderer'
 import type { PayloadDocumento } from './tipos'
 
@@ -292,7 +292,6 @@ export async function gerarPdf(payload: PayloadDocumento): Promise<Buffer> {
     </Document>
   )
 
-  const blob = await pdf(elemento).toBlob()
-  const arrayBuffer = await blob.arrayBuffer()
-  return Buffer.from(arrayBuffer)
+  // renderToBuffer e a API correta para uso server-side (Next.js API routes / Node.js)
+  return renderToBuffer(elemento)
 }

@@ -71,14 +71,38 @@ export async function montarPayloadDFD(processoId: string): Promise<PayloadDocum
   const cabecalho = await buscarCabecalho(supabase, processo.organizacao_id, dfd.secretaria_id)
   cabecalho.geradoPorIA = dfd.gerado_por_ia ?? false
 
-  const secoes = [
+  const secoes: { titulo: string; conteudo: string }[] = [
     { titulo: '1. Secretaria Requisitante', conteudo: dfd.secretaria_nome ?? '' },
     { titulo: '2. Responsável pela Elaboração', conteudo: dfd.responsavel_elaboracao ?? '' },
     { titulo: '3. Objeto da Contratação', conteudo: dfd.objeto ?? '' },
-    dfd.justificativa_necessidade ? { titulo: '4. Justificativa da Necessidade', conteudo: dfd.justificativa_necessidade } : null,
-    dfd.fiscal_contrato ? { titulo: '5. Fiscal do Contrato', conteudo: dfd.fiscal_contrato } : null,
-    dfd.dotacao_orcamentaria ? { titulo: '6. Dotação Orçamentária', conteudo: dfd.dotacao_orcamentaria } : null,
-  ].filter(Boolean) as { titulo: string; conteudo: string }[]
+    ...(dfd.justificativa_necessidade ? [{ titulo: '4. Justificativa da Necessidade', conteudo: dfd.justificativa_necessidade }] : []),
+    ...(dfd.fiscal_contrato ? [{ titulo: '5. Fiscal do Contrato', conteudo: dfd.fiscal_contrato }] : []),
+    ...(dfd.dotacao_orcamentaria ? [{ titulo: '6. Dotação Orçamentária', conteudo: dfd.dotacao_orcamentaria }] : []),
+  ]
+
+  // Para DFDs compartilhados e consolidados, incluir dados de todas as secretarias participantes
+  if (dfd.tipo === 'compartilhado' && ['consolidado', 'prazo_encerrado'].includes(dfd.status_adesao ?? '')) {
+    const { data: participacoes } = await (supabase as any)
+      .from('dfd_participacoes')
+      .select('secretaria_nome, tipo, fiscal_contrato, dotacao_orcamentaria, status')
+      .eq('dfd_id', dfd.id)
+      .in('status', ['aderida'])
+      .order('tipo')
+
+    if (participacoes && (participacoes as any[]).length > 0) {
+      const linhasConsolidacao = (participacoes as any[]).map((p: any) => {
+        const partes = [`Secretaria: ${p.secretaria_nome}`]
+        if (p.fiscal_contrato) partes.push(`Fiscal: ${p.fiscal_contrato}`)
+        if (p.dotacao_orcamentaria) partes.push(`Dotacao: ${p.dotacao_orcamentaria}`)
+        return partes.join(' | ')
+      })
+
+      secoes.push({
+        titulo: '7. Secretarias Participantes e Dados de Execucao',
+        conteudo: linhasConsolidacao.join('\n'),
+      })
+    }
+  }
 
   return {
     cabecalho,

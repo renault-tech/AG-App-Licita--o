@@ -54,7 +54,8 @@ export async function criarProcessoInicial(dados: ProcessoWizardInput) {
 
 export async function criarProcessoComDocumentos(
   dados: import('@/app/(dashboard)/processos/novo/types').DadosWizard,
-  documentos: import('@/app/(dashboard)/processos/novo/types').DocumentosGerados
+  documentos: import('@/app/(dashboard)/processos/novo/types').DocumentosGerados,
+  opcoes?: { avisoId?: string }
 ): Promise<{ success: boolean; processoId?: string; error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -69,6 +70,19 @@ export async function criarProcessoComDocumentos(
 
   const orgId = (userData as any).organizacao_id
   const valorNum = dados.valor_estimado && !Number.isNaN(dados.valor_estimado) ? dados.valor_estimado : null
+
+  // Buscar dados da secretaria e nome do usuario para snapshot do DFD
+  const [secretariaRes, usuarioNomeRes] = await Promise.all([
+    dados.secretaria_id
+      ? (supabase as any).from('secretarias')
+          .select('nome, email, telefone, secretario_nome')
+          .eq('id', dados.secretaria_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase.from('usuarios').select('nome_completo').eq('id', user.id).maybeSingle(),
+  ])
+  const sec = (secretariaRes as any).data as { nome: string; email: string | null; telefone: string | null; secretario_nome: string | null } | null
+  const nomeCompleto = ((usuarioNomeRes as any).data as any)?.nome_completo ?? ''
 
   // 1. Criar processo
   const { data: processo, error: procError } = await (supabase as any)
@@ -94,23 +108,87 @@ export async function criarProcessoComDocumentos(
 
   const processoId: string = processo.id
 
+  const avisoId = opcoes?.avisoId
+
   // 2. Criar DFD, ETP e TR. Se qualquer um falhar, desfaz o processo.
   try {
     const secoesDfd = Object.fromEntries(documentos.dfd.secoes.map(s => [s.tipo_campo, s.texto]))
-    const { error: dfdError } = await (supabase as any).from('dfd').insert({
+
+    // Quando ha aviso vinculado, DFD e compartilhado e ja consolidado (prazo expirou)
+    const tipoDfd = avisoId ? 'compartilhado' : 'individual'
+    const statusAdesaoDfd = avisoId ? 'consolidado' : 'rascunho'
+
+    const { data: dfdCriado, error: dfdError } = await (supabase as any).from('dfd').insert({
       processo_id: processoId,
       organizacao_id: orgId,
       criado_por: user.id,
       secretaria_id: dados.secretaria_id || null,
+      secretaria_nome: sec?.nome ?? 'Sem secretaria designada',
+      secretaria_email: sec?.email ?? null,
+      secretaria_telefone: sec?.telefone ?? null,
+      secretario_responsavel: sec?.secretario_nome ?? null,
+      responsavel_elaboracao: nomeCompleto,
       objeto: dados.objeto,
       justificativa_necessidade: secoesDfd['justificativa_necessidade'] ?? null,
-      tipo: 'individual',
-      status_adesao: 'rascunho',
-      responsavel_elaboracao: '',
+      dotacao_orcamentaria: secoesDfd['dotacao_orcamentaria'] ?? null,
+      tipo: tipoDfd,
+      status_adesao: statusAdesaoDfd,
       status: 'rascunho',
       gerado_por_ia: dados.ia_modelo !== 'sem_ia',
-    })
+    }).select('id').single()
     if (dfdError) throw new Error(`Erro ao criar DFD: ${dfdError.message}`)
+
+    const dfdId: string = (dfdCriado as any).id
+
+    // Criar participacao iniciadora
+    if (dados.secretaria_id) {
+      await (supabase as any).from('dfd_participacoes').insert({
+        dfd_id: dfdId,
+        secretaria_id: dados.secretaria_id,
+        tipo: 'iniciadora',
+        status: 'aderida',
+        secretaria_nome: sec?.nome ?? '',
+        secretaria_email: sec?.email ?? null,
+        secretaria_telefone: sec?.telefone ?? null,
+        secretario_responsavel: sec?.secretario_nome ?? null,
+        respondido_em: new Date().toISOString(),
+      })
+    }
+
+    // Se ha aviso: criar participacoes das secretarias que aderiram
+    if (avisoId) {
+      const { data: adesoes } = await (supabase as any)
+        .from('avisos_adesoes')
+        .select(`
+          secretaria_id, fiscal_nome, dotacao_orcamentaria,
+          secretaria:secretarias(nome, email, telefone, secretario_nome)
+        `)
+        .eq('aviso_id', avisoId)
+
+      if (adesoes && (adesoes as any[]).length > 0) {
+        await (supabase as any).from('dfd_participacoes').insert(
+          (adesoes as any[]).map(a => ({
+            dfd_id: dfdId,
+            secretaria_id: a.secretaria_id,
+            tipo: 'participante',
+            status: 'aderida',
+            secretaria_nome: a.secretaria?.nome ?? '',
+            secretaria_email: a.secretaria?.email ?? null,
+            secretaria_telefone: a.secretaria?.telefone ?? null,
+            secretario_responsavel: a.secretaria?.secretario_nome ?? null,
+            fiscal_contrato: a.fiscal_nome,
+            dotacao_orcamentaria: a.dotacao_orcamentaria,
+            respondido_em: new Date().toISOString(),
+          }))
+        )
+      }
+
+      // Linkar aviso ao processo e marcar como processo_iniciado
+      await (supabase as any)
+        .from('avisos_compra_conjunta')
+        .update({ status: 'processo_iniciado', processo_id: processoId })
+        .eq('id', avisoId)
+    }
 
     const secoesEtp = Object.fromEntries(documentos.etp.secoes.map(s => [s.tipo_campo, s.texto]))
     const { error: etpError } = await (supabase as any).from('etp').insert({

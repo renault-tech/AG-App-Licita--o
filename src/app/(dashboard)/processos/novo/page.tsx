@@ -128,11 +128,11 @@ export default function NovoProcessoPage() {
     })
   }
 
-  function handleConfirmar() {
+  function handleConfirmar(avisoId?: string) {
     if (!documentosGerados) return
     setSalvando(true)
     startTransition(async () => {
-      const res = await criarProcessoComDocumentos(dados, documentosGerados)
+      const res = await criarProcessoComDocumentos(dados, documentosGerados, { avisoId })
       setSalvando(false)
       if (!res.success || !res.processoId) {
         toast.error(res.error ?? 'Erro ao criar processo.')
@@ -149,6 +149,8 @@ export default function NovoProcessoPage() {
       <div className="max-w-3xl mx-auto">
         <TelaDocumentosGerados
           documentos={documentosGerados}
+          dados={dados}
+          secretarias={secretarias}
           iaModeloSolicitado={dados.ia_modelo === 'com_ia'}
           onEditar={handleEditarSecao}
           onConfirmar={handleConfirmar}

@@ -92,8 +92,21 @@ export async function executarIAComCreditos(
     texto = res.text
     sucesso = true
   } catch (err) {
-    erroMensagem = err instanceof Error ? err.message : 'Falha de comunicação.'
-    creditosDebitar = 0
+    // Se org tem provider configurado e falhou, tentar o provider padrao do env como fallback
+    const envProvider = (process.env.AI_PROVIDER ?? 'gemini') as AIProvider
+    if (providerOverride && providerOverride !== envProvider) {
+      try {
+        const res = await gerarTextoIA({ prompt: params.prompt, temperature, provider: envProvider })
+        texto = res.text
+        sucesso = true
+      } catch (err2) {
+        erroMensagem = err2 instanceof Error ? err2.message : 'Falha de comunicação com o provedor de IA.'
+        creditosDebitar = 0
+      }
+    } else {
+      erroMensagem = err instanceof Error ? err.message : 'Falha de comunicação com o provedor de IA.'
+      creditosDebitar = 0
+    }
   }
 
   // Registrar acao de IA (fire-and-forget)

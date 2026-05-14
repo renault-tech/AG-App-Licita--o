@@ -80,17 +80,30 @@ export async function gerarSecao(params: {
   let textoFinal = substituirVariaveis(textoBase, params.variaveis)
 
   if (params.usarIA && textoFinal && origem !== 'aprendida') {
+    const prompt = `Personalize o texto abaixo para o contexto especifico da contratacao, mantendo o registro juridico formal e as referencias legais. Retorne apenas o texto ajustado, sem comentarios.\n\nContexto: ${JSON.stringify(params.variaveis)}\n\nTexto base:\n${textoFinal}`
+    const iaProvider = params.providerOverride as import('./ai/types').AIProvider | undefined
+    const envProvider = (process.env.AI_PROVIDER ?? 'gemini') as import('./ai/types').AIProvider
+
+    let iaOk = false
     try {
-      const res = await gerarTextoIA({
-        prompt: `Personalize o texto abaixo para o contexto especifico da contratacao, mantendo o registro juridico formal e as referencias legais. Retorne apenas o texto ajustado, sem comentarios.\n\nContexto: ${JSON.stringify(params.variaveis)}\n\nTexto base:\n${textoFinal}`,
-        maxTokens: 800,
-        temperature: 0.3,
-        provider: params.providerOverride as import('./ai/types').AIProvider | undefined,
-      })
+      const res = await gerarTextoIA({ prompt, maxTokens: 800, temperature: 0.3, provider: iaProvider })
       textoFinal = res.text
-      return { tipo_campo: params.tipoCampo, texto: textoFinal, origem: 'ia', processos_referencia: [] }
+      iaOk = true
     } catch {
-      // fallback silencioso para template
+      // Se o provider configurado na org falhou, tentar o env default
+      if (iaProvider && iaProvider !== envProvider) {
+        try {
+          const res = await gerarTextoIA({ prompt, maxTokens: 800, temperature: 0.3, provider: envProvider })
+          textoFinal = res.text
+          iaOk = true
+        } catch {
+          // fallback silencioso para template
+        }
+      }
+    }
+
+    if (iaOk) {
+      return { tipo_campo: params.tipoCampo, texto: textoFinal, origem: 'ia', processos_referencia: [] }
     }
   }
 

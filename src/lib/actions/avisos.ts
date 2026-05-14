@@ -378,6 +378,40 @@ export async function registrarAdesao(
   return { success: true }
 }
 
+// Wrapper para envio de pedido de adesao a partir do wizard
+// Cria aviso com dados do wizard + secretarias selecionadas + prazo
+export async function enviarPedidoAdesaoWizard(params: {
+  secretariaOrigemId: string
+  modalidade: string
+  categoriaObjeto: string
+  objeto: string
+  itensWizard: Array<{ descricao: string; unidade: string; quantidade: number }>
+  prazoAdesaoDias: number
+  secretariasConvidadas: string[]
+}): Promise<{ success: boolean; avisoId?: string; prazoAdesao?: string; error?: string }> {
+  const prazoAdesao = new Date(Date.now() + params.prazoAdesaoDias * 86_400_000).toISOString()
+
+  const itens = params.itensWizard.length > 0
+    ? params.itensWizard.map(i => ({
+        descricao: i.descricao,
+        unidade: i.unidade || 'unid.',
+        quantidade_origem: Math.max(1, i.quantidade),
+      }))
+    : [{ descricao: params.objeto, unidade: 'unid.', quantidade_origem: 1 }]
+
+  const res = await criarAviso({
+    secretaria_origem_id: params.secretariaOrigemId,
+    modalidade: params.modalidade,
+    categoria_objeto: params.categoriaObjeto,
+    prazo_adesao: prazoAdesao,
+    itens,
+    secretarias_destinatarias: params.secretariasConvidadas,
+  })
+
+  if (!res.success) return { success: false, error: res.error }
+  return { success: true, avisoId: res.avisoId, prazoAdesao }
+}
+
 export async function encerrarPrazo(
   avisoId: string
 ): Promise<{ success: boolean; error?: string }> {
