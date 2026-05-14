@@ -13,11 +13,32 @@ const NAV = [
   { href: '/configuracoes/assinatura-eletronica', label: 'Assinatura',             icon: PenTool    },
 ]
 
-export default function SidebarConfiguracoes() {
+interface SidebarConfiguracoesProps {
+  brasaoUrl?: string | null
+  orgNome?: string | null
+}
+
+export default function SidebarConfiguracoes({ brasaoUrl, orgNome }: SidebarConfiguracoesProps) {
   const pathname = usePathname()
 
   return (
     <nav className="w-52 shrink-0">
+      {/* Logo da prefeitura no topo da sidebar */}
+      {brasaoUrl && (
+        <div className="flex items-center gap-2.5 px-3 py-2.5 mb-2" style={{ borderBottom: '1px solid var(--hairline)' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={brasaoUrl}
+            alt="Logo da prefeitura"
+            style={{ height: 36, width: 'auto', maxWidth: 28, objectFit: 'contain', flexShrink: 0 }}
+          />
+          {orgNome && (
+            <span className="text-[11px] font-semibold leading-tight truncate" style={{ color: 'var(--inkSoft)', fontFamily: 'var(--font-heading)' }}>
+              {orgNome}
+            </span>
+          )}
+        </div>
+      )}
       <ul className="space-y-0.5">
         {NAV.map(({ href, label, icon: Icon }) => {
           const ativa = pathname === href || pathname.startsWith(href + '/')

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Bell, Star, Search, LogOut, Settings, Users, Building2, Zap, TrendingUp, ShieldCheck, ChevronDown, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTheme, THEMES } from '@/lib/theme/provider'
-import { Brasao } from '@/components/licita/brasao'
+import { LogoPrefeitura } from '@/components/licita/logo-prefeitura'
 import { ThemeSwitcherPanel } from '@/components/licita/theme-switcher'
 import { createClient } from '@/lib/supabase/client'
 import SinoNotificacoes from '@/components/layout/sino-notificacoes'
@@ -92,7 +92,7 @@ export function AppHeader({
     >
       {/* Linha 1: brasao + nome completo + utilitarios */}
       <div className="flex items-center gap-3.5 px-6 md:px-9 py-3 border-b border-hairlineSoft">
-        <Brasao size={40} theme={theme} brasaoUrl={brasaoUrl} />
+        <LogoPrefeitura brasaoUrl={brasaoUrl} theme={theme} height={40} />
 
         <div className="flex-1 min-w-0 leading-tight">
           <div className="text-[9.5px] text-muted font-bold tracking-[0.16em] uppercase hidden sm:block">

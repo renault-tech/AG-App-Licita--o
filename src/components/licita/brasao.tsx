@@ -4,9 +4,10 @@ interface BrasaoProps {
   size?: number
   theme?: ThemeName
   brasaoUrl?: string | null
+  className?: string
 }
 
-export function Brasao({ size = 40, theme = 'petroleo', brasaoUrl }: BrasaoProps) {
+export function Brasao({ size = 40, theme = 'petroleo', brasaoUrl, className }: BrasaoProps) {
   if (brasaoUrl) {
     return (
       <img
@@ -14,17 +15,18 @@ export function Brasao({ size = 40, theme = 'petroleo', brasaoUrl }: BrasaoProps
         alt="Brasao municipal"
         width={size}
         height={size}
-        className="object-contain"
+        className={`object-contain shrink-0 ${className ?? ''}`}
         style={{ width: size, height: size }}
       />
     )
   }
 
   const palettes: Record<ThemeName, { outer: string; inner: string; star: string; text: string }> = {
-    petroleo: { outer: '#1F3B4E', inner: '#2C506A', star: '#B56B30', text: '#FFFFFF' },
-    grafite:  { outer: '#111111', inner: '#282828', star: '#0F6FBA', text: '#F8F8F8' },
-    brasao:   { outer: '#1A4828', inner: '#266038', star: '#9C6A14', text: '#FAF7EC' },
-    noite:    { outer: '#161C24', inner: '#1C242E', star: '#4A90D9', text: '#E8EDF2' },
+    petroleo:   { outer: '#1F3B4E', inner: '#2C506A', star: '#B56B30', text: '#FFFFFF' },
+    grafite:    { outer: '#111111', inner: '#282828', star: '#0F6FBA', text: '#F8F8F8' },
+    brasao:     { outer: '#1A4828', inner: '#266038', star: '#9C6A14', text: '#FAF7EC' },
+    noite:      { outer: '#161C24', inner: '#1C242E', star: '#4A90D9', text: '#E8EDF2' },
+    cataguases: { outer: '#0E1B33', inner: '#1A2E50', star: '#D4A020', text: '#F5F0E0' },
   }
 
   const p = palettes[theme]
@@ -36,6 +38,7 @@ export function Brasao({ size = 40, theme = 'petroleo', brasaoUrl }: BrasaoProps
       viewBox="0 0 40 40"
       fill="none"
       aria-label="Brasao municipal"
+      className={`shrink-0 ${className ?? ''}`}
     >
       <rect width="40" height="40" rx="6" fill={p.outer} />
       <path

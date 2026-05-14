@@ -373,6 +373,91 @@
   --gold: #E8A030;
 }
 
+[data-theme="cataguases"] {
+  /* Paleta — Cataguases: azul marinho real, vermelho, ouro e bege */
+  --bg:           #EDE8D8;
+  --surface:      #F5F0E0;
+  --surfaceAlt:   #E8E0CA;
+  --surfaceSink:  #D8CEB4;
+  --ink:          #0A1220;
+  --inkSoft:      #1C2A3A;
+  --muted:        #5A6878;
+  --mutedSoft:    #8A9AAA;
+  --hairline:     #C8BAA0;
+  --hairlineSoft: #DDD4BC;
+  --rule:         #0E1B33;
+
+  --primary:      #0E1B33;
+  --primarySoft:  #1A2E50;
+  --primaryWash:  #D0DAF0;
+  --primaryInk:   #F5F0E0;
+
+  --accent:       #D4A020;
+  --accentSoft:   #E8C060;
+  --accentWash:   #FAF0C8;
+  --accentInk:    #0A1220;
+
+  --success:      #2A6040;
+  --successWash:  #D4EAD8;
+  --warn:         #C03020;
+  --warnWash:     #F8DDD8;
+  --danger:       #A02010;
+  --dangerWash:   #F5D4CC;
+
+  --statusRascunho:  var(--muted);
+  --statusRevisao:   var(--warn);
+  --statusAssinado:  var(--primary);
+  --statusPublicado: var(--success);
+  --statusAnalise:   var(--accent);
+  --statusDevolvido: var(--danger);
+
+  /* Tipografia — newsreader, serif institucional formal */
+  --font-heading: var(--font-newsreader),Georgia,"Times New Roman",serif;
+  --font-body:    var(--font-inter),-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+
+  /* Forma — levemente arredondado, nobre */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-pill: 999px;
+  --rule-hair: 0.5px;
+  --rule-med:  1px;
+  --rule-strong: 1.5px;
+
+  /* Shadcn compat */
+  --background:          #EDE8D8;
+  --foreground:          #0A1220;
+  --card:                #F5F0E0;
+  --card-foreground:     #0A1220;
+  --popover:             #F5F0E0;
+  --popover-foreground:  #0A1220;
+  --primary-foreground:  #F5F0E0;
+  --secondary:           #D8CEB4;
+  --secondary-foreground: #0A1220;
+  --muted-foreground:    #5A6878;
+  --accent-foreground:   #0A1220;
+  --destructive:         #A02010;
+  --border:              #C8BAA0;
+  --input:               #C8BAA0;
+  --ring:                #0E1B33;
+  --radius: 0.5rem;
+  --sidebar:                    #F5F0E0;
+  --sidebar-foreground:         #0A1220;
+  --sidebar-primary:            #0E1B33;
+  --sidebar-primary-foreground: #F5F0E0;
+  --sidebar-accent:             #D8CEB4;
+  --sidebar-accent-foreground:  #0A1220;
+  --sidebar-border:             #C8BAA0;
+  --sidebar-ring:               #0E1B33;
+  --chart-1: #0E1B33;
+  --chart-2: #D4A020;
+  --chart-3: #2A6040;
+  --chart-4: #C03020;
+  --chart-5: #5A6878;
+  --navy: #0E1B33;
+  --gold: #D4A020;
+}
+
 /* ── Tailwind aliases para tokens LicitaIA ─────────────────── */
 @layer base {
   :root {

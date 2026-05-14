@@ -2,10 +2,11 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 
 export const THEMES = {
-  petroleo: { name: 'Petroleo', desc: 'Naval editorial com serifa', swatch: ['#1F3B4E', '#F7F5F0', '#B56B30'] },
-  grafite:  { name: 'Grafite',  desc: 'Monocromo tecnico minimalista', swatch: ['#111111', '#EBEBEB', '#0F6FBA'] },
-  brasao:   { name: 'Brasao',   desc: 'Verde republica e ouro classico', swatch: ['#1A4828', '#F0ECD8', '#9C6A14'] },
-  noite:    { name: 'Noite',    desc: 'Dark institucional azul profundo', swatch: ['#0D1117', '#161C24', '#4A90D9'] },
+  petroleo:    { name: 'Petroleo',    desc: 'Naval editorial com serifa',         swatch: ['#1F3B4E', '#F7F5F0', '#B56B30'] },
+  grafite:     { name: 'Grafite',     desc: 'Monocromo tecnico minimalista',       swatch: ['#111111', '#EBEBEB', '#0F6FBA'] },
+  brasao:      { name: 'Brasao',      desc: 'Verde republica e ouro classico',     swatch: ['#1A4828', '#F0ECD8', '#9C6A14'] },
+  noite:       { name: 'Noite',       desc: 'Dark institucional azul profundo',    swatch: ['#0D1117', '#161C24', '#4A90D9'] },
+  cataguases:  { name: 'Cataguases',  desc: 'Azul real, vermelho e ouro municipal',swatch: ['#0E1B33', '#F5EFDC', '#D4A020'] },
 } as const
 
 export type ThemeName = keyof typeof THEMES
