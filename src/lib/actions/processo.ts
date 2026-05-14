@@ -238,3 +238,42 @@ export async function criarProcessoComDocumentos(
     }
   }
 }
+
+export async function excluirProcesso(processoId: string): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Nao autenticado.' }
+
+  const { data: userData } = await supabase
+    .from('usuarios')
+    .select('organizacao_id')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (!userData) return { success: false, error: 'Usuario nao encontrado.' }
+
+  const orgId = (userData as any).organizacao_id
+
+  // Confirmar que o processo pertence a organizacao do usuario
+  const { data: processo } = await (supabase as any)
+    .from('processos_licitatorios')
+    .select('id, status, organizacao_id')
+    .eq('id', processoId)
+    .eq('organizacao_id', orgId)
+    .maybeSingle()
+
+  if (!processo) return { success: false, error: 'Processo nao encontrado.' }
+
+  if (processo.status === 'publicado') {
+    return { success: false, error: 'Processos publicados nao podem ser excluidos.' }
+  }
+
+  const { error } = await (supabase as any)
+    .from('processos_licitatorios')
+    .delete()
+    .eq('id', processoId)
+    .eq('organizacao_id', orgId)
+
+  if (error) return { success: false, error: error.message }
+
+  return { success: true }
+}

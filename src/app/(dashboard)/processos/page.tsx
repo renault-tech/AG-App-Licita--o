@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
+import BotaoExcluirProcesso from './botao-excluir-processo'
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; border: string }> = {
   rascunho:   { label: 'Rascunho',   bg: '#F4F3F7', color: '#43474E', border: '#E3E2E6' },
@@ -172,43 +173,45 @@ export default async function ProcessosPage() {
                 const modalidade = MODALIDADE_LABEL[p.modalidade] ?? p.modalidade
                 const statusCfg = STATUS_CONFIG[p.status] ?? STATUS_CONFIG['rascunho']
                 return (
-                  <Link
-                    key={p.id}
-                    href={`/processos/${p.id}/dfd`}
-                    className="flex items-center gap-4 px-6 py-5 hover:bg-[#FAFAFA] transition-colors group"
-                  >
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: '#1A365D0D' }}
+                  <div key={p.id} className="flex items-center gap-2 px-6 py-5 hover:bg-[#FAFAFA] transition-colors group">
+                    <Link
+                      href={`/processos/${p.id}/dfd`}
+                      className="flex items-center gap-4 flex-1 min-w-0"
                     >
-                      <FileText className="w-[18px] h-[18px]" style={{ color: '#1A365D' }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[15px] font-semibold text-[#1A1C1E] truncate">
-                        {p.numero_processo ? `${p.numero_processo} - ` : ''}{p.objeto}
-                      </p>
-                      <div className="flex items-center gap-2.5 mt-1 flex-wrap">
-                        <span className="text-sm text-[#74777F]">{modalidade}</span>
-                        {p.valor_estimado > 0 && (
-                          <>
-                            <span className="text-[#C4C6CF]">|</span>
-                            <span className="text-sm text-[#43474E] font-medium">
-                              R$ {(p.valor_estimado as number).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span
-                        className="text-xs font-medium px-2.5 py-1 border hidden sm:inline"
-                        style={{ backgroundColor: statusCfg.bg, color: statusCfg.color, borderColor: statusCfg.border, borderRadius: '3px' }}
+                      <div
+                        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: '#1A365D0D' }}
                       >
-                        {statusCfg.label}
-                      </span>
-                      <ArrowRight className="w-4 h-4" style={{ color: '#C4C6CF' }} />
-                    </div>
-                  </Link>
+                        <FileText className="w-[18px] h-[18px]" style={{ color: '#1A365D' }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[15px] font-semibold text-[#1A1C1E] truncate">
+                          {p.numero_processo ? `${p.numero_processo} - ` : ''}{p.objeto}
+                        </p>
+                        <div className="flex items-center gap-2.5 mt-1 flex-wrap">
+                          <span className="text-sm text-[#74777F]">{modalidade}</span>
+                          {p.valor_estimado > 0 && (
+                            <>
+                              <span className="text-[#C4C6CF]">|</span>
+                              <span className="text-sm text-[#43474E] font-medium">
+                                R$ {(p.valor_estimado as number).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span
+                          className="text-xs font-medium px-2.5 py-1 border hidden sm:inline"
+                          style={{ backgroundColor: statusCfg.bg, color: statusCfg.color, borderColor: statusCfg.border, borderRadius: '3px' }}
+                        >
+                          {statusCfg.label}
+                        </span>
+                        <ArrowRight className="w-4 h-4" style={{ color: '#C4C6CF' }} />
+                      </div>
+                    </Link>
+                    <BotaoExcluirProcesso processoId={p.id} objeto={p.objeto} />
+                  </div>
                 )
               })}
             </div>

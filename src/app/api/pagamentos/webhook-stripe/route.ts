@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { concederCreditos, PACOTES_CREDITOS } from '@/lib/actions/creditos'
+import { concederCreditos } from '@/lib/actions/creditos'
 
 // -----------------------------------------------------------------------
 // Webhook Stripe

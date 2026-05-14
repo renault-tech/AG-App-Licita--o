@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import BotaoCompra from './botao-compra'
-import { PACOTES_CREDITOS } from '@/lib/actions/creditos'
+import { PACOTES_CREDITOS } from '@/lib/creditos-config'
 
 type Transacao = {
   id: string

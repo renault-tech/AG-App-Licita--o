@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { ArrowLeft, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 
@@ -75,15 +75,34 @@ export default function NovoProcessoPage() {
   const [documentosGerados, setDocumentosGerados] = useState<DocumentosGerados | null>(null)
   const [gerando, setGerando] = useState(false)
   const [salvando, setSalvando] = useState(false)
+  const [rascunhoSalvo, setRascunhoSalvo] = useState<DadosWizard | null>(null)
   const [, startTransition] = useTransition()
 
   useEffect(() => {
     listarSecretarias().then(secs => setSecretarias(secs))
     try {
       const salvo = localStorage.getItem(STORAGE_KEY)
-      if (salvo) setDados(prev => ({ ...prev, ...JSON.parse(salvo) }))
+      if (salvo) {
+        const parsed = JSON.parse(salvo) as DadosWizard
+        // Só considera rascunho se tiver algum campo preenchido além dos defaults
+        if (parsed.objeto || parsed.secretaria_id || parsed.modalidade) {
+          setRascunhoSalvo(parsed)
+        }
+      }
     } catch {}
   }, [])
+
+  function handleRestaurarRascunho() {
+    if (!rascunhoSalvo) return
+    setDados(prev => ({ ...prev, ...rascunhoSalvo }))
+    setRascunhoSalvo(null)
+    toast.success('Rascunho restaurado.')
+  }
+
+  function handleDescartarRascunho() {
+    try { localStorage.removeItem(STORAGE_KEY) } catch {}
+    setRascunhoSalvo(null)
+  }
 
   function onChange(campo: keyof DadosWizard, valor: unknown) {
     setDados(prev => {
@@ -179,6 +198,32 @@ export default function NovoProcessoPage() {
           </p>
         </div>
       </div>
+
+      {/* Banner de rascunho salvo */}
+      {rascunhoSalvo && (
+        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
+          <div className="flex items-center gap-2 text-amber-800">
+            <RotateCcw className="w-4 h-4 shrink-0" />
+            <span>Rascunho salvo encontrado. Deseja continuar de onde parou?</span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleDescartarRascunho}
+              className="text-amber-700 hover:text-amber-900 text-xs font-medium underline underline-offset-2"
+            >
+              Descartar
+            </button>
+            <button
+              type="button"
+              onClick={handleRestaurarRascunho}
+              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-md transition-colors"
+            >
+              Restaurar rascunho
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Stepper */}
       <div className="flex items-center gap-0">

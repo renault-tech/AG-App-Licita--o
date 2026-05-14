@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { Loader2, CreditCard, Banknote } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { criarSessaoStripe, criarPreferenciaMercadoPago, type PacoteId } from '@/lib/actions/creditos'
+import { criarSessaoStripe, criarPreferenciaMercadoPago } from '@/lib/actions/creditos'
+import type { PacoteId } from '@/lib/creditos-config'
 
 interface BotaoCompraProps {
   pacoteId:    PacoteId
