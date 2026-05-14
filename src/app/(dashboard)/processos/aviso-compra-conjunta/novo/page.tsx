@@ -77,7 +77,7 @@ export default function NovoAvisoPage() {
     if (!prazo || prazo < PRAZO_MIN) return 'Prazo deve ser ao menos amanha.'
     if (itens.length === 0) return 'Adicione ao menos um item.'
     for (const item of itens) {
-      if (item.descricao.trim().length < 2) return 'Preencha a descricao de todos os itens.'
+      if (item.descricao.trim().length < 2) return 'Preencha a descrição de todos os itens.'
       if (!item.unidade.trim()) return 'Preencha a unidade de todos os itens.'
       if (item.quantidade_origem <= 0) return 'Quantidade deve ser maior que zero em todos os itens.'
     }

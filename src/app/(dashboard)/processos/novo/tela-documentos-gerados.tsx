@@ -140,12 +140,12 @@ export default function TelaDocumentosGerados({ documentos, iaModeloSolicitado, 
           <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-amber-800">
-              IA nao foi utilizada nesta geracao
+              IA não foi utilizada nesta geração
             </p>
             <p className="text-xs text-amber-700 mt-0.5">
-              Os documentos foram gerados com os templates padrao. Para ativar o refinamento por IA, configure o provedor nas{' '}
+              Os documentos foram gerados com os templates padrão. Para ativar o refinamento por IA, configure o provedor nas{' '}
               <Link href="/configuracoes/ia" className="font-semibold underline hover:text-amber-900">
-                configuracoes da organizacao
+                configurações da organização
               </Link>
               .
             </p>

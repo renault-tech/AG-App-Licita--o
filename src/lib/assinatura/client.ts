@@ -1,13 +1,15 @@
 import type { AssinaturaAdapter, ProvedorAssinatura } from './types'
-import { internoAdapter } from './adapters/interno'
+import { internoAdapter }   from './adapters/interno'
 import { clicksignAdapter } from './adapters/clicksign'
+import { zapsignAdapter }   from './adapters/zapsign'
+import { govbrAdapter }     from './adapters/govbr'
 
 const adapters: Record<ProvedorAssinatura, AssinaturaAdapter> = {
   interno:   internoAdapter,
   clicksign: clicksignAdapter,
-  zapsign:   internoAdapter,   // fallback interno ate implementacao
-  govbr:     internoAdapter,   // fallback interno ate implementacao
-  docusign:  internoAdapter,   // fallback interno ate implementacao
+  zapsign:   zapsignAdapter,
+  govbr:     govbrAdapter,
+  docusign:  internoAdapter,   // fallback interno -- implementar se necessario
 }
 
 export function getAssinaturaAdapter(provedor?: ProvedorAssinatura): AssinaturaAdapter {

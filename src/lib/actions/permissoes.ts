@@ -93,7 +93,7 @@ export async function salvarPermissoesPapel(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Nao autenticado' }
+  if (!user) return { success: false, error: 'Não autenticado' }
 
   const { data: usuarioData } = await supabase
     .from('usuarios')
@@ -132,7 +132,7 @@ export async function restaurarPadraoPermissoesPapel(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Nao autenticado' }
+  if (!user) return { success: false, error: 'Não autenticado' }
 
   const { data: usuarioData } = await supabase
     .from('usuarios')

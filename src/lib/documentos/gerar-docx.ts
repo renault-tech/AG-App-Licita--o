@@ -10,7 +10,7 @@ type ElementoDoc = Paragraph | Table
 
 function rodapeTexto(payload: PayloadDocumento): string {
   const partes: string[] = []
-  if (payload.cabecalho.endereco) partes.push(`Endereco: ${payload.cabecalho.endereco}`)
+  if (payload.cabecalho.endereco) partes.push(`Endereço: ${payload.cabecalho.endereco}`)
   if (payload.cabecalho.telefone) partes.push(`Telefone: ${payload.cabecalho.telefone}`)
   if (payload.cabecalho.email)    partes.push(`E-mail: ${payload.cabecalho.email}`)
   return partes.join('   |   ')
@@ -72,7 +72,7 @@ export async function gerarDocx(payload: PayloadDocumento): Promise<Buffer> {
               children: [new Paragraph({
                 children: [
                   new TextRun({ text: 'Processo: ', bold: true, size: 18, font: 'Arial' }),
-                  new TextRun({ text: payload.numeroProcesso ?? 'Nao informado', size: 18, font: 'Arial' }),
+                  new TextRun({ text: payload.numeroProcesso ?? 'Não informado', size: 18, font: 'Arial' }),
                 ],
               })],
               shading: { type: ShadingType.CLEAR, color: 'f0f4f8' },
@@ -131,7 +131,7 @@ export async function gerarDocx(payload: PayloadDocumento): Promise<Buffer> {
         },
       }),
       new Paragraph({
-        children: [new TextRun({ text: secao.conteudo || '(nao preenchido)', size: 20, font: 'Arial' })],
+        children: [new TextRun({ text: secao.conteudo || '(não preenchido)', size: 20, font: 'Arial' })],
         spacing: { after: 160 },
         alignment: AlignmentType.JUSTIFIED,
       }),
@@ -144,7 +144,7 @@ export async function gerarDocx(payload: PayloadDocumento): Promise<Buffer> {
       alignment: AlignmentType.CENTER,
     }),
     new Paragraph({
-      children: [new TextRun({ text: 'Assinatura do Responsavel', size: 18, font: 'Arial' })],
+      children: [new TextRun({ text: 'Assinatura do Responsável', size: 18, font: 'Arial' })],
       alignment: AlignmentType.CENTER,
       spacing: { after: 80 },
     }),
@@ -159,7 +159,7 @@ export async function gerarDocx(payload: PayloadDocumento): Promise<Buffer> {
       new Paragraph({ text: '', spacing: { before: 480 } }),
       new Paragraph({
         children: [new TextRun({
-          text: `Documento gerado com auxilio de inteligencia artificial em ${payload.dataGeracao}. A revisao e validacao do conteudo sao de responsabilidade do agente publico signatario, nos termos da Lei 14.133/21.`,
+          text: `Documento gerado com auxílio de inteligência artificial em ${payload.dataGeracao}. A revisão e validação do conteúdo são de responsabilidade do agente público signatário, nos termos da Lei 14.133/21.`,
           size: 16,
           italics: true,
           color: '64748b',
@@ -208,7 +208,7 @@ export async function gerarDocx(payload: PayloadDocumento): Promise<Buffer> {
             new Paragraph({
               children: [
                 new TextRun({ text: rodapeTexto(payload), size: 16, color: '64748b', font: 'Arial' }),
-                new TextRun({ text: '   Pagina ', size: 16, color: '64748b', font: 'Arial' }),
+                new TextRun({ text: '   Página ', size: 16, color: '64748b', font: 'Arial' }),
                 new TextRun({ children: [PageNumber.CURRENT], size: 16, color: '64748b', font: 'Arial' }),
                 new TextRun({ text: ' de ', size: 16, color: '64748b', font: 'Arial' }),
                 new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 16, color: '64748b', font: 'Arial' }),

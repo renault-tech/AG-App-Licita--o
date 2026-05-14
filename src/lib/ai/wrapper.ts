@@ -28,7 +28,7 @@ export async function executarIAComCreditos(
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Usuario nao autenticado.' }
+  if (!user) return { success: false, error: 'Usuário não autenticado.' }
 
   const { data: usuarioRaw } = await supabase
     .from('usuarios')
@@ -37,7 +37,7 @@ export async function executarIAComCreditos(
     .single()
 
   const usuario = usuarioRaw as Pick<UsuarioRow, 'organizacao_id'> | null
-  if (!usuario) return { success: false, error: 'Perfil de usuario nao encontrado.' }
+  if (!usuario) return { success: false, error: 'Perfil de usuário não encontrado.' }
 
   const organizacaoId = usuario.organizacao_id
 
@@ -69,7 +69,7 @@ export async function executarIAComCreditos(
   if (!creditos || creditos.saldo <= 0) {
     return {
       success: false,
-      error: 'Saldo de creditos insuficiente. Adquira mais creditos para continuar.',
+      error: 'Saldo de créditos insuficiente. Adquira mais créditos para continuar.',
     }
   }
 
@@ -92,7 +92,7 @@ export async function executarIAComCreditos(
     texto = res.text
     sucesso = true
   } catch (err) {
-    erroMensagem = err instanceof Error ? err.message : 'Falha de comunicacao.'
+    erroMensagem = err instanceof Error ? err.message : 'Falha de comunicação.'
     creditosDebitar = 0
   }
 

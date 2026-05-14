@@ -29,15 +29,15 @@ export default async function AssinaturaEletronicaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-base font-semibold text-gray-900">Assinatura Eletronica</h2>
+        <h2 className="text-base font-semibold text-gray-900">Assinatura Eletrônica</h2>
         <p className="text-sm text-gray-500 mt-0.5">
-          Configure o metodo de assinatura eletronica dos documentos gerados pela plataforma.
+          Configure o método de assinatura eletrônica dos documentos gerados pela plataforma.
         </p>
       </div>
 
       {/* Status atual */}
       <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-1">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Metodo ativo</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Método ativo</p>
         <div className="flex items-center gap-2">
           <PenTool className="w-4 h-4 text-gray-500" />
           <p className="text-sm font-medium text-gray-900 capitalize">{provedorAtual}</p>
@@ -57,7 +57,7 @@ export default async function AssinaturaEletronicaPage() {
             <p className="text-sm font-medium text-blue-800">Assinatura interna ativa</p>
             <p className="text-xs text-blue-700 mt-0.5">
               Registra a autoria e timestamp via hash SHA-256. Adequada para uso interno e protocolos administrativos.
-              Para validade juridica plena (Lei 14.133/21 art. 92), utilize provedor ICP-Brasil como Gov.br.
+              Para validade jurídica plena (Lei 14.133/21 art. 92), utilize provedor ICP-Brasil como Gov.br.
             </p>
           </div>
         </div>
@@ -72,9 +72,9 @@ export default async function AssinaturaEletronicaPage() {
       {/* Referencia legal */}
       <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
         <p className="text-xs text-gray-500">
-          <strong className="text-gray-700">Referencia legal:</strong> A Lei 14.133/21 aceita assinatura eletronica
+          <strong className="text-gray-700">Referência legal:</strong> A Lei 14.133/21 aceita assinatura eletrônica
           nos termos da Lei 14.063/20. Para atos que exijam assinatura digital com certificado ICP-Brasil,
-          utilize o provedor Gov.br ou outro compativel.
+          utilize o provedor Gov.br ou outro compatível.
         </p>
       </div>
     </div>

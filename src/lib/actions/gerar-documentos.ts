@@ -30,7 +30,7 @@ export async function gerarDocumentos(
 ): Promise<{ success: boolean; documentos?: DocumentosGerados; error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Nao autenticado.' }
+  if (!user) return { success: false, error: 'Não autenticado.' }
 
   const { data: usuario } = await supabase
     .from('usuarios')

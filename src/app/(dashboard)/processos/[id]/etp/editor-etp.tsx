@@ -24,14 +24,14 @@ type FormData = {
 }
 
 const SECOES = [
-  { id: 'descricao_necessidade',  num: '1', label: 'Descricao da Necessidade',         placeholder: 'Descreva o problema ou necessidade a ser resolvida...' },
-  { id: 'requisitos_contratacao', num: '2', label: 'Requisitos da Contratacao',         placeholder: 'Normas aplicaveis, exigencias tecnicas, sustentabilidade...' },
-  { id: 'levantamento_mercado',   num: '3', label: 'Levantamento de Mercado',           placeholder: 'Alternativas disponiveis, pesquisa de solucoes existentes...' },
-  { id: 'estimativa_quantidades', num: '4', label: 'Estimativa das Quantidades',        placeholder: 'Memoria de calculo, base historica de consumo...' },
-  { id: 'justificativa_solucao',  num: '5', label: 'Justificativa da Solucao Escolhida',placeholder: 'Por que esta solucao e a mais vantajosa para a Administracao?' },
-  { id: 'parcelamento',           num: '6', label: 'Viabilidade de Parcelamento',       placeholder: 'E possivel dividir o objeto para ampliar a competitividade?' },
-  { id: 'resultados_pretendidos', num: '7', label: 'Resultados Pretendidos',            placeholder: 'Impactos e beneficios esperados com a contratacao...' },
-  { id: 'providencias',           num: '8', label: 'Providencias Previas',             placeholder: 'O que o orgao precisa providenciar antes de receber o objeto?' },
+  { id: 'descricao_necessidade',  num: '1', label: 'Descrição da Necessidade',          placeholder: 'Descreva o problema ou necessidade a ser resolvida...' },
+  { id: 'requisitos_contratacao', num: '2', label: 'Requisitos da Contratação',          placeholder: 'Normas aplicáveis, exigências técnicas, sustentabilidade...' },
+  { id: 'levantamento_mercado',   num: '3', label: 'Levantamento de Mercado',            placeholder: 'Alternativas disponíveis, pesquisa de soluções existentes...' },
+  { id: 'estimativa_quantidades', num: '4', label: 'Estimativa das Quantidades',         placeholder: 'Memória de cálculo, base histórica de consumo...' },
+  { id: 'justificativa_solucao',  num: '5', label: 'Justificativa da Solução Escolhida', placeholder: 'Por que esta solução é a mais vantajosa para a Administração?' },
+  { id: 'parcelamento',           num: '6', label: 'Viabilidade de Parcelamento',        placeholder: 'É possível dividir o objeto para ampliar a competitividade?' },
+  { id: 'resultados_pretendidos', num: '7', label: 'Resultados Pretendidos',             placeholder: 'Impactos e benefícios esperados com a contratação...' },
+  { id: 'providencias',           num: '8', label: 'Providências Prévias',              placeholder: 'O que o órgão precisa providenciar antes de receber o objeto?' },
 ] as const
 
 export default function EditorETP({ etp, processoId, papelUsuario, podeEditar = true }: { etp: any; processoId: string; papelUsuario: PapelUsuario; podeEditar?: boolean }) {
@@ -65,7 +65,7 @@ export default function EditorETP({ etp, processoId, papelUsuario, podeEditar = 
     if (res.success) {
       setFormData(prev => ({ ...prev, [campo]: res.texto }))
       setIaEditado(prev => new Set(prev).add(campo))
-      toast.success('Secao aprimorada.')
+    toast.success('Seção aprimorada.')
     } else {
       toast.error(res.error)
     }
@@ -77,7 +77,7 @@ export default function EditorETP({ etp, processoId, papelUsuario, podeEditar = 
       <CardContent className="p-6 space-y-5">
         {!podeEditar && (
           <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            Visualizacao somente leitura. Seu perfil nao tem permissao de editar este documento.
+            Visualização somente leitura. Seu perfil não tem permissão de editar este documento.
           </p>
         )}
         {SECOES.map(({ id, num, label, placeholder }) => {
@@ -125,7 +125,7 @@ export default function EditorETP({ etp, processoId, papelUsuario, podeEditar = 
         <div className="flex items-center gap-2">
           <Link href={`/processos/${processoId}/cotacao`}>
             <Button variant="outline" className="gap-1.5 h-9 text-sm">
-              <ChevronLeft className="w-4 h-4" /> Cotacao
+              <ChevronLeft className="w-4 h-4" /> Cotação
             </Button>
           </Link>
           <BotaoTramitacao
@@ -142,7 +142,7 @@ export default function EditorETP({ etp, processoId, papelUsuario, podeEditar = 
           </Button>
           <Link href={`/processos/${processoId}/tr`}>
             <Button variant="outline" className="gap-1.5 h-9 text-sm">
-              Proxima <ChevronRight className="w-4 h-4" />
+              Próxima <ChevronRight className="w-4 h-4" />
             </Button>
           </Link>
         </div>

@@ -31,9 +31,9 @@ export default async function ParecerPage({ params }: { params: Promise<{ id: st
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-lg font-bold text-gray-900">Parecer Juridico</h1>
+          <h1 className="text-lg font-bold text-gray-900">Parecer Jurídico</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Analise de regularidade do processo pela Procuradoria conforme Art. 53 da Lei 14.133/21.
+            Análise de regularidade do processo pela Procuradoria conforme Art. 53 da Lei 14.133/21.
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">

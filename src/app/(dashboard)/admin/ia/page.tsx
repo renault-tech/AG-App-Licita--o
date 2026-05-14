@@ -112,7 +112,7 @@ export default async function AdminIAPage() {
   const LABEL_DOC: Record<string, string> = {
     dfd: 'DFD',
     etp: 'ETP',
-    tr: 'Termo de Referencia',
+    tr: 'Termo de Referência',
     edital: 'Edital',
     parecer: 'Parecer',
     mapa_riscos: 'Mapa de Riscos',
@@ -121,9 +121,9 @@ export default async function AdminIAPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-base font-semibold text-gray-900">Gestao de IA</h2>
+        <h2 className="text-base font-semibold text-gray-900">Gestão de IA</h2>
         <p className="text-sm text-gray-500 mt-0.5">
-          Consumo de tokens por provedor, reutilizacao de clausulas e curva de aprendizado da plataforma.
+          Consumo de tokens por provedor, reutilização de cláusulas e curva de aprendizado da plataforma.
         </p>
       </div>
 
@@ -135,28 +135,28 @@ export default async function AdminIAPage() {
             valor: totalChamadas.toLocaleString('pt-BR'),
             icon: Bot,
             cor: 'bg-purple-600',
-            tooltip: 'Total de chamadas realizadas a provedores de IA. Cada chamada consome tokens e creditos.',
+            tooltip: 'Total de chamadas realizadas a provedores de IA. Cada chamada consome tokens e créditos.',
           },
           {
             label: 'Tokens Consumidos',
             valor: totalTokensConsumidos.toLocaleString('pt-BR'),
             icon: Zap,
             cor: 'bg-amber-500',
-            tooltip: 'Total de tokens de entrada e saida consumidos em todas as chamadas de IA.',
+            tooltip: 'Total de tokens de entrada e saída consumidos em todas as chamadas de IA.',
           },
           {
             label: 'Tokens Economizados',
             valor: totalTokensEconomizados.toLocaleString('pt-BR'),
             icon: TrendingDown,
             cor: 'bg-green-600',
-            tooltip: 'Tokens que deixaram de ser consumidos porque a plataforma reutilizou clausulas da base de conhecimento.',
+            tooltip: 'Tokens que deixaram de ser consumidos porque a plataforma reutilizou cláusulas da base de conhecimento.',
           },
           {
             label: 'Taxa de Economia',
             valor: `${percentualEconomia}%`,
             icon: BookOpen,
             cor: 'bg-teal-600',
-            tooltip: 'Percentual de tokens economizados em relacao ao total que teria sido consumido sem a base de conhecimento. Tende a aumentar com o tempo.',
+            tooltip: 'Percentual de tokens economizados em relação ao total que teria sido consumido sem a base de conhecimento. Tende a aumentar com o tempo.',
           },
         ].map(({ label, valor, icon: Icon, cor, tooltip }) => (
           <div key={label} className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
@@ -178,7 +178,7 @@ export default async function AdminIAPage() {
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center gap-2 mb-4">
           <h3 className="text-sm font-semibold text-gray-800">Curva de Aprendizado</h3>
-          <Tooltip texto="Mostra a evolucao semanal entre chamadas reais de IA (roxo) e reusos de clausulas aprendidas (verde). Com o tempo, o verde deve crescer e o roxo diminuir, indicando que a plataforma esta ficando mais economica." />
+          <Tooltip texto="Mostra a evolução semanal entre chamadas reais de IA (roxo) e reusos de cláusulas aprendidas (verde). Com o tempo, o verde deve crescer e o roxo diminuir, indicando que a plataforma está ficando mais econômica." />
         </div>
         <div className="flex items-end gap-2 h-32">
           {semanas.map((s, i) => {
@@ -210,7 +210,7 @@ export default async function AdminIAPage() {
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-sm bg-green-400" />
-            <span className="text-xs text-gray-500">Reusos de clausulas</span>
+            <span className="text-xs text-gray-500">Reusos de cláusulas</span>
           </div>
         </div>
       </div>
@@ -259,11 +259,11 @@ export default async function AdminIAPage() {
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center gap-2 mb-4">
           <Database className="w-4 h-4 text-gray-400" />
-          <h3 className="text-sm font-semibold text-gray-800">Base de Clausulas por Documento</h3>
-          <Tooltip texto="Quantas clausulas existem na base de conhecimento para cada tipo de documento. Documentos com mais clausulas geram textos melhores e mais economicos." />
+          <h3 className="text-sm font-semibold text-gray-800">Base de Cláusulas por Documento</h3>
+          <Tooltip texto="Quantas cláusulas existem na base de conhecimento para cada tipo de documento. Documentos com mais cláusulas geram textos melhores e mais econômicos." />
         </div>
         {Object.keys(clausulasPorDoc).length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-4">Nenhuma clausula na base ainda. Envie documentos na Base de Conhecimento.</p>
+          <p className="text-sm text-gray-400 text-center py-4">Nenhuma cláusula na base ainda. Envie documentos na Base de Conhecimento.</p>
         ) : (
           <div className="space-y-3">
             {Object.entries(clausulasPorDoc).map(([doc, dados]) => {
@@ -276,7 +276,7 @@ export default async function AdminIAPage() {
                       <div
                         className="bg-blue-200 rounded h-full"
                         style={{ width: `${(dados.padrao / total) * 100}%` }}
-                        title={`${dados.padrao} templates padrao`}
+                        title={`${dados.padrao} templates padrão`}
                       />
                     )}
                     {dados.uploadAdmin > 0 && (
@@ -299,7 +299,7 @@ export default async function AdminIAPage() {
               )
             })}
             <div className="flex items-center gap-4 pt-2 border-t border-gray-100">
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-blue-200" /><span className="text-xs text-gray-500">Templates padrao</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-blue-200" /><span className="text-xs text-gray-500">Templates padrão</span></div>
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-amber-300" /><span className="text-xs text-gray-500">Upload admin</span></div>
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-green-300" /><span className="text-xs text-gray-500">Aprendidas</span></div>
             </div>
@@ -311,11 +311,11 @@ export default async function AdminIAPage() {
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
           <h3 className="text-sm font-semibold text-gray-800">Reusos Recentes ({totalReusos})</h3>
-          <Tooltip texto="Cada linha representa uma vez que a plataforma reutilizou uma clausula da base de conhecimento em vez de chamar a IA, economizando tokens." />
+          <Tooltip texto="Cada linha representa uma vez que a plataforma reutilizou uma cláusula da base de conhecimento em vez de chamar a IA, economizando tokens." />
         </div>
         {aplicadas.length === 0 ? (
           <div className="px-5 py-8 text-center text-sm text-gray-400">
-            Nenhum reuso registrado ainda. Os reusos aparecem aqui conforme os usuarios geram documentos.
+            Nenhum reuso registrado ainda. Os reusos aparecem aqui conforme os usuários geram documentos.
           </div>
         ) : (
           <table className="w-full text-sm">

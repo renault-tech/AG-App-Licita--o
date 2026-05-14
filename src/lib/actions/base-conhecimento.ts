@@ -36,7 +36,7 @@ export async function uploadDocumentoBase(formData: FormData): Promise<{ success
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Nao autenticado.' }
+  if (!user) return { success: false, error: 'Não autenticado.' }
 
   const { data: usuarioData } = await supabase
     .from('usuarios')
@@ -100,7 +100,7 @@ export async function analisarDocumentoBase(documentoId: string): Promise<{ succ
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Nao autenticado.' }
+  if (!user) return { success: false, error: 'Não autenticado.' }
 
   const { data: doc } = await (supabase as any)
     .from('documentos_base')
@@ -245,7 +245,7 @@ export async function excluirDocumentoBase(documentoId: string): Promise<{ succe
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Nao autenticado.' }
+  if (!user) return { success: false, error: 'Não autenticado.' }
 
   const { data: doc } = await (supabase as any)
     .from('documentos_base')

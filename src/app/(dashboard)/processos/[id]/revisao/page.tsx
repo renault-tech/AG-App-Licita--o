@@ -50,9 +50,9 @@ export default async function RevisaoPage({ params }: { params: Promise<{ id: st
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-lg font-bold text-gray-900">Painel de Revisao</h1>
+        <h1 className="text-lg font-bold text-gray-900">Painel de Revisão</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Analise, aprove ou devolva os documentos enviados para revisao do setor de licitacoes.
+          Analise, aprove ou devolva os documentos enviados para revisão do setor de licitações.
         </p>
       </div>
       <PainelRevisao documentos={documentos} processoId={id} />

@@ -5,7 +5,7 @@ import { headers } from 'next/headers'
 import {
   ArrowLeft, FileText, Calculator, ClipboardList, ShieldAlert,
   ScrollText, BookOpen, Gavel, CheckCircle2, ClipboardCheck,
-  ShieldCheck, Globe, Scale,
+  ShieldCheck, Globe, Scale, Mail,
 } from 'lucide-react'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import {
@@ -17,25 +17,27 @@ import { getPermissoesOrg } from '@/lib/cached-permissions'
 import type { PapelUsuario } from '@/types/database'
 
 const ETAPAS = [
-  { slug: 'dfd',         label: 'DFD',         icon: FileText,       desc: 'Formalizacao da Demanda' },
-  { slug: 'cotacao',     label: 'Cotacao',      icon: Calculator,     desc: 'Pesquisa de Precos' },
-  { slug: 'etp',         label: 'ETP',          icon: ClipboardList,  desc: 'Estudo Tecnico Preliminar' },
-  { slug: 'tr',          label: 'TR',           icon: ScrollText,     desc: 'Termo de Referencia' },
-  { slug: 'riscos',      label: 'Riscos',       icon: ShieldAlert,    desc: 'Mapa de Riscos' },
-  { slug: 'edital',      label: 'Edital',       icon: BookOpen,       desc: 'Edital da Licitacao' },
-  { slug: 'revisao',     label: 'Revisao',      icon: ClipboardCheck, desc: 'Revisao do Setor de Licitacoes' },
-  { slug: 'parecer',     label: 'Parecer',      icon: Gavel,          desc: 'Parecer Juridico' },
-  { slug: 'autorizacao', label: 'Autorizacao',  icon: ShieldCheck,    desc: 'Autorizacao da Autoridade Competente' },
-  { slug: 'publicacao',  label: 'Publicacao',   icon: Globe,          desc: 'Publicacao do Processo' },
+  { slug: 'dfd',         label: 'DFD',           icon: FileText,       desc: 'Formalização da Demanda' },
+  { slug: 'cotacao',     label: 'Cotação',        icon: Calculator,     desc: 'Pesquisa de Preços' },
+  { slug: 'etp',         label: 'ETP',            icon: ClipboardList,  desc: 'Estudo Técnico Preliminar' },
+  { slug: 'tr',          label: 'TR',             icon: ScrollText,     desc: 'Termo de Referência' },
+  { slug: 'riscos',      label: 'Riscos',         icon: ShieldAlert,    desc: 'Mapa de Riscos' },
+  { slug: 'edital',      label: 'Edital',         icon: BookOpen,       desc: 'Edital da Licitação' },
+  { slug: 'declaracao',  label: 'Declaração',     icon: Scale,          desc: 'Declaração do Setor Requisitante' },
+  { slug: 'oficio',      label: 'Ofício',         icon: Mail,           desc: 'Ofício de Abertura' },
+  { slug: 'revisao',     label: 'Revisão',        icon: ClipboardCheck, desc: 'Revisão do Setor de Licitações' },
+  { slug: 'parecer',     label: 'Parecer',        icon: Gavel,          desc: 'Parecer Jurídico' },
+  { slug: 'autorizacao', label: 'Autorização',    icon: ShieldCheck,    desc: 'Autorização da Autoridade Competente' },
+  { slug: 'publicacao',  label: 'Publicação',     icon: Globe,          desc: 'Publicação do Processo' },
 ]
 
 const MODALIDADE_LABEL: Record<string, string> = {
-  pregao_eletronico:   'Pregao Eletronico',
-  pregao_presencial:   'Pregao Presencial',
-  concorrencia:        'Concorrencia',
+  pregao_eletronico:   'Pregão Eletrônico',
+  pregao_presencial:   'Pregão Presencial',
+  concorrencia:        'Concorrência',
   concurso:            'Concurso',
-  leilao:              'Leilao',
-  dialogo_competitivo: 'Dialogo Competitivo',
+  leilao:              'Leilão',
+  dialogo_competitivo: 'Diálogo Competitivo',
   dispensa:            'Dispensa',
   inexigibilidade:     'Inexigibilidade',
 }
@@ -107,7 +109,7 @@ export default async function ProcessoLayout({
   }
   const statusLabel: Record<string, string> = {
     rascunho:   'Rascunho',
-    em_revisao: 'Em Revisao',
+    em_revisao: 'Em Revisão',
     assinado:   'Assinado',
     publicado:  'Publicado',
   }
@@ -183,11 +185,11 @@ export default async function ProcessoLayout({
                 style={{ backgroundColor: '#1A365D0D', color: '#1A365D' }}
               >
                 <Scale className="w-4 h-4" style={{ color: '#B7935E' }} />
-                {papel === 'procurador' ? 'Parecer Juridico' : 'Autorizacao da Autoridade Competente'}
+                {papel === 'procurador' ? 'Parecer Jurídico' : 'Autorização da Autoridade Competente'}
               </div>
               <p className="text-xs text-[#74777F]">
                 {papel === 'procurador'
-                  ? 'Analise a regularidade do processo conforme Art. 53 da Lei 14.133/21.'
+                  ? 'Análise a regularidade do processo conforme Art. 53 da Lei 14.133/21.'
                   : 'Autorize ou devolva o processo conforme Art. 72 da Lei 14.133/21.'}
               </p>
             </div>

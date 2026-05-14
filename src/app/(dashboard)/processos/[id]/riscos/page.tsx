@@ -20,7 +20,7 @@ export default async function MapaRiscosPage({ params }: { params: Promise<{ id:
         <div>
           <h1 className="text-lg font-bold text-gray-900">Mapa de Riscos</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Identificacao e tratamento de riscos do processo licitatorio conforme Art. 22 da Lei 14.133/21.
+            Identificação e tratamento de riscos do processo licitatório conforme Art. 22 da Lei 14.133/21.
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">

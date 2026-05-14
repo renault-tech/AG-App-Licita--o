@@ -7,10 +7,12 @@ import type { PayloadDocumento } from './tipos'
 const FONT_NORMAL = 'Helvetica'
 const FONT_BOLD   = 'Helvetica-Bold'
 
-const AZUL = '#1e3a5f'
-const CINZA = '#64748b'
-const CINZA_CLARO = '#f0f4f8'
-const LINHA = '#cbd5e1'
+const AZUL        = '#1b3a6b'
+const AZUL_CLARO  = '#2563eb'
+const CINZA       = '#64748b'
+const CINZA_CLARO = '#eef2f7'
+const LINHA       = '#c7d2e2'
+const VERDE_IA    = '#166534'
 
 const s = StyleSheet.create({
   page: {
@@ -43,26 +45,30 @@ const s = StyleSheet.create({
   },
   orgNome: {
     fontFamily: FONT_BOLD,
-    fontSize: 14,
+    fontSize: 13,
     color: AZUL,
     textAlign: 'center',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   secNome: {
     fontFamily: FONT_NORMAL,
-    fontSize: 11,
-    color: AZUL,
+    fontSize: 10,
+    color: AZUL_CLARO,
     textAlign: 'center',
-    marginTop: 2,
+    marginTop: 3,
   },
   tipoDoc: {
     fontFamily: FONT_BOLD,
-    fontSize: 12,
-    color: AZUL,
+    fontSize: 11,
+    color: '#ffffff',
     textAlign: 'center',
-    marginTop: 16,
-    marginBottom: 12,
+    marginTop: 14,
+    marginBottom: 14,
     textTransform: 'uppercase',
+    backgroundColor: AZUL,
+    padding: 6,
+    borderRadius: 3,
   },
   metaTabela: {
     backgroundColor: CINZA_CLARO,
@@ -87,12 +93,16 @@ const s = StyleSheet.create({
     fontFamily: FONT_BOLD,
     fontSize: 10,
     color: AZUL,
-    marginTop: 16,
+    marginTop: 18,
     marginBottom: 6,
-    paddingBottom: 3,
+    paddingBottom: 4,
+    paddingLeft: 6,
     borderBottomWidth: 1,
-    borderBottomColor: LINHA,
+    borderBottomColor: AZUL_CLARO,
     borderBottomStyle: 'solid',
+    borderLeftWidth: 3,
+    borderLeftColor: AZUL_CLARO,
+    borderLeftStyle: 'solid',
   },
   secaoConteudo: {
     fontFamily: FONT_NORMAL,
@@ -117,11 +127,13 @@ const s = StyleSheet.create({
   rodapeIA: {
     marginTop: 32,
     padding: 8,
-    borderTopWidth: 1,
-    borderTopColor: LINHA,
-    borderTopStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    borderStyle: 'solid',
+    borderRadius: 3,
+    backgroundColor: '#f0fdf4',
     fontSize: 8,
-    color: CINZA,
+    color: VERDE_IA,
     textAlign: 'justify',
   },
   header: {
@@ -195,7 +207,7 @@ function PaginaDoc({ payload }: { payload: PayloadDocumento }) {
         <Text style={s.footerText}>{rodapeTexto(payload)}</Text>
         <Text
           style={[s.footerText, { marginTop: 2 }]}
-          render={({ pageNumber, totalPages }) => `Pagina ${pageNumber} de ${totalPages}`}
+          render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`}
           fixed
         />
       </View>
@@ -222,7 +234,7 @@ function PaginaDoc({ payload }: { payload: PayloadDocumento }) {
         <View style={s.metaLinha}>
           <View style={s.metaCampo}>
             <Text style={s.metaLabel}>Processo:</Text>
-            <Text style={s.metaValor}>{payload.numeroProcesso ?? 'Nao informado'}</Text>
+            <Text style={s.metaValor}>{payload.numeroProcesso ?? 'Não informado'}</Text>
           </View>
           <View style={s.metaCampo}>
             <Text style={s.metaLabel}>Modalidade:</Text>
@@ -245,14 +257,14 @@ function PaginaDoc({ payload }: { payload: PayloadDocumento }) {
       {payload.secoes.map((secao, i) => (
         <View key={i} wrap={false}>
           <Text style={s.secaoTitulo}>{secao.titulo}</Text>
-          <Text style={s.secaoConteudo}>{secao.conteudo || '(nao preenchido)'}</Text>
+          <Text style={s.secaoConteudo}>{secao.conteudo || '(não preenchido)'}</Text>
         </View>
       ))}
 
       {/* Espaco para assinatura */}
       <View style={s.assinatura}>
         <View style={s.assinaturaLinha} />
-        <Text style={s.assinaturaLabel}>Assinatura do Responsavel</Text>
+        <Text style={s.assinaturaLabel}>Assinatura do Responsável</Text>
         <Text style={s.assinaturaLabel}>
           {cabecalho.nomeSecretaria ?? cabecalho.nomeOrganizacao}
         </Text>
@@ -261,7 +273,7 @@ function PaginaDoc({ payload }: { payload: PayloadDocumento }) {
       {/* Rodape IA */}
       {payload.rodapeIA && (
         <Text style={s.rodapeIA}>
-          Documento gerado com auxilio de inteligencia artificial em {payload.dataGeracao}. A revisao e validacao do conteudo sao de responsabilidade do agente publico signatario, nos termos da Lei 14.133/21.
+          Documento gerado com auxílio de inteligência artificial em {payload.dataGeracao}. A revisão e validação do conteúdo são de responsabilidade do agente público signatário, nos termos da Lei 14.133/21.
         </Text>
       )}
     </Page>

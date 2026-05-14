@@ -6,14 +6,14 @@ import { Textarea } from '@/components/ui/textarea'
 import type { DadosWizard } from './types'
 
 const FORMAS_PAGAMENTO = [
-  { value: '30_dias_medicao', label: '30 dias apos ateste', desc: 'Pagamento em ate 30 dias apos a nota fiscal ser atestada pelo fiscal' },
-  { value: 'parcelas_mensais', label: 'Parcelas mensais', desc: 'Para servicos continuados; pagamento mensal proporcional a execucao' },
-  { value: 'entrega_unica', label: 'Entrega unica', desc: 'Pagamento integral apos recebimento definitivo do objeto' },
+  { value: '30_dias_medicao', label: '30 dias após ateste', desc: 'Pagamento em até 30 dias após a nota fiscal ser atestada pelo fiscal' },
+  { value: 'parcelas_mensais', label: 'Parcelas mensais', desc: 'Para serviços continuados; pagamento mensal proporcional à execução' },
+  { value: 'entrega_unica', label: 'Entrega única', desc: 'Pagamento integral após recebimento definitivo do objeto' },
 ]
 
 const GARANTIAS = [
   { value: 'dispensada', label: 'Dispensada', desc: 'Para contratos de baixo risco ou valor reduzido' },
-  { value: '5%', label: '5% do valor', desc: 'Garantia padrao para a maioria dos contratos (art. 96)' },
+  { value: '5%', label: '5% do valor', desc: 'Garantia padrão para a maioria dos contratos (art. 96)' },
   { value: '10%', label: '10% do valor', desc: 'Para obras, servicos de grande vulto ou contratos de risco elevado' },
 ]
 
@@ -45,7 +45,7 @@ export default function EtapaCondicoes({ dados, onChange }: Props) {
       <div className="space-y-2">
         <div className="flex items-center gap-1.5">
           <Label className="text-sm font-medium">Valor estimado (R$)</Label>
-          <Tooltip texto="Valor estimado da contratacao com base em pesquisa de precos. Pode ser preenchido agora ou apos a cotacao. Usado para definir a garantia e o rito do processo." />
+          <Tooltip texto="Valor estimado da contratação com base em pesquisa de preços. Pode ser preenchido agora ou após a cotação. Usado para definir a garantia e o rito do processo." />
         </div>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">R$</span>
@@ -59,13 +59,13 @@ export default function EtapaCondicoes({ dados, onChange }: Props) {
             className="pl-9 text-sm"
           />
         </div>
-        <p className="text-xs text-gray-400">Opcional nesta fase. Pode ser definido apos a cotacao.</p>
+        <p className="text-xs text-gray-400">Opcional nesta fase. Pode ser definido após a cotação.</p>
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center gap-1.5">
           <Label className="text-sm font-medium">Forma de pagamento <span className="text-red-500">*</span></Label>
-          <Tooltip texto="Como o fornecedor sera pago? Isso define a clausula de pagamento no Termo de Referencia." />
+          <Tooltip texto="Como o fornecedor será pago? Isso define a cláusula de pagamento no Termo de Referência." />
         </div>
         <div className="space-y-2">
           {FORMAS_PAGAMENTO.map(f => (
@@ -83,7 +83,7 @@ export default function EtapaCondicoes({ dados, onChange }: Props) {
       <div className="space-y-2">
         <div className="flex items-center gap-1.5">
           <Label className="text-sm font-medium">Garantia contratual <span className="text-red-500">*</span></Label>
-          <Tooltip texto="Percentual do valor do contrato que o fornecedor deve depositar como garantia de execucao (art. 96 da Lei 14.133/21)." />
+          <Tooltip texto="Percentual do valor do contrato que o fornecedor deve depositar como garantia de execução (art. 96 da Lei 14.133/21)." />
         </div>
         <div className="grid grid-cols-3 gap-2">
           {GARANTIAS.map(g => (
@@ -102,8 +102,8 @@ export default function EtapaCondicoes({ dados, onChange }: Props) {
 
       <div className="space-y-2">
         <div className="flex items-center gap-1.5">
-          <Label className="text-sm font-medium">Prazo de vigencia do contrato <span className="text-red-500">*</span></Label>
-          <Tooltip texto="Por quanto tempo o contrato ficara em vigor apos a assinatura. Para servicos continuados, normalmente 12 meses renovaveis." />
+          <Label className="text-sm font-medium">Prazo de vigência do contrato <span className="text-red-500">*</span></Label>
+          <Tooltip texto="Por quanto tempo o contrato ficará em vigor após a assinatura. Para serviços continuados, normalmente 12 meses renováveis." />
         </div>
         <div className="flex flex-wrap gap-2">
           {PRAZOS_VIGENCIA.map(p => (
@@ -121,8 +121,8 @@ export default function EtapaCondicoes({ dados, onChange }: Props) {
 
       <div className="space-y-2">
         <div className="flex items-center gap-1.5">
-          <Label className="text-sm font-medium">Sancoes administrativas</Label>
-          <Tooltip texto="Penalidades aplicaveis em caso de descumprimento. Um texto padrao ja esta pre-preenchido conforme a Lei 14.133/21. Edite apenas se necessario." />
+          <Label className="text-sm font-medium">Sanções administrativas</Label>
+          <Tooltip texto="Penalidades aplicáveis em caso de descumprimento. Um texto padrão já está pré-preenchido conforme a Lei 14.133/21. Edite apenas se necessário." />
         </div>
         <Textarea
           value={dados.sancoes}
@@ -130,7 +130,7 @@ export default function EtapaCondicoes({ dados, onChange }: Props) {
           rows={4}
           className="text-sm"
         />
-        <p className="text-xs text-gray-400">Pre-preenchido com o padrao da Lei 14.133/21. Edite apenas se houver especificidade.</p>
+        <p className="text-xs text-gray-400">Pré-preenchido com o padrão da Lei 14.133/21. Edite apenas se houver especificidade.</p>
       </div>
     </div>
   )

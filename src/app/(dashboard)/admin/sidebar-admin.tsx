@@ -40,9 +40,9 @@ const NAV = [
   },
   {
     href: '/admin/configuracoes-plataforma',
-    label: 'Configuracoes',
+    label: 'Configurações',
     icon: Settings2,
-    tooltip: 'Parametros globais da plataforma: prazos de alerta para pareceres e outras configuracoes.',
+    tooltip: 'Parâmetros globais da plataforma: prazos de alerta para pareceres e outras configurações.',
   },
 ]
 

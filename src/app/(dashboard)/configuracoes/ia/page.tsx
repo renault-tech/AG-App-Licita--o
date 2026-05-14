@@ -12,7 +12,7 @@ const PROVEDORES = [
     linkLabel: 'Obter chave no Google AI Studio',
     passos: [
       'Acesse aistudio.google.com',
-      'Faca login com sua conta Google',
+      'Faça login com sua conta Google',
       'Clique em "Get API key" e depois "Create API key"',
       'Copie a chave gerada',
       'Abra o arquivo .env.local na raiz do projeto',
@@ -42,8 +42,8 @@ const PROVEDORES = [
     linkLabel: 'Obter chave no Anthropic Console',
     passos: [
       'Acesse console.anthropic.com e crie uma conta',
-      'Adicione credito de uso (plano pago)',
-      'Va em "API Keys" e crie uma nova chave',
+      'Adicione crédito de uso (plano pago)',
+      'Vá em "API Keys" e crie uma nova chave',
       'Adicione ao .env.local: ANTHROPIC_API_KEY=sua_chave_aqui',
       'Reinicie o servidor (npm run dev)',
     ],
@@ -55,8 +55,8 @@ const PROVEDORES = [
     link: 'https://openrouter.ai/keys',
     linkLabel: 'Obter chave no OpenRouter',
     passos: [
-      'Acesse openrouter.ai e crie uma conta (creditos gratuitos)',
-      'Va em "Keys" e crie uma nova chave',
+      'Acesse openrouter.ai e crie uma conta (créditos gratuitos)',
+      'Vá em "Keys" e crie uma nova chave',
       'Adicione ao .env.local: OPENROUTER_API_KEY=sua_chave_aqui',
       'Reinicie o servidor (npm run dev)',
     ],
@@ -100,9 +100,9 @@ export default async function ConfiguracaoIAPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-base font-semibold text-gray-900">Inteligencia Artificial</h2>
+        <h2 className="text-base font-semibold text-gray-900">Inteligência Artificial</h2>
         <p className="text-sm text-gray-500 mt-0.5">
-          Escolha o provedor de IA para geracao e refinamento de documentos. As chaves de API sao configuradas no servidor.
+          Escolha o provedor de IA para geração e refinamento de documentos. As chaves de API são configuradas no servidor.
         </p>
       </div>
 
@@ -117,12 +117,12 @@ export default async function ConfiguracaoIAPage() {
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
-              Chave nao configurada
+              Chave não configurada
             </span>
           )}
         </div>
         {iaConfigDb?.provider ? (
-          <p className="text-xs text-gray-500">Definido nas configuracoes da organizacao.</p>
+          <p className="text-xs text-gray-500">Definido nas configurações da organização.</p>
         ) : (
           <p className="text-xs text-gray-500">
             Usando padrao do servidor: <code className="bg-white border border-gray-200 px-1 rounded text-xs">AI_PROVIDER={provedorEnv}</code>
@@ -137,7 +137,7 @@ export default async function ConfiguracaoIAPage() {
           <div>
             <p className="text-sm font-medium text-amber-800">Provedor sem chave de API</p>
             <p className="text-xs text-amber-700 mt-0.5">
-              Os documentos serao gerados apenas com templates padrao. Configure a chave conforme as instrucoes abaixo.
+              Os documentos serão gerados apenas com templates padrão. Configure a chave conforme as instruções abaixo.
             </p>
           </div>
         </div>
@@ -146,11 +146,11 @@ export default async function ConfiguracaoIAPage() {
       {/* Seletor de provedor */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-gray-700">Provedor preferido desta organizacao</h3>
+          <h3 className="text-sm font-semibold text-gray-700">Provedor preferido desta organização</h3>
           <div className="group relative">
             <Info className="w-3.5 h-3.5 text-gray-400 cursor-help" />
             <div className="hidden group-hover:block absolute left-5 top-0 w-56 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg z-10">
-              Selecione o provedor que sera usado para geracoes de IA nesta organizacao. A chave correspondente deve estar no .env.local do servidor.
+              Selecione o provedor que será usado para gerações de IA nesta organização. A chave correspondente deve estar no .env.local do servidor.
             </div>
           </div>
         </div>
@@ -159,7 +159,7 @@ export default async function ConfiguracaoIAPage() {
 
       {/* Instrucoes por provedor */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-gray-700">Instrucoes de configuracao</h3>
+        <h3 className="text-sm font-semibold text-gray-700">Instruções de configuração</h3>
         <div className="space-y-2">
           {PROVEDORES.map(p => {
             const configurado = chavesConfiguradas[p.id] ?? false
@@ -174,7 +174,7 @@ export default async function ConfiguracaoIAPage() {
                       <span className="text-xs text-gray-400 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded-full">Pendente</span>
                     )}
                   </div>
-                  <span className="text-xs text-blue-600 group-open:hidden">Ver instrucoes</span>
+                  <span className="text-xs text-blue-600 group-open:hidden">Ver instruções</span>
                   <span className="text-xs text-blue-600 hidden group-open:inline">Fechar</span>
                 </summary>
                 <div className="px-4 pb-4 pt-2 border-t border-gray-100 bg-gray-50/50 space-y-3">
@@ -206,9 +206,9 @@ export default async function ConfiguracaoIAPage() {
 
       <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
         <p className="text-xs text-gray-500">
-          <strong className="text-gray-700">Seguranca:</strong> As chaves de API ficam somente no arquivo{' '}
+          <strong className="text-gray-700">Segurança:</strong> As chaves de API ficam somente no arquivo{' '}
           <code className="bg-white border border-gray-200 px-1 rounded">.env.local</code>,
-          que nunca e versionado. Nunca compartilhe ou commite este arquivo.
+          que nunca é versionado. Nunca compartilhe ou commite este arquivo.
         </p>
       </div>
     </div>

@@ -33,7 +33,7 @@ interface PainelAutorizacaoProps {
 
 const STATUS_DOC: Record<string, { label: string; cor: string }> = {
   rascunho:   { label: 'Rascunho',    cor: 'bg-gray-100 text-gray-500 border-gray-200' },
-  em_revisao: { label: 'Em Revisao',  cor: 'bg-amber-50 text-amber-700 border-amber-200' },
+  em_revisao: { label: 'Em Revisão',  cor: 'bg-amber-50 text-amber-700 border-amber-200' },
   assinado:   { label: 'Aprovado',    cor: 'bg-green-50 text-green-700 border-green-200' },
   devolvido:  { label: 'Devolvido',   cor: 'bg-red-50 text-red-700 border-red-200' },
   publicado:  { label: 'Publicado',   cor: 'bg-blue-50 text-blue-700 border-blue-200' },
@@ -84,7 +84,7 @@ export default function PainelAutorizacao({
     setLoading(true)
     const res = await devolverParaCorrecao(processoId, observacao.trim())
     if (res.success) {
-      toast.success('Processo devolvido para correcao.')
+      toast.success('Processo devolvido para correção.')
       setStatusAtual('devolvido')
       setModalDevolver(false)
       setObservacao('')
@@ -105,8 +105,8 @@ export default function PainelAutorizacao({
             <div>
               <p className="text-sm font-semibold text-green-800">Processo autorizado</p>
               <p className="text-xs text-green-700 mt-0.5">
-                A autoridade competente autorizou a abertura do processo licitatorio.
-                {autorizacao?.observacao && ` Observacao: ${autorizacao.observacao}`}
+                A autoridade competente autorizou a abertura do processo licitatório.
+                {autorizacao?.observacao && ` Observação: ${autorizacao.observacao}`}
               </p>
             </div>
           </div>
@@ -116,7 +116,7 @@ export default function PainelAutorizacao({
           <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
             <XCircle className="w-5 h-5 text-red-600 shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-red-800">Processo devolvido para correcao</p>
+              <p className="text-sm font-semibold text-red-800">Processo devolvido para correção</p>
               {autorizacao?.observacao && (
                 <p className="text-xs text-red-700 mt-0.5">Motivo: {autorizacao.observacao}</p>
               )}
@@ -161,7 +161,7 @@ export default function PainelAutorizacao({
                     ? <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
                     : <Clock className="w-4 h-4 text-gray-400 shrink-0" />}
                   <Link href={`/processos/${processoId}/parecer`} className="text-sm text-gray-700 hover:text-blue-700 hover:underline">
-                    Parecer Juridico
+                    Parecer Jurídico
                   </Link>
                 </div>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_PARECER[parecerStatus]?.cor ?? 'bg-gray-100 text-gray-500'}`}>
@@ -178,25 +178,25 @@ export default function PainelAutorizacao({
             <CardHeader className="border-b border-gray-100 pb-4">
               <CardTitle className="text-base font-semibold text-gray-800 flex items-center gap-2">
                 <Gavel className="w-4 h-4 text-blue-500" />
-                Decisao da Autoridade Competente
+                Decisão da Autoridade Competente
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4">
               {!parecerFavoravel && (
                 <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 mb-4">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  O processo aguarda parecer juridico favoravel antes de poder ser autorizado.
+                  O processo aguarda parecer jurídico favorável antes de poder ser autorizado.
                 </div>
               )}
               {!todosAprovados && parecerFavoravel && (
                 <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 mb-4">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  Ha documentos ainda nao aprovados pelo setor de licitacoes.
+                  Há documentos ainda não aprovados pelo setor de licitações.
                 </div>
               )}
               <p className="text-sm text-gray-600">
                 Conforme Art. 72 da Lei 14.133/21, a autoridade competente deve autorizar a abertura do certame
-                apos a instrucao completa do processo e o parecer juridico favoravel.
+                após a instrução completa do processo e o parecer jurídico favorável.
               </p>
             </CardContent>
             <CardFooter className="flex items-center justify-between border-t border-gray-100 bg-gray-50/50 px-6 py-4 rounded-b-xl gap-3">
@@ -214,7 +214,7 @@ export default function PainelAutorizacao({
                   disabled={!parecerFavoravel}
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  Devolver para Correcao
+                  Devolver para Correção
                 </Button>
                 <Button
                   size="sm"
@@ -235,9 +235,9 @@ export default function PainelAutorizacao({
           <Card className="border-gray-200 shadow-sm">
             <CardContent className="p-6 flex flex-col items-center text-center gap-2">
               <Clock className="w-8 h-8 text-gray-300" />
-              <p className="text-sm font-medium text-gray-500">Aguardando autorizacao da autoridade competente</p>
+              <p className="text-sm font-medium text-gray-500">Aguardando autorização da autoridade competente</p>
               <p className="text-xs text-gray-400">
-                Conforme Art. 72 da Lei 14.133/21, o processo sera autorizado apos analise da autoridade competente.
+                Conforme Art. 72 da Lei 14.133/21, o processo será autorizado após análise da autoridade competente.
               </p>
             </CardContent>
           </Card>
@@ -253,17 +253,17 @@ export default function PainelAutorizacao({
               Autorizar Abertura do Processo
             </DialogTitle>
             <DialogDescription>
-              Confirme a autorizacao conforme Art. 72 da Lei 14.133/21. Esta acao tornara o processo apto para publicacao.
+              Confirme a autorização conforme Art. 72 da Lei 14.133/21. Esta ação tornará o processo apto para publicação.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-2">
             <Label htmlFor="obs-autorizar" className="text-sm font-medium">
-              Observacoes (opcional)
+              Observações (opcional)
             </Label>
             <Textarea
               id="obs-autorizar"
               rows={3}
-              placeholder="Registre observacoes se necessario..."
+              placeholder="Registre observações se necessário..."
               value={observacao}
               onChange={(e) => setObservacao(e.target.value)}
               className="resize-none"
@@ -280,7 +280,7 @@ export default function PainelAutorizacao({
               disabled={loading}
             >
               {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
-              Confirmar Autorizacao
+              Confirmar Autorização
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -292,15 +292,15 @@ export default function PainelAutorizacao({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-red-500" />
-              Devolver Processo para Correcao
+              Devolver Processo para Correção
             </DialogTitle>
             <DialogDescription>
-              Informe o motivo da devolucao para que o setor de licitacoes realize os ajustes necessarios.
+              Informe o motivo da devolução para que o setor de licitações realize os ajustes necessários.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-2">
             <Label htmlFor="obs-devolver" className="text-sm font-medium">
-              Motivo da devolucao <span className="text-red-500">*</span>
+              Motivo da devolução <span className="text-red-500">*</span>
             </Label>
             <Textarea
               id="obs-devolver"
@@ -322,7 +322,7 @@ export default function PainelAutorizacao({
               disabled={loading || !observacao.trim()}
             >
               {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
-              Confirmar Devolucao
+              Confirmar Devolução
             </Button>
           </DialogFooter>
         </DialogContent>

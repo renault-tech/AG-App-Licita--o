@@ -36,7 +36,7 @@ export default async function ConfiguracoesLayout({ children }: { children: Reac
           </div>
           <div>
             <p className="text-[10px] font-semibold text-[#B7935E] uppercase tracking-widest">
-              Configuracoes
+              Configurações
             </p>
             <h1
               className="text-xl font-bold text-[#1A365D] leading-tight"

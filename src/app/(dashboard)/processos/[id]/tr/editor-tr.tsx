@@ -26,16 +26,16 @@ type FormData = {
 }
 
 const CLAUSULAS = [
-  { id: 'objeto',              num: '1',  label: 'Objeto',                             placeholder: 'Definicao clara e precisa do objeto da contratacao...' },
-  { id: 'fundamentacao',       num: '2',  label: 'Fundamentacao da Contratacao',       placeholder: 'Referencia ao ETP, DFD e base legal aplicavel...' },
-  { id: 'descricao',           num: '3',  label: 'Descricao da Solucao',               placeholder: 'Especificacoes tecnicas, normas, padroes exigidos...' },
-  { id: 'requisitos_tecnicos', num: '4',  label: 'Requisitos da Contratacao',          placeholder: 'Condicoes de sustentabilidade, normas da ABNT, certificacoes...' },
-  { id: 'modelo_execucao',     num: '5',  label: 'Modelo de Execucao do Objeto',       placeholder: 'Cronograma, local de entrega/execucao, etapas...' },
-  { id: 'modelo_gestao',       num: '6',  label: 'Modelo de Gestao do Contrato',       placeholder: 'Designacao de fiscais e rotinas de acompanhamento...' },
-  { id: 'criterios_medicao',   num: '7',  label: 'Criterios de Medicao e Recebimento', placeholder: 'Forma como o servico/produto sera atestado pelo fiscal...' },
-  { id: 'forma_pagamento',     num: '8',  label: 'Forma de Pagamento',                 placeholder: 'Condicoes, prazos e documentos exigidos para liquidacao...' },
-  { id: 'garantias',           num: '9',  label: 'Garantias',                          placeholder: 'Garantia contratual, prazos de validade do produto...' },
-  { id: 'sancoes',             num: '10', label: 'Sancoes Administrativas',            placeholder: 'Penalidades por atraso ou inexecucao total ou parcial...' },
+  { id: 'objeto',              num: '1',  label: 'Objeto',                              placeholder: 'Definição clara e precisa do objeto da contratação...' },
+  { id: 'fundamentacao',       num: '2',  label: 'Fundamentação da Contratação',        placeholder: 'Referência ao ETP, DFD e base legal aplicável...' },
+  { id: 'descricao',           num: '3',  label: 'Descrição da Solução',                placeholder: 'Especificações técnicas, normas, padrões exigidos...' },
+  { id: 'requisitos_tecnicos', num: '4',  label: 'Requisitos da Contratação',           placeholder: 'Condições de sustentabilidade, normas da ABNT, certificações...' },
+  { id: 'modelo_execucao',     num: '5',  label: 'Modelo de Execução do Objeto',        placeholder: 'Cronograma, local de entrega/execução, etapas...' },
+  { id: 'modelo_gestao',       num: '6',  label: 'Modelo de Gestão do Contrato',        placeholder: 'Designação de fiscais e rotinas de acompanhamento...' },
+  { id: 'criterios_medicao',   num: '7',  label: 'Critérios de Medição e Recebimento', placeholder: 'Forma como o serviço/produto será atestado pelo fiscal...' },
+  { id: 'forma_pagamento',     num: '8',  label: 'Forma de Pagamento',                  placeholder: 'Condições, prazos e documentos exigidos para liquidação...' },
+  { id: 'garantias',           num: '9',  label: 'Garantias',                           placeholder: 'Garantia contratual, prazos de validade do produto...' },
+  { id: 'sancoes',             num: '10', label: 'Sanções Administrativas',             placeholder: 'Penalidades por atraso ou inexecução total ou parcial...' },
 ] as const
 
 export default function EditorTR({ tr, processoId, papelUsuario, podeEditar = true }: { tr: any; processoId: string; papelUsuario: PapelUsuario; podeEditar?: boolean }) {
@@ -71,7 +71,7 @@ export default function EditorTR({ tr, processoId, papelUsuario, podeEditar = tr
     if (res.success) {
       setFormData(prev => ({ ...prev, [campo]: res.texto }))
       setIaEditado(prev => new Set(prev).add(campo))
-      toast.success('Clausula aprimorada.')
+      toast.success('Cláusula aprimorada.')
     } else {
       toast.error(res.error)
     }
@@ -83,7 +83,7 @@ export default function EditorTR({ tr, processoId, papelUsuario, podeEditar = tr
       <CardContent className="p-6 space-y-5">
         {!podeEditar && (
           <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            Visualizacao somente leitura. Seu perfil nao tem permissao de editar este documento.
+            Visualização somente leitura. Seu perfil não tem permissão de editar este documento.
           </p>
         )}
         {CLAUSULAS.map(({ id, num, label, placeholder }) => {
@@ -148,7 +148,7 @@ export default function EditorTR({ tr, processoId, papelUsuario, podeEditar = tr
           </Button>
           <Link href={`/processos/${processoId}/riscos`}>
             <Button variant="outline" className="gap-1.5 h-9 text-sm">
-              Proxima <ChevronRight className="w-4 h-4" />
+              Próxima <ChevronRight className="w-4 h-4" />
             </Button>
           </Link>
         </div>

@@ -30,7 +30,7 @@ type Veredito = 'aprovar' | 'aprovar_com_ressalvas' | 'contrario'
 const VEREDITO_CONFIG: Record<Veredito, { label: string; icon: React.ElementType; classes: string; bg: string }> = {
   aprovar:               { label: 'Aprovar',              icon: CheckCircle, classes: 'text-green-600', bg: 'bg-green-50 border-green-200' },
   aprovar_com_ressalvas: { label: 'Aprovar com ressalvas', icon: AlertCircle, classes: 'text-amber-600', bg: 'bg-amber-50 border-amber-200' },
-  contrario:             { label: 'Parecer contrario',    icon: XCircle,     classes: 'text-red-600',   bg: 'bg-red-50 border-red-200' },
+  contrario:             { label: 'Parecer contrário',    icon: XCircle,     classes: 'text-red-600',   bg: 'bg-red-50 border-red-200' },
 }
 
 function useDebounce(fn: (...args: any[]) => any, delay: number) {
@@ -109,7 +109,7 @@ export default function EditorParecer({
     const res = await analisarComIA(processoId, parecer.id, conteudo, veredito ?? 'indefinido')
     if (res.success && res.analise) {
       setAnaliseIA(res.analise)
-      toast.success('Analise gerada. Verifique o painel abaixo.')
+      toast.success('Análise gerada. Verifique o painel abaixo.')
     } else {
       toast.error(res.error ?? 'Erro ao analisar.')
     }
@@ -138,7 +138,7 @@ export default function EditorParecer({
         <CardHeader className="border-b border-gray-100 pb-4">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div>
-              <CardTitle className="text-base font-semibold text-gray-800">Redacao do Parecer Juridico</CardTitle>
+              <CardTitle className="text-base font-semibold text-gray-800">Redação do Parecer Jurídico</CardTitle>
               {parecer.processos_licitatorios?.objeto && (
                 <CardDescription className="text-xs mt-0.5 text-gray-500">
                   Objeto: {parecer.processos_licitatorios.objeto}
@@ -198,7 +198,7 @@ export default function EditorParecer({
               })}
             </div>
             {!veredito && (
-              <p className="text-xs text-amber-600 mt-1.5">Selecione o veredito para habilitar a geracao de minuta e a emissao.</p>
+              <p className="text-xs text-amber-600 mt-1.5">Selecione o veredito para habilitar a geração de minuta e a emissão.</p>
             )}
           </div>
 
@@ -207,7 +207,7 @@ export default function EditorParecer({
               <Label className="text-sm font-medium text-amber-700">Ressalvas <span className="text-red-500">*</span></Label>
               <Textarea
                 rows={3}
-                placeholder="Descreva as ressalvas que condicionam a aprovacao..."
+                placeholder="Descreva as ressalvas que condicionam a aprovação..."
                 value={ressalvas}
                 onChange={e => setRessalvas(e.target.value)}
                 className="border-amber-200 text-sm"
@@ -216,10 +216,10 @@ export default function EditorParecer({
           )}
           {veredito === 'contrario' && (
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-red-700">Motivo do parecer contrario <span className="text-red-500">*</span></Label>
+              <Label className="text-sm font-medium text-red-700">Motivo do parecer contrário <span className="text-red-500">*</span></Label>
               <Textarea
                 rows={3}
-                placeholder="Descreva os motivos que fundamentam o parecer contrario..."
+                placeholder="Descreva os motivos que fundamentam o parecer contrário..."
                 value={motivoCon}
                 onChange={e => setMotivoCon(e.target.value)}
                 className="border-red-200 text-sm"
@@ -230,7 +230,7 @@ export default function EditorParecer({
           {geradoPorIA && (
             <div className="flex items-center gap-2 p-3 bg-purple-50 border border-purple-100 rounded-lg text-xs text-purple-700">
               <Wand2 className="w-3.5 h-3.5 shrink-0" />
-              Conteudo gerado pela IA. Revise e ajuste conforme necessario antes de emitir.
+              Conteúdo gerado pela IA. Revise e ajuste conforme necessário antes de emitir.
             </div>
           )}
 
@@ -238,7 +238,7 @@ export default function EditorParecer({
             <Label className="text-sm font-medium text-gray-700">Texto do Parecer</Label>
             <Textarea
               rows={18}
-              placeholder={'EMENTA:\n\nRELATORIO:\n\nFUNDAMENTACAO JURIDICA:\n\nCONCLUSAO:'}
+              placeholder={'EMENTA:\n\nRELATÓRIO:\n\nFUNDAMENTAÇÃO JURÍDICA:\n\nCONCLUSÃO:'}
               value={conteudo}
               onChange={e => handleConteudoChange(e.target.value)}
               className="font-mono text-sm text-gray-800 leading-relaxed resize-y"
@@ -250,7 +250,7 @@ export default function EditorParecer({
             <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-2">
               <div className="flex items-center gap-1.5">
                 <Brain className="w-3.5 h-3.5 text-blue-600" />
-                <span className="text-xs font-semibold text-blue-800">Analise juridica da IA</span>
+                <span className="text-xs font-semibold text-blue-800">Análise jurídica da IA</span>
               </div>
               <pre className="text-xs text-blue-900 whitespace-pre-wrap leading-relaxed font-sans">
                 {analiseIA}
@@ -292,7 +292,7 @@ export default function EditorParecer({
                               {emLinha ? 'Em linha' : 'Divergente'}
                             </Badge>
                             <span className="text-[10px] text-gray-400">
-                              {p.mesma_org && p.procurador_nome ? p.procurador_nome : 'Procurador anonimo'}
+                              {p.mesma_org && p.procurador_nome ? p.procurador_nome : 'Procurador anônimo'}
                             </span>
                           </div>
                         </div>

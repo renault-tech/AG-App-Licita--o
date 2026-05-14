@@ -4,12 +4,12 @@ import { createClient } from '@/lib/supabase/server'
 import type { PayloadDocumento, CabecalhoDoc } from './tipos'
 
 const MODALIDADE_LABEL: Record<string, string> = {
-  pregao_eletronico:   'Pregao Eletronico',
-  pregao_presencial:   'Pregao Presencial',
-  concorrencia:        'Concorrencia',
+  pregao_eletronico:   'Pregão Eletrônico',
+  pregao_presencial:   'Pregão Presencial',
+  concorrencia:        'Concorrência',
   concurso:            'Concurso',
-  leilao:              'Leilao',
-  dialogo_competitivo: 'Dialogo Competitivo',
+  leilao:              'Leilão',
+  dialogo_competitivo: 'Diálogo Competitivo',
   dispensa:            'Dispensa',
   inexigibilidade:     'Inexigibilidade',
 }
@@ -73,16 +73,16 @@ export async function montarPayloadDFD(processoId: string): Promise<PayloadDocum
 
   const secoes = [
     { titulo: '1. Secretaria Requisitante', conteudo: dfd.secretaria_nome ?? '' },
-    { titulo: '2. Responsavel pela Elaboracao', conteudo: dfd.responsavel_elaboracao ?? '' },
-    { titulo: '3. Objeto da Contratacao', conteudo: dfd.objeto ?? '' },
+    { titulo: '2. Responsável pela Elaboração', conteudo: dfd.responsavel_elaboracao ?? '' },
+    { titulo: '3. Objeto da Contratação', conteudo: dfd.objeto ?? '' },
     dfd.justificativa_necessidade ? { titulo: '4. Justificativa da Necessidade', conteudo: dfd.justificativa_necessidade } : null,
     dfd.fiscal_contrato ? { titulo: '5. Fiscal do Contrato', conteudo: dfd.fiscal_contrato } : null,
-    dfd.dotacao_orcamentaria ? { titulo: '6. Dotacao Orcamentaria', conteudo: dfd.dotacao_orcamentaria } : null,
+    dfd.dotacao_orcamentaria ? { titulo: '6. Dotação Orçamentária', conteudo: dfd.dotacao_orcamentaria } : null,
   ].filter(Boolean) as { titulo: string; conteudo: string }[]
 
   return {
     cabecalho,
-    tipoDocumento: 'DOCUMENTO DE FORMALIZACAO DA DEMANDA (DFD)',
+    tipoDocumento: 'DOCUMENTO DE FORMALIZAÇÃO DA DEMANDA (DFD)',
     numeroProcesso: processo.numero_processo ?? null,
     objeto: processo.objeto,
     modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,
@@ -117,23 +117,23 @@ export async function montarPayloadETP(processoId: string): Promise<PayloadDocum
   cabecalho.geradoPorIA = etp.gerado_por_ia ?? false
 
   const secoes = [
-    { titulo: '1. Descricao da Necessidade', conteudo: etp.descricao_necessidade ?? '' },
-    { titulo: '2. Requisitos da Contratacao', conteudo: etp.requisitos_contratacao ?? '' },
+    { titulo: '1. Descrição da Necessidade', conteudo: etp.descricao_necessidade ?? '' },
+    { titulo: '2. Requisitos da Contratação', conteudo: etp.requisitos_contratacao ?? '' },
     { titulo: '3. Levantamento de Mercado', conteudo: etp.levantamento_mercado ?? '' },
     { titulo: '4. Estimativa de Quantidades', conteudo: etp.estimativa_quantidades ?? '' },
     { titulo: '5. Estimativa de Valores', conteudo: etp.estimativa_valores ?? '' },
-    { titulo: '6. Justificativa da Solucao', conteudo: etp.justificativa_solucao ?? '' },
+    { titulo: '6. Justificativa da Solução', conteudo: etp.justificativa_solucao ?? '' },
     etp.parcelamento ? { titulo: '7. Parcelamento', conteudo: etp.parcelamento } : null,
     etp.resultados_pretendidos ? { titulo: '8. Resultados Pretendidos', conteudo: etp.resultados_pretendidos } : null,
-    etp.providencias ? { titulo: '9. Providencias a Adotar', conteudo: etp.providencias } : null,
-    etp.contratacoes_correlatas ? { titulo: '10. Contratacoes Correlatas', conteudo: etp.contratacoes_correlatas } : null,
+    etp.providencias ? { titulo: '9. Providências a Adotar', conteudo: etp.providencias } : null,
+    etp.contratacoes_correlatas ? { titulo: '10. Contratações Correlatas', conteudo: etp.contratacoes_correlatas } : null,
     etp.impactos_ambientais ? { titulo: '11. Impactos Ambientais', conteudo: etp.impactos_ambientais } : null,
-    etp.viabilidade ? { titulo: '12. Declaracao de Viabilidade', conteudo: etp.viabilidade } : null,
+    etp.viabilidade ? { titulo: '12. Declaração de Viabilidade', conteudo: etp.viabilidade } : null,
   ].filter(Boolean) as { titulo: string; conteudo: string }[]
 
   return {
     cabecalho,
-    tipoDocumento: 'ESTUDO TECNICO PRELIMINAR (ETP)',
+    tipoDocumento: 'ESTUDO TÉCNICO PRELIMINAR (ETP)',
     numeroProcesso: processo.numero_processo ?? null,
     objeto: processo.objeto,
     modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,
@@ -169,20 +169,20 @@ export async function montarPayloadTR(processoId: string): Promise<PayloadDocume
 
   const secoes = [
     { titulo: '1. Objeto', conteudo: tr.objeto ?? '' },
-    { titulo: '2. Fundamentacao Legal', conteudo: tr.fundamentacao ?? '' },
-    { titulo: '3. Descricao do Objeto', conteudo: tr.descricao ?? '' },
-    { titulo: '4. Requisitos Tecnicos', conteudo: tr.requisitos_tecnicos ?? '' },
-    { titulo: '5. Modelo de Execucao', conteudo: tr.modelo_execucao ?? '' },
-    { titulo: '6. Modelo de Gestao', conteudo: tr.modelo_gestao ?? '' },
-    tr.criterios_medicao ? { titulo: '7. Criterios de Medicao', conteudo: tr.criterios_medicao } : null,
+    { titulo: '2. Fundamentação Legal', conteudo: tr.fundamentacao ?? '' },
+    { titulo: '3. Descrição do Objeto', conteudo: tr.descricao ?? '' },
+    { titulo: '4. Requisitos Técnicos', conteudo: tr.requisitos_tecnicos ?? '' },
+    { titulo: '5. Modelo de Execução', conteudo: tr.modelo_execucao ?? '' },
+    { titulo: '6. Modelo de Gestão', conteudo: tr.modelo_gestao ?? '' },
+    tr.criterios_medicao ? { titulo: '7. Critérios de Medição', conteudo: tr.criterios_medicao } : null,
     tr.forma_pagamento ? { titulo: '8. Forma de Pagamento', conteudo: tr.forma_pagamento } : null,
     tr.garantias ? { titulo: '9. Garantias', conteudo: tr.garantias } : null,
-    tr.sancoes ? { titulo: '10. Sancoes Administrativas', conteudo: tr.sancoes } : null,
+    tr.sancoes ? { titulo: '10. Sanções Administrativas', conteudo: tr.sancoes } : null,
   ].filter(Boolean) as { titulo: string; conteudo: string }[]
 
   return {
     cabecalho,
-    tipoDocumento: 'TERMO DE REFERENCIA (TR)',
+    tipoDocumento: 'TERMO DE REFERÊNCIA (TR)',
     numeroProcesso: processo.numero_processo ?? null,
     objeto: processo.objeto,
     modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,
@@ -222,7 +222,7 @@ export async function montarPayloadRiscos(processoId: string): Promise<PayloadDo
   const conteudoRiscos = riscos.length === 0
     ? '(Nenhum risco identificado)'
     : riscos.map((r, i) =>
-        `${i + 1}. ${r.identificacao}\n   Probabilidade: ${r.probabilidade}  |  Impacto: ${r.impacto}\n   Mitigacao: ${r.mitigacao}`
+        `${i + 1}. ${r.identificacao}\n   Probabilidade: ${r.probabilidade}  |  Impacto: ${r.impacto}\n   Mitigação: ${r.mitigacao}`
       ).join('\n\n')
 
   const secoes = [
@@ -277,12 +277,12 @@ export async function montarPayloadEdital(processoId: string): Promise<PayloadDo
     .map(([titulo, valor]) => ({ titulo, conteudo: valor }))
 
   if (secoes.length === 0) {
-    secoes.push({ titulo: '1. Conteudo do Edital', conteudo: '(Nao preenchido)' })
+    secoes.push({ titulo: '1. Conteúdo do Edital', conteudo: '(Não preenchido)' })
   }
 
   return {
     cabecalho,
-    tipoDocumento: 'EDITAL DE LICITACAO',
+    tipoDocumento: 'EDITAL DE LICITAÇÃO',
     numeroProcesso: processo.numero_processo ?? null,
     objeto: processo.objeto,
     modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,
@@ -317,20 +317,20 @@ export async function montarPayloadParecer(processoId: string): Promise<PayloadD
   cabecalho.geradoPorIA = parecer.gerado_por_ia ?? false
 
   const STATUS_LABEL: Record<string, string> = {
-    pendente:               'Pendente de analise',
+    pendente:               'Pendente de análise',
     aprovado:               'Aprovado',
     aprovado_com_ressalvas: 'Aprovado com ressalvas',
-    devolvido:              'Devolvido para correcao',
+    devolvido:              'Devolvido para correção',
   }
 
   const secoes = [
     { titulo: '1. Status do Parecer', conteudo: STATUS_LABEL[parecer.status] ?? parecer.status },
-    { titulo: '2. Conteudo do Parecer', conteudo: parecer.conteudo ?? '(Conteudo nao preenchido)' },
+    { titulo: '2. Conteúdo do Parecer', conteudo: parecer.conteudo ?? '(Conteúdo não preenchido)' },
   ]
 
   return {
     cabecalho,
-    tipoDocumento: 'PARECER JURIDICO',
+    tipoDocumento: 'PARECER JURÍDICO',
     numeroProcesso: processo.numero_processo ?? null,
     objeto: processo.objeto,
     modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,

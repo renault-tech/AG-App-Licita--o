@@ -130,7 +130,7 @@ export async function criarAviso(
   input: CriarAvisoInput
 ): Promise<{ success: boolean; avisoId?: string; error?: string }> {
   const ctx = await obterUsuarioEOrg()
-  if (!ctx) return { success: false, error: 'Nao autenticado.' }
+  if (!ctx) return { success: false, error: 'Não autenticado.' }
 
   const parsed = CriarAvisoSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
@@ -247,7 +247,7 @@ export async function buscarAviso(
   id: string
 ): Promise<{ success: boolean; aviso?: AvisoDetalhe; error?: string }> {
   const ctx = await obterUsuarioEOrg()
-  if (!ctx) return { success: false, error: 'Nao autenticado.' }
+  if (!ctx) return { success: false, error: 'Não autenticado.' }
 
   const { supabase } = ctx
 
@@ -280,7 +280,7 @@ export async function registrarAdesao(
   input: RegistrarAdesaoInput
 ): Promise<{ success: boolean; error?: string }> {
   const ctx = await obterUsuarioEOrg()
-  if (!ctx) return { success: false, error: 'Nao autenticado.' }
+  if (!ctx) return { success: false, error: 'Não autenticado.' }
 
   const parsed = RegistrarAdesaoSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
@@ -382,7 +382,7 @@ export async function encerrarPrazo(
   avisoId: string
 ): Promise<{ success: boolean; error?: string }> {
   const ctx = await obterUsuarioEOrg()
-  if (!ctx) return { success: false, error: 'Nao autenticado.' }
+  if (!ctx) return { success: false, error: 'Não autenticado.' }
 
   const { supabase } = ctx
 
@@ -420,7 +420,7 @@ export async function iniciarProcessoDoAviso(
   avisoId: string
 ): Promise<{ success: boolean; processoId?: string; error?: string }> {
   const ctx = await obterUsuarioEOrg()
-  if (!ctx) return { success: false, error: 'Nao autenticado.' }
+  if (!ctx) return { success: false, error: 'Não autenticado.' }
 
   const { supabase } = ctx
 

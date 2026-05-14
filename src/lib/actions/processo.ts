@@ -15,7 +15,7 @@ export async function criarProcessoInicial(dados: ProcessoWizardInput) {
 
   // 2. Pegar usuario e organizacao
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Usuario nao autenticado.' }
+  if (!user) return { success: false, error: 'Usuário não autenticado.' }
 
   const { data: userData, error: userError } = await supabase
     .from('usuarios')
@@ -58,7 +58,7 @@ export async function criarProcessoComDocumentos(
 ): Promise<{ success: boolean; processoId?: string; error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Nao autenticado.' }
+  if (!user) return { success: false, error: 'Não autenticado.' }
 
   const { data: userData } = await supabase
     .from('usuarios')

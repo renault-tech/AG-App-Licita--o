@@ -27,7 +27,7 @@ export default function ConfiguracoesPlatafoma({
       prazo_alerta_parecer_dias:   alerta,
     })
     res.success
-      ? toast.success('Configuracoes salvas.')
+      ? toast.success('Configurações salvas.')
       : toast.error(res.error ?? 'Erro ao salvar.')
     setSalvando(false)
   }
@@ -84,7 +84,7 @@ export default function ConfiguracoesPlatafoma({
         >
           {salvando
             ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
-            : <><Save className="w-4 h-4" /> Salvar configuracoes</>}
+            : <><Save className="w-4 h-4" /> Salvar configurações</>}
         </Button>
       </CardFooter>
     </Card>

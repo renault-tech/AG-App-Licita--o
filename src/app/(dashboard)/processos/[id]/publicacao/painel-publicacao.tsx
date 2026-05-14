@@ -123,14 +123,14 @@ export default function PainelPublicacao({
         <CardContent className="p-6 flex flex-col items-center text-center gap-3">
           <AlertCircle className="w-8 h-8 text-amber-400" />
           <div>
-            <p className="text-sm font-medium text-gray-700">Aguardando autorizacao</p>
+            <p className="text-sm font-medium text-gray-700">Aguardando autorização</p>
             <p className="text-xs text-gray-500 mt-1">
-              O processo precisa ser autorizado pela autoridade competente antes da publicacao.
+              O processo precisa ser autorizado pela autoridade competente antes da publicação.
             </p>
           </div>
           <Link href={`/processos/${processoId}/autorizacao`}>
             <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5">
-              Ver autorizacao
+              Ver autorização
             </Button>
           </Link>
         </CardContent>
@@ -160,13 +160,13 @@ export default function PainelPublicacao({
           <CardHeader className="border-b border-gray-100 pb-4">
             <CardTitle className="text-base font-semibold text-gray-800 flex items-center gap-2">
               <Globe className="w-4 h-4 text-blue-500" />
-              Dados da Publicacao
+              Dados da Publicação
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 space-y-3">
             {[
-              { label: 'Numero PNCP',      value: publicacao.pncp_numero,    href: publicacao.pncp_url },
-              { label: 'Diario Oficial',   value: publicacao.diario_oficial, href: null },
+              { label: 'Número PNCP',      value: publicacao.pncp_numero,    href: publicacao.pncp_url },
+              { label: 'Diário Oficial',   value: publicacao.diario_oficial, href: null },
               { label: 'Portal da Prefeitura', value: publicacao.portal_proprio, href: publicacao.portal_proprio },
             ].map(item => item.value && (
               <div key={item.label} className="flex items-center justify-between py-1.5">
@@ -184,7 +184,7 @@ export default function PainelPublicacao({
 
             {publicacao.observacoes && (
               <div className="pt-2 border-t border-gray-100">
-                <p className="text-xs text-gray-500 font-medium mb-1">Observacoes</p>
+                <p className="text-xs text-gray-500 font-medium mb-1">Observações</p>
                 <p className="text-xs text-gray-700">{publicacao.observacoes}</p>
               </div>
             )}
@@ -226,7 +226,7 @@ export default function PainelPublicacao({
                 {novoStatus ? `${STATUS_PUBLICACAO[novoStatus]?.label} o processo` : 'Atualizar status'}
               </DialogTitle>
               <DialogDescription>
-                Confirme a alteracao de status da publicacao.
+                Confirme a alteração de status da publicação.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-2 py-2">
@@ -236,7 +236,7 @@ export default function PainelPublicacao({
               <Textarea
                 id="motivo-status"
                 rows={3}
-                placeholder="Descreva o motivo da alteracao..."
+                placeholder="Descreva o motivo da alteração..."
                 value={motivoStatus}
                 onChange={(e) => setMotivoStatus(e.target.value)}
                 className="resize-none"
@@ -269,26 +269,26 @@ export default function PainelPublicacao({
         <CardHeader className="border-b border-gray-100 pb-4">
           <CardTitle className="text-base font-semibold text-gray-800 flex items-center gap-2">
             <Globe className="w-4 h-4 text-blue-500" />
-            Registrar Publicacao
+            Registrar Publicação
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 space-y-4">
           {!podePublicar && (
             <div className="flex items-start gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-gray-400" />
-              Somente o setor de licitacoes pode registrar a publicacao.
+              Somente o setor de licitações pode registrar a publicação.
             </div>
           )}
 
           <p className="text-sm text-gray-600">
-            Conforme Art. 54 da Lei 14.133/21, o edital deve ser publicado no PNCP com antecedencia minima
-            de 8 dias uteis (Pregao) ou 25 dias uteis (Concorrencia) antes da abertura das propostas.
+            Conforme Art. 54 da Lei 14.133/21, o edital deve ser publicado no PNCP com antecedência mínima
+            de 8 dias úteis (Pregão) ou 25 dias úteis (Concorrência) antes da abertura das propostas.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="data_publicacao" className="text-sm font-medium">
-                Data de Publicacao <span className="text-red-500">*</span>
+                Data de Publicação <span className="text-red-500">*</span>
               </Label>
               <div className="relative">
                 <Calendar className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-400" />
@@ -322,7 +322,7 @@ export default function PainelPublicacao({
 
           <div className="space-y-1.5">
             <Label htmlFor="pncp_numero" className="text-sm font-medium flex items-center gap-1">
-              <Globe className="w-3 h-3" /> Numero no PNCP
+              <Globe className="w-3 h-3" /> Número no PNCP
             </Label>
             <Input
               id="pncp_numero"
@@ -351,11 +351,11 @@ export default function PainelPublicacao({
 
           <div className="space-y-1.5">
             <Label htmlFor="diario_oficial" className="text-sm font-medium flex items-center gap-1">
-              <FileText className="w-3 h-3" /> Diario Oficial
+              <FileText className="w-3 h-3" /> Diário Oficial
             </Label>
             <Input
               id="diario_oficial"
-              placeholder="Ex: DOE SP de 07/05/2026, pagina 42"
+              placeholder="Ex: DOE SP de 07/05/2026, página 42"
               value={form.diario_oficial ?? ''}
               onChange={(e) => campo('diario_oficial', e.target.value)}
               className="h-9 text-sm"
@@ -380,12 +380,12 @@ export default function PainelPublicacao({
 
           <div className="space-y-1.5">
             <Label htmlFor="observacoes" className="text-sm font-medium">
-              Observacoes
+              Observações
             </Label>
             <Textarea
               id="observacoes"
               rows={2}
-              placeholder="Informacoes adicionais sobre a publicacao..."
+              placeholder="Informações adicionais sobre a publicação..."
               value={form.observacoes ?? ''}
               onChange={(e) => campo('observacoes', e.target.value)}
               className="resize-none text-sm"
@@ -403,7 +403,7 @@ export default function PainelPublicacao({
               disabled={!form.data_publicacao}
             >
               <Globe className="w-3.5 h-3.5" />
-              Registrar Publicacao
+              Registrar Publicação
             </Button>
           </CardFooter>
         )}
@@ -415,15 +415,15 @@ export default function PainelPublicacao({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-blue-600" />
-              Confirmar Publicacao
+              Confirmar Publicação
             </DialogTitle>
             <DialogDescription>
-              Confirme o registro da publicacao do processo conforme Art. 54 da Lei 14.133/21.
-              Esta acao marcara o processo como publicado.
+              Confirme o registro da publicação do processo conforme Art. 54 da Lei 14.133/21.
+              Esta ação marcará o processo como publicado.
             </DialogDescription>
           </DialogHeader>
           <div className="py-2 space-y-1 text-sm text-gray-700">
-            <p><span className="font-medium">Data de publicacao:</span> {formatarData(form.data_publicacao)}</p>
+            <p><span className="font-medium">Data de publicação:</span> {formatarData(form.data_publicacao)}</p>
             {form.data_abertura && (
               <p><span className="font-medium">Abertura das propostas:</span> {formatarData(form.data_abertura)}</p>
             )}
@@ -442,7 +442,7 @@ export default function PainelPublicacao({
               disabled={loading}
             >
               {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Globe className="w-3.5 h-3.5" />}
-              Confirmar Publicacao
+              Confirmar Publicação
             </Button>
           </DialogFooter>
         </DialogContent>

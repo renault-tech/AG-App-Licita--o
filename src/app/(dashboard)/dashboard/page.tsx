@@ -13,18 +13,18 @@ import type { PapelUsuario } from '@/types/database'
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; border: string }> = {
   rascunho:   { label: 'Rascunho',   bg: '#F4F3F7', color: '#43474E', border: '#E3E2E6' },
-  em_revisao: { label: 'Em Revisao', bg: '#FFF8EC', color: '#7A5A1E', border: '#F0D9A8' },
+  em_revisao: { label: 'Em Revisão', bg: '#FFF8EC', color: '#7A5A1E', border: '#F0D9A8' },
   assinado:   { label: 'Assinado',   bg: '#EFF4FF', color: '#1A365D', border: '#C4D4F0' },
   publicado:  { label: 'Publicado',  bg: '#F0FAF4', color: '#1A6637', border: '#B3DFC5' },
 }
 
 const MODALIDADE_LABEL: Record<string, string> = {
-  pregao_eletronico:   'Pregao Eletronico',
-  pregao_presencial:   'Pregao Presencial',
-  concorrencia:        'Concorrencia',
+  pregao_eletronico:   'Pregão Eletrônico',
+  pregao_presencial:   'Pregão Presencial',
+  concorrencia:        'Concorrência',
   concurso:            'Concurso',
-  leilao:              'Leilao',
-  dialogo_competitivo: 'Dialogo Competitivo',
+  leilao:              'Leilão',
+  dialogo_competitivo: 'Diálogo Competitivo',
   dispensa:            'Dispensa',
   inexigibilidade:     'Inexigibilidade',
 }
@@ -207,9 +207,9 @@ async function DashboardRequisitante({
         <div className="flex items-start gap-3 p-4 rounded-xl text-sm border" style={{ backgroundColor: '#FFF8EC', borderColor: '#F0D9A8' }}>
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#B7935E' }} />
           <div>
-            <p className="font-semibold text-[#7A5A1E] text-[15px]">Saldo de creditos baixo</p>
+            <p className="font-semibold text-[#7A5A1E] text-[15px]">Saldo de créditos baixo</p>
             <p className="text-[#9A7A4A] text-sm mt-0.5">
-              Voce tem apenas {saldo} credito{saldo !== 1 ? 's' : ''} restante{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponiveis com saldo zerado.
+              Você tem apenas {saldo} crédito{saldo !== 1 ? 's' : ''} restante{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponíveis com saldo zerado.
             </p>
           </div>
         </div>
@@ -283,8 +283,8 @@ async function DashboardSetorLicitacao({
           </Link>
         )}
         <SectionKpi label="PROCESSOS"      valor={processos.length} sub="Total na organizacao" icon={FileText}     color="#1A365D" />
-        <SectionKpi label="EM ELABORACAO"  valor={ativos.length}    sub="Em andamento"         icon={Clock}        color="#B7935E" />
-        <SectionKpi label="EM REVISAO"     valor={emRevisao}        sub="Aguardando analise"   icon={Filter}       color="#7A5A1E" />
+        <SectionKpi label="EM ELABORAÇÃO"  valor={ativos.length}    sub="Em andamento"         icon={Clock}        color="#B7935E" />
+        <SectionKpi label="EM REVISÃO"     valor={emRevisao}        sub="Aguardando análise"   icon={Filter}       color="#7A5A1E" />
         <SectionKpi label="PUBLICADOS"     valor={arquivo.length}   sub="Concluidos"           icon={CheckCircle}  color="#1A6637" />
       </div>
 
@@ -359,9 +359,9 @@ async function DashboardSetorLicitacao({
         <div className="flex items-start gap-3 p-4 rounded-xl text-sm border" style={{ backgroundColor: '#FFF8EC', borderColor: '#F0D9A8' }}>
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#B7935E' }} />
           <div>
-            <p className="font-semibold text-[#7A5A1E] text-[15px]">Saldo de creditos baixo</p>
+            <p className="font-semibold text-[#7A5A1E] text-[15px]">Saldo de créditos baixo</p>
             <p className="text-[#9A7A4A] text-sm mt-0.5">
-              Voce tem apenas {saldo} credito{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponiveis com saldo zerado.
+              Você tem apenas {saldo} crédito{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponíveis com saldo zerado.
             </p>
           </div>
         </div>
@@ -566,7 +566,7 @@ async function DashboardAutoridadeCompetente({
   const autorizados  = autorizacoesList.filter((a: any) => a.status === 'autorizado')
 
   const AUTORIZACAO_STATUS: Record<string, { label: string; bg: string; color: string; border: string }> = {
-    pendente:   { label: 'Aguardando Autorizacao', bg: '#FFF8EC', color: '#7A5A1E', border: '#F0D9A8' },
+    pendente:   { label: 'Aguardando Autorização', bg: '#FFF8EC', color: '#7A5A1E', border: '#F0D9A8' },
     autorizado: { label: 'Autorizado',             bg: '#F0FAF4', color: '#1A6637', border: '#B3DFC5' },
     devolvido:  { label: 'Devolvido',              bg: '#FFF0F0', color: '#BA1A1A', border: '#FFBBB5' },
   }
@@ -799,9 +799,9 @@ async function DashboardAdmin({
         <div className="flex items-start gap-3 p-4 rounded-xl text-sm border" style={{ backgroundColor: '#FFF8EC', borderColor: '#F0D9A8' }}>
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#B7935E' }} />
           <div>
-            <p className="font-semibold text-[#7A5A1E] text-[15px]">Saldo de creditos baixo</p>
+            <p className="font-semibold text-[#7A5A1E] text-[15px]">Saldo de créditos baixo</p>
             <p className="text-[#9A7A4A] text-sm mt-0.5">
-              Voce tem apenas {saldo} credito{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponiveis com saldo zerado.
+              Você tem apenas {saldo} crédito{saldo !== 1 ? 's' : ''}. As funcionalidades de IA ficam indisponíveis com saldo zerado.
             </p>
           </div>
         </div>

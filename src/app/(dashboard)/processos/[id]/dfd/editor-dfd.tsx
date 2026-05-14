@@ -476,7 +476,7 @@ export default function EditorDFD({
               rows={5}
               value={justificativa}
               onChange={e => { setJustificativa(e.target.value); setJustEditadaIA(false) }}
-              placeholder="A justificativa sera gerada automaticamente ao clicar em 'Gerar com IA', ou pode ser preenchida manualmente..."
+              placeholder="A justificativa será gerada automaticamente ao clicar em 'Gerar com IA', ou pode ser preenchida manualmente..."
               disabled={readonly}
               className={`resize-y ${justEditadaIA ? 'border-purple-200 bg-purple-50/20' : ''}`}
             />

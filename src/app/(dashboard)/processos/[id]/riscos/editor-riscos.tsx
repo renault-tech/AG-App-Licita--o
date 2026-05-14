@@ -17,8 +17,8 @@ import type { PapelUsuario } from '@/types/database'
 const NIVEL_CLASSES: Record<string, string> = {
   Alta:  'bg-red-50 text-red-700 border-red-200',
   Alto:  'bg-red-50 text-red-700 border-red-200',
-  Media: 'bg-amber-50 text-amber-700 border-amber-200',
-  Medio: 'bg-amber-50 text-amber-700 border-amber-200',
+  Média: 'bg-amber-50 text-amber-700 border-amber-200',
+  Médio: 'bg-amber-50 text-amber-700 border-amber-200',
   Baixa: 'bg-green-50 text-green-700 border-green-200',
   Baixo: 'bg-green-50 text-green-700 border-green-200',
 }
@@ -26,15 +26,15 @@ const NIVEL_CLASSES: Record<string, string> = {
 // Matriz probabilidade x impacto -> nivel de risco
 function calcularNivel(prob: string, impacto: string): string {
   const alto = ['Alta', 'Alto']
-  const medio = ['Media', 'Medio', 'Média', 'Médio']
-  if (alto.includes(prob) && alto.includes(impacto)) return 'Critico'
+  const medio = ['Média', 'Médio']
+  if (alto.includes(prob) && alto.includes(impacto)) return 'Crítico'
   if (alto.includes(prob) || alto.includes(impacto)) return 'Alto'
   if (medio.includes(prob) && medio.includes(impacto)) return 'Moderado'
   return 'Baixo'
 }
 
 const NIVEL_BADGE: Record<string, string> = {
-  Critico:  'bg-red-100 text-red-800 border-red-300',
+  Crítico:  'bg-red-100 text-red-800 border-red-300',
   Alto:     'bg-orange-50 text-orange-700 border-orange-200',
   Moderado: 'bg-amber-50 text-amber-700 border-amber-200',
   Baixo:    'bg-green-50 text-green-700 border-green-200',
@@ -51,8 +51,8 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEdita
     setRiscos(prev => [...prev, {
       id: Date.now().toString(),
       identificacao: '',
-      probabilidade: 'Media',
-      impacto: 'Medio',
+      probabilidade: 'Média',
+      impacto: 'Médio',
       mitigacao: '',
     }])
   }
@@ -148,9 +148,9 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEdita
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs text-gray-600">Identificacao do Risco</Label>
+                <Label className="text-xs text-gray-600">Identificação do Risco</Label>
                 <Input
-                  placeholder="Ex: Frustracao da licitacao por falta de interessados..."
+                  placeholder="Ex: Frustração da licitação por falta de interessados..."
                   value={risco.identificacao}
                   onChange={(e) => atualiza(risco.id, 'identificacao', e.target.value)}
                   className="text-sm"
@@ -166,7 +166,7 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEdita
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Baixa">Baixa</SelectItem>
-                      <SelectItem value="Media">Media</SelectItem>
+                      <SelectItem value="Média">Média</SelectItem>
                       <SelectItem value="Alta">Alta</SelectItem>
                     </SelectContent>
                   </Select>
@@ -179,7 +179,7 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEdita
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Baixo">Baixo</SelectItem>
-                      <SelectItem value="Medio">Medio</SelectItem>
+                      <SelectItem value="Médio">Médio</SelectItem>
                       <SelectItem value="Alto">Alto</SelectItem>
                     </SelectContent>
                   </Select>
@@ -187,10 +187,10 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEdita
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs text-gray-600">Acao de Mitigacao</Label>
+                <Label className="text-xs text-gray-600">Ação de Mitigação</Label>
                 <Textarea
                   rows={2}
-                  placeholder="Acao para prevenir ou reduzir o risco..."
+                  placeholder="Ação para prevenir ou reduzir o risco..."
                   value={risco.mitigacao}
                   onChange={(e) => atualiza(risco.id, 'mitigacao', e.target.value)}
                   className="resize-y text-sm"
@@ -222,7 +222,7 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEdita
           </Button>
           <Link href={`/processos/${processoId}/edital`}>
             <Button variant="outline" className="gap-1.5 h-9 text-sm">
-              Proxima <ChevronRight className="w-4 h-4" />
+              Próxima <ChevronRight className="w-4 h-4" />
             </Button>
           </Link>
         </div>

@@ -36,7 +36,7 @@ export async function salvarConfiguracoes(
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Nao autenticado.' }
+  if (!user) return { success: false, error: 'Não autenticado.' }
 
   const updates: Array<Partial<ConfiguracaoPlataformaRow>> = [
     { chave: 'prazo_urgencia_parecer_dias', valor: String(parsed.data.prazo_urgencia_parecer_dias), updated_by: user.id, updated_at: new Date().toISOString() },

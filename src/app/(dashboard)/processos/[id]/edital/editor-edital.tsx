@@ -42,7 +42,7 @@ export default function EditorEdital({ edital, processoId, papelUsuario, podeEdi
     if (res.success) {
       atualiza(id, 'texto', res.texto)
       setIaEditados(prev => new Set(prev).add(id))
-      toast.success('Clausula revisada pela IA.')
+      toast.success('Cláusula revisada pela IA.')
     } else {
       toast.error(res.error)
     }
@@ -53,17 +53,17 @@ export default function EditorEdital({ edital, processoId, papelUsuario, podeEdi
     <Card className="border-gray-200 shadow-sm">
       <CardHeader className="border-b border-gray-100 pb-4">
         <CardTitle className="text-base font-semibold text-gray-800">
-          Clausulas e Secoes do Edital
+          Cláusulas e Seções do Edital
         </CardTitle>
         <p className="text-xs text-gray-500 mt-0.5">
-          {secoes.length} secao(oes) — clique em "Revisao Juridica" para cada clausula.
+          {secoes.length} seção(oes) — clique em "Revisão Jurídica" para cada cláusula.
         </p>
       </CardHeader>
 
       <CardContent className="p-5 space-y-4">
         {!podeEditar && (
           <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            Visualizacao somente leitura. Seu perfil nao tem permissao de editar este documento.
+            Visualização somente leitura. Seu perfil não tem permissão de editar este documento.
           </p>
         )}
         {secoes.map((secao, index) => {
@@ -95,7 +95,7 @@ export default function EditorEdital({ edital, processoId, papelUsuario, podeEdi
                   disabled={iaLoadingId === secao.id || !podeEditar}
                 >
                   {iaLoadingId === secao.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
-                  Revisao Juridica
+                  Revisão Jurídica
                 </Button>
               </div>
 
@@ -105,7 +105,7 @@ export default function EditorEdital({ edital, processoId, papelUsuario, podeEdi
                 onChange={(e) => atualiza(secao.id, 'texto', e.target.value)}
                 readOnly={!podeEditar}
                 className={`resize-y text-sm text-gray-800 leading-relaxed ${!podeEditar ? 'bg-gray-50 cursor-default' : ''}`}
-                placeholder="Conteudo da clausula..."
+                placeholder="Conteúdo da cláusula..."
               />
             </div>
           )

@@ -6,7 +6,7 @@ export default async function ConfiguracoesPlataformaPage() {
   return (
     <div className="max-w-xl">
       <div className="mb-6">
-        <h1 className="text-lg font-bold text-gray-900">Configuracoes da Plataforma</h1>
+        <h1 className="text-lg font-bold text-gray-900">Configurações da Plataforma</h1>
         <p className="text-sm text-gray-500 mt-0.5">Parametros globais aplicados a toda a plataforma.</p>
       </div>
       <ConfiguracoesPlatafoma

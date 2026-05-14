@@ -51,7 +51,7 @@ export async function enviarParaRevisao(
 ): Promise<ResultadoTramitacao> {
   const supabase = await createClient()
   const usuario = await obterUsuarioComPapel()
-  if (!usuario) return { success: false, error: 'Nao autenticado.' }
+  if (!usuario) return { success: false, error: 'Não autenticado.' }
 
   // Busca estado atual do documento
   const { data: doc } = await (supabase as any)
@@ -62,7 +62,7 @@ export async function enviarParaRevisao(
 
   if (!doc) return { success: false, error: 'Documento nao encontrado.' }
   if (doc.status !== 'rascunho' && doc.status !== 'devolvido') {
-    return { success: false, error: 'Apenas documentos em rascunho ou devolvidos podem ser enviados para revisao.' }
+    return { success: false, error: 'Apenas documentos em rascunho ou devolvidos podem ser enviados para revisão.' }
   }
 
   const { error } = await (supabase as any)
@@ -72,7 +72,7 @@ export async function enviarParaRevisao(
 
   if (error) return { success: false, error: error.message }
 
-  await gravarVersao(supabase, tabela, documentoId, usuario.organizacao_id, usuario.id, doc, 'Enviado para revisao')
+  await gravarVersao(supabase, tabela, documentoId, usuario.organizacao_id, usuario.id, doc, 'Enviado para revisão')
 
   // Notifica analistas da organizacao
   const { data: analistas } = await supabase
@@ -94,8 +94,8 @@ export async function enviarParaRevisao(
       usuario_id: a.id,
       organizacao_id: usuario.organizacao_id,
       processo_id: processoId,
-      titulo: `Documento aguarda revisao: ${nomeTabela[tabela]}`,
-      mensagem: `${usuario.nome_completo} enviou o ${nomeTabela[tabela]} para revisao do setor de licitacoes.`,
+      titulo: `Documento aguarda revisão: ${nomeTabela[tabela]}`,
+      mensagem: `${usuario.nome_completo} enviou o ${nomeTabela[tabela]} para revisão do setor de licitações.`,
       lida: false,
       link: `/processos/${processoId}/revisao`,
     }))
@@ -113,10 +113,10 @@ export async function aprovarDocumento(
 ): Promise<ResultadoTramitacao> {
   const supabase = await createClient()
   const usuario = await obterUsuarioComPapel()
-  if (!usuario) return { success: false, error: 'Nao autenticado.' }
+  if (!usuario) return { success: false, error: 'Não autenticado.' }
 
   if (usuario.papel !== 'setor_licitacao' && usuario.papel !== 'admin_organizacao') {
-    return { success: false, error: 'Sem permissao para aprovar documentos.' }
+    return { success: false, error: 'Sem permissão para aprovar documentos.' }
   }
 
   const { data: doc } = await (supabase as any)
@@ -127,7 +127,7 @@ export async function aprovarDocumento(
 
   if (!doc) return { success: false, error: 'Documento nao encontrado.' }
   if (doc.status !== 'em_revisao') {
-    return { success: false, error: 'Apenas documentos em revisao podem ser aprovados.' }
+    return { success: false, error: 'Apenas documentos em revisão podem ser aprovados.' }
   }
 
   const { error } = await (supabase as any)
@@ -151,10 +151,10 @@ export async function devolverDocumento(
 ): Promise<ResultadoTramitacao> {
   const supabase = await createClient()
   const usuario = await obterUsuarioComPapel()
-  if (!usuario) return { success: false, error: 'Nao autenticado.' }
+  if (!usuario) return { success: false, error: 'Não autenticado.' }
 
   if (usuario.papel !== 'setor_licitacao' && usuario.papel !== 'admin_organizacao') {
-    return { success: false, error: 'Sem permissao para devolver documentos.' }
+    return { success: false, error: 'Sem permissão para devolver documentos.' }
   }
 
   const { data: doc } = await (supabase as any)
@@ -165,7 +165,7 @@ export async function devolverDocumento(
 
   if (!doc) return { success: false, error: 'Documento nao encontrado.' }
   if (doc.status !== 'em_revisao') {
-    return { success: false, error: 'Apenas documentos em revisao podem ser devolvidos.' }
+    return { success: false, error: 'Apenas documentos em revisão podem ser devolvidos.' }
   }
 
   const { error } = await (supabase as any)
@@ -198,7 +198,7 @@ export async function devolverDocumento(
       usuario_id: doc.criado_por,
       organizacao_id: usuario.organizacao_id,
       processo_id: processoId,
-      titulo: `${nomeTabela[tabela]} devolvido para correcao`,
+      titulo: `${nomeTabela[tabela]} devolvido para correção`,
       mensagem: `${usuario.nome_completo} devolveu o documento com o seguinte apontamento: ${apontamento}`,
       lida: false,
       link: `/processos/${processoId}/${tabela === 'termo_referencia' ? 'tr' : tabela === 'mapa_riscos' ? 'riscos' : tabela}`,

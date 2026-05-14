@@ -9,14 +9,14 @@ const MODELOS_IA: { value: 'com_ia' | 'sem_ia'; label: string; desc: string; bad
   {
     value: 'com_ia',
     label: 'Com assistencia de IA',
-    desc: 'O sistema refina os textos com IA para maior aderencia ao seu contexto especifico. O provedor e configurado nas preferencias da organizacao.',
+    desc: 'O sistema refina os textos com IA para maior aderência ao seu contexto específico. O provedor é configurado nas preferências da organização.',
     badge: 'Recomendado',
     badgeClass: 'bg-green-100 text-green-700',
   },
   {
     value: 'sem_ia',
     label: 'Somente templates padrao',
-    desc: 'Mais rapido. Documentos preenchidos com os templates padrao e seus dados, sem refinamento por IA.',
+    desc: 'Mais rápido. Documentos preenchidos com os templates padrão e seus dados, sem refinamento por IA.',
     badge: null,
     badgeClass: '',
   },
@@ -132,9 +132,9 @@ export default function EtapaRevisao({ dados, onChange, onIrParaEtapa }: Props) 
             <p className="text-xs text-gray-500">
               O provedor de IA e definido nas{' '}
               <Link href="/configuracoes/ia" className="text-blue-600 hover:underline font-medium">
-                configuracoes da organizacao
+                configurações da organização
               </Link>
-              . Se nao houver provedor configurado, os documentos serao gerados com templates padrao.
+              . Se não houver provedor configurado, os documentos serão gerados com templates padrão.
             </p>
           </div>
         )}

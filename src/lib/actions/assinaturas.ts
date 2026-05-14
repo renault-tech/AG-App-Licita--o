@@ -22,11 +22,11 @@ export async function assinarDocumento(
   tabelaOrigem: string,
   documentoId: string,
   processoId: string
-): Promise<ActionResult> {
+): Promise<ActionResult<{ urlAssinatura?: string }>> {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Nao autenticado.' }
+  if (!user) return { success: false, error: 'Não autenticado.' }
 
   const { data: usuarioRaw } = await supabase
     .from('usuarios')
@@ -35,7 +35,7 @@ export async function assinarDocumento(
     .single()
 
   const usuario = usuarioRaw as { id: string; organizacao_id: string; nome_completo: string } | null
-  if (!usuario) return { success: false, error: 'Perfil de usuario nao encontrado.' }
+  if (!usuario) return { success: false, error: 'Perfil de usuário não encontrado.' }
 
   // Busca provedor de assinatura configurado na org
   const { data: orgRaw } = await (supabase as any)
@@ -55,7 +55,7 @@ export async function assinarDocumento(
     processoId,
     usuarioId: usuario.id,
     organizacaoId: usuario.organizacao_id,
-    nomeSignatario: usuario.nome_completo ?? user.email ?? 'Usuario',
+    nomeSignatario: usuario.nome_completo ?? user.email ?? 'Usuário',
     emailSignatario: user.email ?? '',
   })
 
@@ -74,31 +74,32 @@ export async function assinarDocumento(
 
   // Registra assinatura
   await (supabase.from('assinaturas') as any).insert({
-    tabela_origem: tabelaOrigem,
-    documento_id: documentoId,
-    organizacao_id: usuario.organizacao_id,
-    usuario_id: user.id,
-    provedor: resultado.provedor,
-    hash_documento: resultado.hashDocumento,
+    tabela_origem:        tabelaOrigem,
+    documento_id:         documentoId,
+    organizacao_id:       usuario.organizacao_id,
+    usuario_id:           user.id,
+    provedor:             resultado.provedor,
+    hash_documento:       resultado.hashDocumento,
     timestamp_assinatura: resultado.timestampAssinatura,
-    status: 'concluido',
-    referencia_externa: resultado.referencia_externa ?? null,
+    status:               'concluido',
+    referencia_externa:   resultado.referencia_externa ?? null,
+    url_assinatura:       resultado.urlAssinatura ?? null,
   })
 
   const slug = SLUG_POR_TABELA[tabelaOrigem] ?? tabelaOrigem
   revalidatePath(`/processos/${processoId}/${slug}`)
-  return { success: true }
+  return { success: true, data: { urlAssinatura: resultado.urlAssinatura } }
 }
 
 export async function salvarConfigAssinatura(provedor: string): Promise<ActionResult> {
   const provedoresValidos = ['interno', 'clicksign', 'zapsign', 'govbr', 'docusign']
   if (!provedoresValidos.includes(provedor)) {
-    return { success: false, error: 'Provedor invalido.' }
+    return { success: false, error: 'Provedor inválido.' }
   }
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Sessao expirada.' }
+  if (!user) return { success: false, error: 'Sessão expirada.' }
 
   const { data: usuarioRaw } = await supabase
     .from('usuarios')
@@ -107,16 +108,16 @@ export async function salvarConfigAssinatura(provedor: string): Promise<ActionRe
     .maybeSingle()
 
   const usuario = usuarioRaw as { papel: string; organizacao_id: string } | null
-  if (!usuario) return { success: false, error: 'Usuario nao encontrado.' }
+  if (!usuario) return { success: false, error: 'Usuário não encontrado.' }
   if (!['admin_organizacao', 'admin_plataforma'].includes(usuario.papel)) {
-    return { success: false, error: 'Sem permissao.' }
+    return { success: false, error: 'Sem permissão.' }
   }
 
   const { error } = await (supabase.from('organizacoes') as any)
     .update({ assinatura_config: { provider: provedor } })
     .eq('id', usuario.organizacao_id)
 
-  if (error) return { success: false, error: 'Erro ao salvar configuracao.' }
+  if (error) return { success: false, error: 'Erro ao salvar configuração.' }
 
   revalidatePath('/configuracoes/assinatura-eletronica')
   return { success: true }

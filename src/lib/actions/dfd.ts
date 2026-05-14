@@ -152,7 +152,7 @@ export async function salvarItensDFD(
   itens: Array<{ numero_item: number; especificacao: string; unidade_medida: string; observacoes?: string }>
 ): Promise<{ success: boolean; error?: string }> {
   const ctx = await obterUsuarioEOrg()
-  if (!ctx) return { success: false, error: 'Nao autenticado.' }
+  if (!ctx) return { success: false, error: 'Não autenticado.' }
   const { supabase } = ctx
 
   // Remove todos e reinseere (upsert por numero_item)
@@ -183,7 +183,7 @@ export async function atualizarDFD(
   }
 ): Promise<{ success: boolean; error?: string }> {
   const ctx = await obterUsuarioEOrg()
-  if (!ctx) return { success: false, error: 'Nao autenticado.' }
+  if (!ctx) return { success: false, error: 'Não autenticado.' }
   const { supabase } = ctx
 
   const { error } = await (supabase as any)
@@ -265,7 +265,7 @@ export async function encaminharDFDParaAdesao(
   prazoAdesao: string // ISO date string
 ): Promise<{ success: boolean; error?: string }> {
   const ctx = await obterUsuarioEOrg()
-  if (!ctx) return { success: false, error: 'Nao autenticado.' }
+  if (!ctx) return { success: false, error: 'Não autenticado.' }
   const { supabase } = ctx
 
   if (!secretariaIds.length) return { success: false, error: 'Selecione ao menos uma secretaria.' }
@@ -395,7 +395,7 @@ export async function responderAdesaoDFD(
   }
 ): Promise<{ success: boolean; error?: string }> {
   const ctx = await obterUsuarioEOrg()
-  if (!ctx) return { success: false, error: 'Nao autenticado.' }
+  if (!ctx) return { success: false, error: 'Não autenticado.' }
   const { supabase, user } = ctx
 
   const { error: errPart } = await (supabase as any)
@@ -447,7 +447,7 @@ export async function consolidarDFD(
   dfdId: string
 ): Promise<{ success: boolean; error?: string }> {
   const ctx = await obterUsuarioEOrg()
-  if (!ctx) return { success: false, error: 'Nao autenticado.' }
+  if (!ctx) return { success: false, error: 'Não autenticado.' }
   const { supabase } = ctx
 
   // Verifica se prazo ja passou ou se status permite consolidar
