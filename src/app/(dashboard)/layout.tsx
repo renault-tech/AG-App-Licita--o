@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import Navbar from '@/components/layout/navbar'
+import { AppHeader } from '@/components/layout/app-header'
 import DemoSwitcher from '@/components/layout/demo-switcher'
 import { obterNotificacoes } from '@/lib/actions/notificacoes'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
@@ -16,23 +16,38 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Seed silencioso: so insere clausulas_padrao se tabela estiver vazia
   seedClausulasPadrao().catch(() => {})
 
-  const [usuarioRes, creditosRes, { notificacoes, naoLidas }, papelAtual] = await Promise.all([
-    supabase.from('usuarios').select('nome_completo, organizacao_id').eq('id', user.id).maybeSingle(),
+  const [usuarioComOrgRes, creditosRes, { notificacoes, naoLidas }, papelAtual] = await Promise.all([
+    supabase
+      .from('usuarios')
+      .select('nome_completo, cargo, organizacoes(nome, cnpj, brasao_url)')
+      .eq('id', user.id)
+      .maybeSingle(),
     (supabase as any).from('creditos_usuario').select('saldo').eq('usuario_id', user.id).maybeSingle(),
     obterNotificacoes(),
     obterPapelUsuario(),
   ])
 
+  const row = usuarioComOrgRes.data as {
+    nome_completo?: string
+    cargo?: string
+    organizacoes?: { nome?: string; cnpj?: string; brasao_url?: string } | null
+  } | null
+  const usuario = row
+  const org = row?.organizacoes ?? null
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFA]">
-      <Navbar
-        user={user}
-        nomeUsuario={(usuarioRes.data as any)?.nome_completo ?? null}
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
+      <AppHeader
+        orgNome={org?.nome ?? 'Prefeitura Municipal'}
+        orgCnpj={org?.cnpj ?? ''}
+        nomeUsuario={usuario?.nome_completo ?? null}
+        cargo={usuario?.cargo ?? null}
         saldoCreditos={(creditosRes.data as any)?.saldo ?? null}
         notificacoes={notificacoes}
         naoLidas={naoLidas}
-        isAdminPlataforma={papelAtual === 'admin_plataforma'}
         papel={papelAtual}
+        isAdminPlataforma={papelAtual === 'admin_plataforma'}
+        brasaoUrl={org?.brasao_url ?? null}
       />
       <main className="flex-1 max-w-[1400px] mx-auto w-full px-6 md:px-8 lg:px-12 py-10 pb-32">
         {children}
