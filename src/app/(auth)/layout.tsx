@@ -1,8 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  /* Cor base alinhada ao tema Cataguases — azul marinho real da logo */
-  const navyDeep = '#0E1B33'
+  /* Cor base alinhada ao tema Cataguases — tom levemente mais claro que o fundo da logo para o mix-blend-mode funcionar perfeitamente */
+  const navyDeep = '#112239'
   const gold     = '#D4A020'
   const goldSoft = '#E8C060'
   const cream    = '#F5F0E0'
@@ -14,18 +14,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         className="hidden lg:flex lg:w-[440px] xl:w-[500px] shrink-0 flex-col"
         style={{ background: navyDeep, position: 'relative', overflow: 'hidden' }}
       >
-        {/* Textura sutil de fundo — padrão geométrico inspirado no triângulo da logo */}
-        <svg
-          className="absolute inset-0 w-full h-full opacity-[0.04]"
-          viewBox="0 0 500 800"
-          preserveAspectRatio="xMidYMid slice"
-          aria-hidden="true"
-        >
-          <polygon points="250,50 450,350 50,350" fill={cream} />
-          <polygon points="250,200 420,480 80,480" fill={cream} />
-          <polygon points="250,380 390,600 110,600" fill={cream} />
-          <polygon points="250,550 370,720 130,720" fill={cream} />
-        </svg>
+
 
         {/* Linha dourada decorativa no topo */}
         <div style={{ height: 3, background: `linear-gradient(90deg, ${gold}, ${goldSoft}, ${gold})` }} />
@@ -52,46 +41,26 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
 
-          {/* Centro: logo da prefeitura + nome da organização */}
-          <div className="flex flex-col items-center text-center gap-6 py-8">
-            {/* Logo PNG da prefeitura — proporção 2:3 preservada */}
-            <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img
-                src="/logo-prefeitura.png"
-                alt="Logo da Prefeitura de Cataguases"
-                style={{ height: 120, width: 'auto', objectFit: 'contain' }}
-              />
-            </div>
+          {/* Centro: apenas a logo da prefeitura */}
+          <div className="flex-1 w-full relative min-h-0 my-8">
+            <img
+              src="https://jqzkfuablvszpmhrzfwq.supabase.co/storage/v1/object/public/Logo%20Cataguases/LOGO%20TRANSP.png"
+              alt="Logo da Prefeitura de Cataguases"
+              className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+              style={{ transform: 'scale(1.8)' }}
+            />
+          </div>
 
-            <div>
-              <p
-                className="text-2xl font-bold tracking-wide leading-tight"
-                style={{ color: cream, fontFamily: 'var(--font-newsreader)', letterSpacing: '0.06em' }}
-              >
-                CATAGUASES
-              </p>
-              <p
-                className="text-xs font-semibold tracking-[0.22em] uppercase mt-1"
-                style={{ color: gold }}
-              >
-                PREFEITURA MUNICIPAL
-              </p>
-              <div
-                className="mx-auto mt-3"
-                style={{ width: 40, height: 1.5, background: `linear-gradient(90deg, transparent, ${gold}, transparent)` }}
-              />
-            </div>
-
+          {/* Rodape e texto */}
+          <div className="shrink-0 flex flex-col items-start space-y-8">
             <p
               className="text-[13.5px] leading-relaxed max-w-[300px]"
               style={{ color: 'rgba(245,240,224,0.65)', fontFamily: 'var(--font-inter)' }}
             >
               Plataforma de automacao de processos licitatorios. Do DFD ao edital, com auxilio de inteligencia artificial.
             </p>
-          </div>
 
-          {/* Rodape: recursos */}
-          <div className="space-y-2.5">
+            <div className="space-y-2.5">
             {[
               'Conformidade com a Lei 14.133/21',
               'Geracao assistida por IA',
@@ -110,21 +79,26 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             </p>
           </div>
         </div>
+      </div>
 
         {/* Linha dourada decorativa no rodape */}
         <div style={{ height: 3, background: `linear-gradient(90deg, ${gold}, ${goldSoft}, ${gold})` }} />
       </div>
 
-      {/* Painel direito: formulario */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
+      {/* Painel direito: formulario com suporte a zoom isolado */}
+      <div 
+        className="flex-1 flex items-center justify-center px-6 py-12"
+        style={{ zoom: 'var(--zoom-level, 1)' }}
+      >
         <div className="w-full max-w-md">
           {/* Logo mobile: logo + nome */}
-          <div className="lg:hidden flex flex-col items-center mb-8 gap-3">
-            <div style={{ height: 72, display: 'flex', alignItems: 'center' }}>
+          <div className="lg:hidden flex flex-col items-center mb-10 gap-6">
+            <div className="w-full h-[240px] relative">
               <img
-                src="/logo-prefeitura.png"
+                src="https://jqzkfuablvszpmhrzfwq.supabase.co/storage/v1/object/public/Logo%20Cataguases/LOGO%20TRANSP.png"
                 alt="Logo da Prefeitura de Cataguases"
-                style={{ height: 72, width: 'auto', objectFit: 'contain' }}
+                className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                style={{ transform: 'scale(1.8)' }}
               />
             </div>
             <div className="text-center">

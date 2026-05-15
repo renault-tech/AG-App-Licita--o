@@ -49,7 +49,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
         isAdminPlataforma={papelAtual === 'admin_plataforma'}
         brasaoUrl={org?.brasao_url ?? null}
       />
-      <main className="flex-1 max-w-[1400px] mx-auto w-full px-6 md:px-8 lg:px-12 py-10 pb-32">
+      <main 
+        className="flex-1 max-w-[1400px] mx-auto w-full px-6 md:px-8 lg:px-12 py-10 pb-32"
+        style={{ zoom: 'var(--zoom-level, 1)' }}
+      >
         {children}
       </main>
       {papelAtual && <DemoSwitcher papelAtual={papelAtual as PapelUsuario} />}

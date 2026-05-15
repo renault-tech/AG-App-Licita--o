@@ -480,9 +480,7 @@
 }
 
 /* ── Zoom support ──────────────────────────────────────────── */
-html {
-  zoom: var(--zoom-level, 1);
-}
+/* Zoom is now applied to specific wrappers (.zoomable) to avoid scaling sidebars and fixed elements */
 
 /* ── Typography scale ──────────────────────────────────────── */
 :root {
