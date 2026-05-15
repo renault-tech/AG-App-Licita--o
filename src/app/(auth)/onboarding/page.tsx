@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { AutocompletePrefeitura } from '@/components/ui/autocomplete-prefeitura'
+import type { PrefeituraData } from '@/lib/data/prefeituras'
 
 const ESTADOS = [
   'AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT',
@@ -47,6 +49,9 @@ export default function OnboardingPage() {
     },
   })
 
+  const [razaoOficial, setRazaoOficial] = useState<string | null>(null)
+  const [validandoCnpj, setValidandoCnpj] = useState(false)
+
   const { register, handleSubmit, formState: { errors }, setValue, watch, trigger } = form
 
   async function avancarEtapa() {
@@ -74,6 +79,34 @@ export default function OnboardingPage() {
       .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
       .replace(/\.(\d{3})(\d)/, '.$1/$2')
       .replace(/(\d{4})(\d)/, '$1-$2')
+  }
+
+  // Mitigacao: Buscar razao social oficial na BrasilAPI quando CNPJ tiver 14 digitos
+  const cnpjAtual = watch('cnpj')
+  useEffect(() => {
+    const numeros = (cnpjAtual || '').replace(/\D/g, '')
+    if (numeros.length === 14) {
+      setValidandoCnpj(true)
+      fetch(`https://brasilapi.com.br/api/cnpj/v1/${numeros}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.razao_social) {
+            setRazaoOficial(data.razao_social)
+          } else {
+            setRazaoOficial('CNPJ nao encontrado na Receita Federal')
+          }
+        })
+        .catch(() => setRazaoOficial('Falha ao validar CNPJ'))
+        .finally(() => setValidandoCnpj(false))
+    } else {
+      setRazaoOficial(null)
+    }
+  }, [cnpjAtual])
+
+  function handleSelectPrefeitura(pref: PrefeituraData) {
+    setValue('cnpj', pref.cnpj, { shouldValidate: true })
+    setValue('municipio', pref.municipio, { shouldValidate: true })
+    setValue('estado', pref.estado as any, { shouldValidate: true })
   }
 
   return (
@@ -104,10 +137,11 @@ export default function OnboardingPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="nome">Nome da organizacao *</Label>
-                <Input
-                  id="nome"
-                  placeholder="Prefeitura Municipal de..."
-                  {...register('nome')}
+                <AutocompletePrefeitura
+                  value={watch('nome')}
+                  onChange={(v) => setValue('nome', v, { shouldValidate: true })}
+                  onSelectPrefeitura={handleSelectPrefeitura}
+                  error={!!errors.nome}
                 />
                 {errors.nome && <p className="text-xs text-red-600">{errors.nome.message}</p>}
               </div>
@@ -118,9 +152,20 @@ export default function OnboardingPage() {
                   id="cnpj"
                   placeholder="00.000.000/0000-00"
                   value={watch('cnpj') ?? ''}
-                  onChange={e => setValue('cnpj', formatarCNPJ(e.target.value))}
+                  onChange={e => setValue('cnpj', formatarCNPJ(e.target.value), { shouldValidate: true })}
                 />
                 {errors.cnpj && <p className="text-xs text-red-600">{errors.cnpj.message}</p>}
+                
+                {/* Mitigacao: Validacao do CNPJ digitado/autocompletado */}
+                {validandoCnpj && <p className="text-xs text-blue-600 animate-pulse">Consultando Receita Federal...</p>}
+                {razaoOficial && !validandoCnpj && (
+                  <div className="bg-green-50 border border-green-200 rounded p-2 mt-1">
+                    <p className="text-xs text-green-800 font-medium flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                      {razaoOficial}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
