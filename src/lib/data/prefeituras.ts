@@ -24,19 +24,19 @@ export interface PrefeituraData {
 export const PREFEITURAS_DB: PrefeituraData[] = [
   {
     nome: 'PREFEITURA MUNICIPAL DE CATAGUASES',
-    cnpj: '17.704.867/0001-98',
+    cnpj: '17.702.499/0001-81',
     municipio: 'Cataguases',
     estado: 'MG'
   },
   {
     nome: 'PREFEITURA MUNICIPAL DE LEOPOLDINA',
-    cnpj: '17.733.643/0001-64',
+    cnpj: '17.733.643/0001-47',
     municipio: 'Leopoldina',
     estado: 'MG'
   },
   {
     nome: 'PREFEITURA MUNICIPAL DE JUIZ DE FORA',
-    cnpj: '17.712.068/0001-20',
+    cnpj: '18.338.178/0001-02',
     municipio: 'Juiz de Fora',
     estado: 'MG'
   },

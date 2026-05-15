@@ -49,7 +49,7 @@ export default function OnboardingPage() {
     },
   })
 
-  const [razaoOficial, setRazaoOficial] = useState<string | null>(null)
+  const [razaoOficial, setRazaoOficial] = useState<{ text: string; error: boolean } | null>(null)
   const [validandoCnpj, setValidandoCnpj] = useState(false)
 
   const { register, handleSubmit, formState: { errors }, setValue, watch, trigger } = form
@@ -91,12 +91,12 @@ export default function OnboardingPage() {
         .then(res => res.json())
         .then(data => {
           if (data.razao_social) {
-            setRazaoOficial(data.razao_social)
+            setRazaoOficial({ text: data.razao_social, error: false })
           } else {
-            setRazaoOficial('CNPJ nao encontrado na Receita Federal')
+            setRazaoOficial({ text: 'CNPJ nao encontrado na base oficial', error: true })
           }
         })
-        .catch(() => setRazaoOficial('Falha ao validar CNPJ'))
+        .catch(() => setRazaoOficial({ text: 'Falha ao conectar com a Receita', error: true }))
         .finally(() => setValidandoCnpj(false))
     } else {
       setRazaoOficial(null)
@@ -159,10 +159,10 @@ export default function OnboardingPage() {
                 {/* Mitigacao: Validacao do CNPJ digitado/autocompletado */}
                 {validandoCnpj && <p className="text-xs text-blue-600 animate-pulse">Consultando Receita Federal...</p>}
                 {razaoOficial && !validandoCnpj && (
-                  <div className="bg-green-50 border border-green-200 rounded p-2 mt-1">
-                    <p className="text-xs text-green-800 font-medium flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                      {razaoOficial}
+                  <div className={`p-2 mt-1 border rounded ${razaoOficial.error ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+                    <p className={`text-xs font-medium flex items-center gap-1.5 ${razaoOficial.error ? 'text-red-800' : 'text-green-800'}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${razaoOficial.error ? 'bg-red-500' : 'bg-green-500'}`} />
+                      {razaoOficial.text}
                     </p>
                   </div>
                 )}
