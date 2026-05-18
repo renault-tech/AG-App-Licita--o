@@ -15,9 +15,9 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { enviarParaRevisao, aprovarDocumento, devolverDocumento } from '@/lib/actions/tramitacao'
+import type { PapelUsuario } from '@/types/database'
 
 type TabelaDocumento = 'dfd' | 'etp' | 'termo_referencia' | 'mapa_riscos' | 'edital'
-type PapelUsuario = 'requisitante' | 'setor_compras' | 'setor_licitacao' | 'procurador' | 'gestor_publico' | 'publicacao' | 'admin_organizacao' | 'admin_plataforma'
 type StatusDocumento = 'rascunho' | 'em_revisao' | 'assinado' | 'publicado' | 'devolvido'
 
 interface BotaoTramitacaoProps {

@@ -188,8 +188,10 @@ export default async function ProcessoLayout({
               </div>
               <p className="text-xs" style={{ color: 'var(--muted)' }}>
                 {papel === 'procurador'
-                  ? 'Análise a regularidade do processo conforme Art. 53 da Lei 14.133/21.'
-                  : 'Autorize ou devolva o processo conforme Art. 72 da Lei 14.133/21.'}
+                  ? 'Analise a regularidade do processo conforme Art. 53 da Lei 14.133/21.'
+                  : papel === 'gestor_publico'
+                  ? 'Autorize ou devolva o processo conforme Art. 72 da Lei 14.133/21.'
+                  : 'Registre a publicacao nos canais institucionais.'}
               </p>
             </div>
           ) : (
