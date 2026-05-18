@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label'
 import { enviarParaRevisao, aprovarDocumento, devolverDocumento } from '@/lib/actions/tramitacao'
 
 type TabelaDocumento = 'dfd' | 'etp' | 'termo_referencia' | 'mapa_riscos' | 'edital'
-type PapelUsuario = 'requisitante' | 'setor_licitacao' | 'procurador' | 'autoridade_competente' | 'admin_organizacao' | 'admin_plataforma'
+type PapelUsuario = 'requisitante' | 'setor_compras' | 'setor_licitacao' | 'procurador' | 'gestor_publico' | 'publicacao' | 'admin_organizacao' | 'admin_plataforma'
 type StatusDocumento = 'rascunho' | 'em_revisao' | 'assinado' | 'publicado' | 'devolvido'
 
 interface BotaoTramitacaoProps {
@@ -56,7 +56,7 @@ export default function BotaoTramitacao({
   const [apontamento, setApontamento] = useState('')
 
   const ehAnalista = papelUsuario === 'setor_licitacao' || papelUsuario === 'admin_organizacao' || papelUsuario === 'admin_plataforma'
-  const ehRequisitante = papelUsuario === 'requisitante' || papelUsuario === 'procurador' || papelUsuario === 'autoridade_competente'
+  const ehRequisitante = papelUsuario === 'requisitante' || papelUsuario === 'procurador' || papelUsuario === 'gestor_publico'
 
   async function handleEnviarParaRevisao() {
     setLoading(true)

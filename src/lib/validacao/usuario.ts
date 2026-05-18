@@ -3,9 +3,11 @@ import type { PapelUsuario } from '@/types/database'
 
 const PAPEIS: PapelUsuario[] = [
   'requisitante',
+  'setor_compras',
   'setor_licitacao',
   'procurador',
-  'autoridade_competente',
+  'gestor_publico',
+  'publicacao',
   'admin_organizacao',
 ]
 

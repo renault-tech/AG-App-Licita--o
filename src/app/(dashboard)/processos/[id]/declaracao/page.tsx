@@ -17,7 +17,7 @@ export default async function DeclaracaoPage({
   if (!user) redirect('/login')
 
   const papel = await obterPapelUsuario()
-  const readonly = papel === 'procurador' || papel === 'autoridade_competente'
+  const readonly = papel === 'procurador' || papel === 'gestor_publico'
 
   const declaracao = await obterDeclaracao(id)
   if (!declaracao) return notFound()

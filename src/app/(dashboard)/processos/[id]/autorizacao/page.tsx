@@ -24,7 +24,7 @@ export default async function AutorizacaoPage({ params }: { params: Promise<{ id
   if (!papel) redirect('/login')
 
   const podeAutorizar =
-    papel === 'autoridade_competente' ||
+    papel === 'gestor_publico' ||
     papel === 'admin_organizacao' ||
     papel === 'admin_plataforma'
 

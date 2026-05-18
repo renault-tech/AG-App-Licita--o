@@ -17,7 +17,7 @@ export default async function OficioPage({
   if (!user) redirect('/login')
 
   const papel = await obterPapelUsuario()
-  const readonly = papel === 'procurador' || papel === 'autoridade_competente'
+  const readonly = papel === 'procurador' || papel === 'gestor_publico'
 
   const oficio = await obterOficio(id)
   if (!oficio) return notFound()

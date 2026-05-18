@@ -32,7 +32,7 @@ async function obterUsuarioAutoridade() {
 
   const u = usuario as { id: string; papel: string; organizacao_id: string; nome_completo: string } | null
   if (!u) return null
-  if (u.papel !== 'autoridade_competente' && u.papel !== 'admin_organizacao' && u.papel !== 'admin_plataforma') return null
+  if (u.papel !== 'gestor_publico' && u.papel !== 'admin_organizacao' && u.papel !== 'admin_plataforma') return null
   return u
 }
 

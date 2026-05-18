@@ -37,8 +37,8 @@ const PAPEIS: {
     corBg: 'bg-[#5B3E8A]/5 border-[#5B3E8A]/20',
   },
   {
-    papel: 'autoridade_competente',
-    label: 'Autoridade Competente',
+    papel: 'gestor_publico',
+    label: 'Gestor Publico',
     descricao: 'Prefeito ou secretario com poder de autorizar',
     pode: ['Visualizar todos os documentos', 'Autorizar abertura do certame', 'Devolver para correcao'],
     naoPode: ['Editar documentos', 'Emitir parecer juridico'],

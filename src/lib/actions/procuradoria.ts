@@ -226,7 +226,7 @@ export async function emitirParecer(
       .from('usuarios')
       .select('id')
       .eq('organizacao_id', orgId)
-      .eq('papel', 'autoridade_competente')
+      .eq('papel', 'gestor_publico')
 
     for (const dest of destinatarios ?? []) {
       await (supabase as any).from('notificacoes').insert({

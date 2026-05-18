@@ -176,7 +176,7 @@ export default async function ProcessoLayout({
         {/* Navegacao por etapas */}
         <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--hairline)' }}>
 
-          {/* Layout restrito: procurador e autoridade_competente */}
+          {/* Layout restrito: procurador, gestor_publico e publicacao */}
           {acessoRestrito ? (
             <div className="flex items-center gap-3">
               <div
@@ -184,7 +184,7 @@ export default async function ProcessoLayout({
                 style={{ background: 'var(--primaryWash)', color: 'var(--primary)' }}
               >
                 <Scale className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-                {papel === 'procurador' ? 'Parecer Jurídico' : 'Autorização da Autoridade Competente'}
+                {papel === 'procurador' ? 'Parecer Jurídico' : papel === 'gestor_publico' ? 'Autorização do Gestor Público' : 'Publicação'}
               </div>
               <p className="text-xs" style={{ color: 'var(--muted)' }}>
                 {papel === 'procurador'

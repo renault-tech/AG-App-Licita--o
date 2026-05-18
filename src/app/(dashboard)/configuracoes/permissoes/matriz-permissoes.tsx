@@ -22,7 +22,7 @@ const PAPEIS_CONFIGURÁVEIS: { papel: PapelUsuario; label: string; descricao: st
   { papel: 'requisitante',          label: 'Requisitante',          descricao: 'Servidor que solicita a contratacao' },
   { papel: 'setor_licitacao',       label: 'Setor de Licitacoes',   descricao: 'Responsavel pela instrucao processual' },
   { papel: 'procurador',            label: 'Procurador',            descricao: 'Emite parecer juridico (Art. 53)' },
-  { papel: 'autoridade_competente', label: 'Autoridade Competente', descricao: 'Autoriza a abertura do certame' },
+  { papel: 'gestor_publico', label: 'Gestor Publico', descricao: 'Autoriza a abertura do certame' },
 ]
 
 type Props = {

@@ -17,7 +17,7 @@ export default async function PublicacaoPage({ params }: { params: Promise<{ id:
 
   const podePublicar =
     papel === 'setor_licitacao' ||
-    papel === 'autoridade_competente' ||
+    papel === 'gestor_publico' ||
     papel === 'admin_organizacao' ||
     papel === 'admin_plataforma'
 
