@@ -37,3 +37,13 @@ ALTER TABLE permissoes_papel_organizacao
     'admin_plataforma',
     'publicacao'
   ));
+
+-- Verificacao: garante que todos os renames foram concluidos com sucesso
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM usuarios WHERE papel::text = 'autoridade_competente') THEN
+    RAISE EXCEPTION 'MIGRATION FAILED: Usuarios com papel autoridade_competente ainda existem. Verificacao necessaria.';
+  END IF;
+
+  RAISE NOTICE 'Migration concluida: papel_usuario atualizado com setor_compras, publicacao; autoridade_competente renomeado para gestor_publico';
+END $$;
