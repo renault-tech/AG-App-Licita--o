@@ -16,7 +16,8 @@ import {
 import { getPermissoesOrg } from '@/lib/cached-permissions'
 import { StatusPill } from '@/components/licita/status-pill'
 import type { StatusProcesso } from '@/components/licita/status-pill'
-import type { PapelUsuario } from '@/types/database'
+import type { PapelUsuario, FaseProcesso, TramitacaoHistoricoRow } from '@/types/database'
+import { ProcessoTimelineWithSheet } from '@/components/processo/processo-timeline-with-sheet'
 
 const ETAPAS = [
   { slug: 'dfd',         label: 'DFD',           icon: FileText,       desc: 'Formalização da Demanda' },
@@ -56,11 +57,21 @@ export default async function ProcessoLayout({
 
   const { data: processo } = await (supabase
     .from('processos_licitatorios') as any)
-    .select('id, objeto, modalidade, status, numero_processo, valor_estimado')
+    .select('id, objeto, modalidade, status, numero_processo, valor_estimado, fase_atual, organizacao_id')
     .eq('id', id)
     .maybeSingle()
 
   if (!processo) return notFound()
+
+  // Busca historico de tramitacao para alimentar a timeline
+  const { data: historicoRaw } = await (supabase
+    .from('tramitacao_historico') as any)
+    .select('id, processo_id, organizacao_id, usuario_id, nome_usuario, de_papel, para_papel, tipo, motivo, pendencias, created_at')
+    .eq('processo_id', id)
+    .order('created_at', { ascending: true })
+
+  const historico = (historicoRaw ?? []) as TramitacaoHistoricoRow[]
+  const faseAtual = (processo.fase_atual ?? 'requisitante') as FaseProcesso
 
   const papel = (await obterPapelUsuario()) as PapelUsuario | null
 
@@ -278,6 +289,14 @@ export default async function ProcessoLayout({
           )}
         </div>
       </div>
+
+      {/* Timeline de tramitacao — mostra por qual setor o processo passou */}
+      <ProcessoTimelineWithSheet
+        historico={historico}
+        faseAtual={faseAtual}
+        organizacaoId={processo.organizacao_id}
+        className="mb-6"
+      />
 
       {/* Conteudo da etapa */}
       <div>{children}</div>
