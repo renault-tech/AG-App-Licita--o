@@ -651,3 +651,31 @@ export interface PermissaoPapelRow {
   pode_editar: boolean
   updated_at: string
 }
+
+// -------------------------------------------------------
+// Tipos de tramitacao e fluxo de fases
+// -------------------------------------------------------
+
+export type FaseProcesso =
+  | 'requisitante'
+  | 'setor_compras'
+  | 'setor_licitacao'
+  | 'procurador'
+  | 'gestor_publico'
+  | 'publicacao'
+
+export type TipoTramitacao = 'avanco' | 'devolucao'
+
+export interface TramitacaoHistoricoRow {
+  id: string
+  processo_id: string
+  organizacao_id: string
+  usuario_id: string
+  nome_usuario: string
+  de_papel: FaseProcesso
+  para_papel: FaseProcesso
+  tipo: TipoTramitacao
+  motivo: string | null
+  pendencias: string[] | null
+  created_at: string
+}
