@@ -5,9 +5,11 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type PapelUsuario =
   | 'requisitante'
+  | 'setor_compras'
   | 'setor_licitacao'
   | 'procurador'
-  | 'autoridade_competente'
+  | 'gestor_publico'
+  | 'publicacao'
   | 'admin_organizacao'
   | 'admin_plataforma'
 
