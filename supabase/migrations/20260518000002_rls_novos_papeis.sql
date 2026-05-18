@@ -31,30 +31,13 @@ UPDATE permissoes_papel_organizacao
 -- nao e necessario recria-la novamente aqui.
 
 -- ============================================================
--- 2. Policies de acesso a autorizacoes por papel
+-- 2. Policies de acesso a autorizacoes
 -- ============================================================
--- A tabela autorizacoes (migration 20260507000001) tinha apenas
--- a policy generica "autorizacoes da organizacao" (FOR ALL).
--- Adicionamos policies mais granulares por papel para refletir
--- que somente gestor_publico pode inserir e atualizar autorizacoes.
--- A policy FOR ALL existente e mantida para SELECT (leitura da org).
-
--- Insert: somente gestor_publico, admin_organizacao ou admin_plataforma
--- podem registrar uma nova autorizacao
-CREATE POLICY "autorizacoes_gestor_insert" ON autorizacoes
-  FOR INSERT WITH CHECK (
-    organizacao_id = (SELECT organizacao_id FROM usuarios WHERE id = auth.uid())
-    AND (SELECT papel::text FROM usuarios WHERE id = auth.uid())
-        IN ('gestor_publico', 'admin_organizacao', 'admin_plataforma')
-  );
-
--- Update: mesma restricao para atualizacao (ex: mudar status para devolvido)
-CREATE POLICY "autorizacoes_gestor_update" ON autorizacoes
-  FOR UPDATE USING (
-    organizacao_id = (SELECT organizacao_id FROM usuarios WHERE id = auth.uid())
-    AND (SELECT papel::text FROM usuarios WHERE id = auth.uid())
-        IN ('gestor_publico', 'admin_organizacao', 'admin_plataforma')
-  );
+-- A tabela autorizacoes (migration 20260507000001) ja possui a policy
+-- generica "autorizacoes da organizacao" (FOR ALL) que autoriza
+-- INSERT, UPDATE e SELECT para usuarios da organizacao.
+-- Restricoes de papel (gestor_publico, admin) serao aplicadas no
+-- nivel da aplicacao (Server Actions e middleware), nao em RLS.
 
 -- ============================================================
 -- 3. Migra dados na tabela procuradores (se existir coluna papel text)
