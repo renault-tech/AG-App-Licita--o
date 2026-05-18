@@ -9,6 +9,7 @@ const PAPEIS: PapelUsuario[] = [
   'gestor_publico',
   'publicacao',
   'admin_organizacao',
+  'admin_plataforma',
 ]
 
 export const schemaConviteUsuario = z.object({
