@@ -21,6 +21,19 @@
 -- O ALTER TYPE RENAME VALUE (migration 00001) nao atualiza linhas
 -- existentes nessa coluna, portanto a atualizacao e feita aqui.
 
+-- Verifica que a migration 00001 foi aplicada com sucesso antes de prosseguir
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'permissoes_papel_organizacao'
+    AND constraint_name = 'permissoes_papel_organizacao_papel_check'
+    AND constraint_type = 'CHECK'
+  ) THEN
+    RAISE EXCEPTION 'Pre-requisito nao encontrado: constraint permissoes_papel_organizacao_papel_check ausente. Execute a migration 00001 antes desta.';
+  END IF;
+END $$;
+
 UPDATE permissoes_papel_organizacao
   SET papel = 'gestor_publico'
   WHERE papel = 'autoridade_competente';
