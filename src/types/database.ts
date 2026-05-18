@@ -84,6 +84,7 @@ export interface ProcessoLicitatorioRow {
   status: StatusDocumento
   criado_por: string
   etapa_atual: number
+  fase_atual: FaseProcesso
 }
 
 export interface DFDRow {
