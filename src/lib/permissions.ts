@@ -11,7 +11,7 @@ export const PODE_EDITAR_DOCUMENTOS: PapelUsuario[] = [
 ]
 
 // Tabs do processo visiveis para cada papel (slugs das etapas)
-export const TABS_VISIVEIS_POR_PAPEL: Record<string, string[]> = {
+export const TABS_VISIVEIS_POR_PAPEL: Record<PapelUsuario, string[]> = {
   requisitante:      ['dfd', 'cotacao', 'etp', 'tr', 'riscos'],
   setor_compras:     ['dfd', 'cotacao', 'etp', 'tr', 'riscos', 'revisao'],
   setor_licitacao:   ['dfd', 'cotacao', 'etp', 'tr', 'riscos', 'edital', 'revisao', 'parecer', 'autorizacao', 'publicacao'],
@@ -81,10 +81,10 @@ export function getTabDesignada(papel: PapelUsuario): string | null {
 export const LABEL_PAPEL: Record<PapelUsuario, string> = {
   requisitante:      'Requisitante',
   setor_compras:     'Setor de Compras',
-  setor_licitacao:   'Setor de Licitacoes',
+  setor_licitacao:   'Setor de Licitações',
   procurador:        'Procuradoria',
-  gestor_publico:    'Gestor Publico',
-  publicacao:        'Publicacao',
+  gestor_publico:    'Gestor Público',
+  publicacao:        'Publicação',
   admin_organizacao: 'Administrador',
   admin_plataforma:  'Admin da Plataforma',
 }
