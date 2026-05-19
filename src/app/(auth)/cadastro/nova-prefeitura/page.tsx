@@ -85,7 +85,7 @@ export default function NovaPrefeituraPage() {
     return (
       <Card className="shadow-lg border-0 text-center">
         <CardContent className="pt-8 pb-6 space-y-3">
-          <div className="text-4xl">🏛️</div>
+          <Building2 className="w-10 h-10 text-primary mx-auto" />
           <h2 className="text-lg font-semibold">Prefeitura registrada!</h2>
           <p className="text-sm text-muted-foreground">
             O cadastro de {nomePref} foi enviado. Confirme seu e-mail e aguarde a ativacao pelo administrador da plataforma.

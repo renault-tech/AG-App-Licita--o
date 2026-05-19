@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { Loader2, UserPlus, Building2, ChevronRight } from 'lucide-react'
+import { Loader2, UserPlus, Building2, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -83,7 +83,7 @@ export default function CadastroPage() {
     return (
       <Card className="shadow-lg border-0 text-center">
         <CardContent className="pt-8 pb-6 space-y-3">
-          <div className="text-4xl">📧</div>
+          <CheckCircle2 className="w-10 h-10 text-green-600 mx-auto" />
           <h2 className="text-lg font-semibold">Solicitacao enviada!</h2>
           <p className="text-sm text-muted-foreground">
             Sua conta foi criada e aguarda aprovacao do administrador da sua prefeitura.
