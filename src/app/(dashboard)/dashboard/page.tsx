@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import {
   FileText, PlusCircle, Clock, CheckCircle, ArrowRight,
   AlertCircle, Gavel, Zap, Scale, ShieldCheck,
-  Filter, CheckCircle2, Share2,
+  Filter, CheckCircle2, Share2, Send, Globe, Building2, Users,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -697,6 +697,294 @@ async function DashboardAdmin({
   )
 }
 
+// ─── View: Setor de Compras ───────────────────────────────────────────────────
+
+async function DashboardSetorCompras({
+  org, saldo, primeiroNome, saudacao, organizacaoId,
+}: {
+  org: any; saldo: number; primeiroNome: string; saudacao: string; organizacaoId: string
+}) {
+  const supabase = await createClient()
+
+  const { data: naFila } = await supabase
+    .from('processos_licitatorios')
+    .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at')
+    .eq('organizacao_id', organizacaoId)
+    .eq('fase_atual', 'setor_compras')
+    .order('created_at', { ascending: false })
+
+  const { data: recentes } = await supabase
+    .from('processos_licitatorios')
+    .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at')
+    .eq('organizacao_id', organizacaoId)
+    .neq('fase_atual', 'setor_compras')
+    .eq('cotacao_pendente', false)
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  const fila     = (naFila as any[] | null) ?? []
+  const passados = (recentes as any[] | null) ?? []
+  const orgSub   = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
+
+  return (
+    <div className="space-y-8">
+      <SectionHeader
+        supTitle="Setor de Compras"
+        title={`${saudacao}, ${primeiroNome}.`}
+        subtitle={orgSub}
+      />
+
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
+        <KPICard label="Na Fila"        value={fila.length}     sub="Aguardando pesquisa de precos" icon={<Clock className="w-5 h-5" />}    accent />
+        <KPICard label="Cotacoes Feitas" value={passados.length} sub="Processos encaminhados"        icon={<CheckCircle className="w-5 h-5" />} />
+        <KPICard label="Creditos IA"    value={saldo}           sub="Saldo disponivel"               icon={<Zap className="w-5 h-5" />} />
+      </div>
+
+      {fila.length > 0 && (
+        <div
+          className="flex items-start gap-3 p-4 rounded-[var(--r-md)] border text-sm"
+          style={{ background: 'var(--primaryWash)', borderColor: 'var(--primary)' + '40' }}
+        >
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--primary)' }} />
+          <p style={{ color: 'var(--primary)' }}>
+            A pesquisa de precos e obrigatoria antes da elaboracao do ETP, conforme Art. 23 da Lei 14.133/21.
+          </p>
+        </div>
+      )}
+
+      <ListCard
+        title="Aguardando Pesquisa de Precos"
+        subtitle="Processos encaminhados ao setor para cotacao (Art. 23, Lei 14.133/21)"
+      >
+        {fila.length === 0 ? (
+          <EmptyState
+            icon={Filter}
+            title="Nenhum processo aguardando"
+            body="Quando um processo chegar para pesquisa de precos, ele aparecera aqui."
+          />
+        ) : (
+          <div>{fila.map((p: any) => <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/cotacao`} />)}</div>
+        )}
+      </ListCard>
+
+      {passados.length > 0 && (
+        <ListCard title="Processados Recentemente" subtitle="Processos com cotacao concluida e encaminhados">
+          <div>{passados.map((p: any) => <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/cotacao`} />)}</div>
+        </ListCard>
+      )}
+
+      {saldo < 10 && <SaldoBaixoAlert saldo={saldo} />}
+    </div>
+  )
+}
+
+// ─── View: Publicacao ─────────────────────────────────────────────────────────
+
+async function DashboardPublicacao({
+  org, primeiroNome, saudacao, organizacaoId,
+}: {
+  org: any; primeiroNome: string; saudacao: string; organizacaoId: string
+}) {
+  const supabase = await createClient()
+
+  const { data: pendentes } = await supabase
+    .from('processos_licitatorios')
+    .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at')
+    .eq('organizacao_id', organizacaoId)
+    .eq('fase_atual', 'publicacao')
+    .order('created_at', { ascending: false })
+
+  const { data: publicados } = await (supabase as any)
+    .from('publicacoes')
+    .select('id, processo_id, data_publicacao, pncp_numero, pncp_url, status, created_at')
+    .eq('organizacao_id', organizacaoId)
+    .order('data_publicacao', { ascending: false })
+    .limit(20)
+
+  const publicadosList = (publicados as any[] | null) ?? []
+  const processoIds = publicadosList.map((pub: any) => pub.processo_id)
+  let publicadosMap: Record<string, any> = {}
+  if (processoIds.length > 0) {
+    const { data: procs } = await supabase
+      .from('processos_licitatorios')
+      .select('id, objeto, modalidade, numero_processo, valor_estimado')
+      .in('id', processoIds)
+    ;(procs ?? []).forEach((p: any) => { publicadosMap[p.id] = p })
+  }
+
+  const fila   = (pendentes as any[] | null) ?? []
+  const orgSub = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
+
+  return (
+    <div className="space-y-8">
+      <SectionHeader
+        supTitle="Setor de Publicacao"
+        title={`${saudacao}, ${primeiroNome}.`}
+        subtitle={orgSub}
+      />
+
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
+        <KPICard label="Aguardando Publicacao" value={fila.length}           sub="Autorizados, pendentes de publicar" icon={<Send className="w-5 h-5" />}       accent />
+        <KPICard label="Publicados"            value={publicadosList.length} sub="Registros de publicacao"            icon={<Globe className="w-5 h-5" />}       />
+        <KPICard label="Total no PNCP"         value={publicadosList.filter((p: any) => p.pncp_numero).length} sub="Com numero PNCP registrado" icon={<CheckCircle className="w-5 h-5" />} />
+      </div>
+
+      <ListCard
+        title="Aguardando Publicacao"
+        subtitle="Processos autorizados pela autoridade competente (Art. 54, Lei 14.133/21)"
+      >
+        {fila.length === 0 ? (
+          <EmptyState
+            icon={Send}
+            title="Nenhum processo aguardando"
+            body="Quando um processo for autorizado e encaminhado para publicacao, ele aparecera aqui."
+          />
+        ) : (
+          <div>{fila.map((p: any) => <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/publicacao`} />)}</div>
+        )}
+      </ListCard>
+
+      {publicadosList.length > 0 && (
+        <ListCard title="Historico de Publicacoes" subtitle="Publicacoes registradas no sistema">
+          <div>
+            {publicadosList.map((pub: any) => {
+              const proc = publicadosMap[pub.processo_id]
+              if (!proc) return null
+              return (
+                <Link
+                  key={pub.id}
+                  href={`/processos/${pub.processo_id}/publicacao`}
+                  className="flex items-center gap-4 px-6 py-4 transition-colors"
+                  style={{ borderBottom: '1px solid var(--hairline)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surfaceAlt)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                >
+                  <div className="w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center shrink-0" style={{ background: 'var(--successWash)' }}>
+                    <Globe className="w-4 h-4" style={{ color: 'var(--success)' }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
+                      {proc.numero_processo ? `${proc.numero_processo} — ` : ''}{proc.objeto}
+                    </p>
+                    <div className="flex items-center gap-2.5 mt-0.5 flex-wrap">
+                      <span className="text-sm" style={{ color: 'var(--muted)' }}>
+                        {MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}
+                      </span>
+                      {pub.pncp_numero && (
+                        <>
+                          <span style={{ color: 'var(--hairline)' }}>|</span>
+                          <span className="text-sm font-medium" style={{ color: 'var(--inkSoft)' }}>PNCP {pub.pncp_numero}</span>
+                        </>
+                      )}
+                      <span style={{ color: 'var(--hairline)' }}>|</span>
+                      <span className="text-sm" style={{ color: 'var(--mutedSoft)' }}>
+                        {new Date(pub.data_publicacao).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 shrink-0" style={{ color: 'var(--mutedSoft)' }} />
+                </Link>
+              )
+            })}
+          </div>
+        </ListCard>
+      )}
+    </div>
+  )
+}
+
+// ─── View: Admin Plataforma ───────────────────────────────────────────────────
+
+async function DashboardAdminPlataforma({
+  primeiroNome, saudacao,
+}: {
+  primeiroNome: string; saudacao: string
+}) {
+  const service = await createServiceClient()
+  const supabase = await createClient()
+
+  const dataInicio30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+
+  const [
+    { count: totalOrgs },
+    { count: totalProcessos },
+    { count: totalUsuarios },
+    { count: acoesIA30d },
+    { data: orgsRecentes },
+  ] = await Promise.all([
+    (service as any).from('organizacoes').select('id', { count: 'exact', head: true }),
+    (service as any).from('processos_licitatorios').select('id', { count: 'exact', head: true }),
+    (service as any).from('usuarios').select('id', { count: 'exact', head: true }),
+    (service as any).from('acoes_ia').select('id', { count: 'exact', head: true }).gte('created_at', dataInicio30d),
+    (service as any).from('organizacoes')
+      .select('id, nome, municipio, estado, created_at')
+      .order('created_at', { ascending: false })
+      .limit(8),
+  ])
+
+  const orgs = (orgsRecentes as any[] | null) ?? []
+
+  return (
+    <div className="space-y-8">
+      <SectionHeader
+        supTitle="Administracao da Plataforma"
+        title={`${saudacao}, ${primeiroNome}.`}
+        subtitle="Visao geral da plataforma LicitaIA"
+        action={
+          <Link href="/admin/painel">
+            <Button
+              className="text-white h-9 px-5 text-sm font-semibold gap-2 rounded-[var(--r-md)]"
+              style={{ background: 'var(--primary)' }}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              Painel Admin
+            </Button>
+          </Link>
+        }
+      />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        <KPICard label="Organizacoes"    value={totalOrgs ?? 0}      sub="Prefeituras cadastradas"     icon={<Building2 className="w-5 h-5" />}     />
+        <KPICard label="Processos"       value={totalProcessos ?? 0} sub="Em toda a plataforma"         icon={<FileText className="w-5 h-5" />}      accent />
+        <KPICard label="Usuarios"        value={totalUsuarios ?? 0}  sub="Usuários ativos"              icon={<Users className="w-5 h-5" />}         />
+        <KPICard label="Acoes de IA"     value={acoesIA30d ?? 0}     sub="Nos ultimos 30 dias"          icon={<Zap className="w-5 h-5" />}           />
+      </div>
+
+      <ListCard
+        title="Organizacoes Recentes"
+        subtitle="Ultimas prefeituras cadastradas na plataforma"
+      >
+        {orgs.length === 0 ? (
+          <EmptyState icon={Building2} title="Nenhuma organizacao" body="Nenhuma prefeitura cadastrada ainda." />
+        ) : (
+          <div>
+            {orgs.map((org: any) => (
+              <div
+                key={org.id}
+                className="flex items-center gap-4 px-6 py-4"
+                style={{ borderBottom: '1px solid var(--hairline)' }}
+              >
+                <div className="w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center shrink-0" style={{ background: 'var(--primaryWash)' }}>
+                  <Building2 className="w-4 h-4" style={{ color: 'var(--primary)' }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>{org.nome}</p>
+                  <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
+                    {org.municipio && org.estado ? `${org.municipio} / ${org.estado}` : 'Localizacao nao informada'}
+                  </p>
+                </div>
+                <span className="text-sm shrink-0" style={{ color: 'var(--mutedSoft)' }}>
+                  {tempoRelativo(org.created_at)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </ListCard>
+    </div>
+  )
+}
+
 // ─── Page raiz ────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage() {
@@ -730,10 +1018,14 @@ export default async function DashboardPage() {
   const saudacao      = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
 
   const props = { org, saldo, primeiroNome, saudacao, organizacaoId }
+  const propsBase = { primeiroNome, saudacao }
 
-  if (papel === 'requisitante')          return <DashboardRequisitante userId={user.id} {...props} />
-  if (papel === 'procurador')            return <DashboardProcurador {...props} />
-  if (papel === 'gestor_publico') return <DashboardAutoridadeCompetente {...props} />
-  if (papel === 'setor_licitacao')       return <DashboardSetorLicitacao {...props} />
+  if (papel === 'requisitante')    return <DashboardRequisitante userId={user.id} {...props} />
+  if (papel === 'setor_compras')   return <DashboardSetorCompras {...props} />
+  if (papel === 'setor_licitacao') return <DashboardSetorLicitacao {...props} />
+  if (papel === 'procurador')      return <DashboardProcurador {...props} />
+  if (papel === 'gestor_publico')  return <DashboardAutoridadeCompetente {...props} />
+  if (papel === 'publicacao')      return <DashboardPublicacao org={org} {...propsBase} organizacaoId={organizacaoId} />
+  if (papel === 'admin_plataforma') return <DashboardAdminPlataforma {...propsBase} />
   return <DashboardAdmin {...props} />
 }
