@@ -143,3 +143,97 @@ export async function buscarOrgDemo() {
     .maybeSingle()
   return data as { id: string; nome: string } | null
 }
+
+export async function marcarOrgCataguases(organizacaoId: string): Promise<ResultadoAdmin> {
+  const supabase = await createClient()
+  const admin = await verificarAdminMaster()
+  if (!admin) return { success: false, error: 'Sem permissao.' }
+
+  const { data: org } = await (supabase as any)
+    .from('organizacoes')
+    .select('is_demo')
+    .eq('id', organizacaoId)
+    .maybeSingle()
+
+  if (org?.is_demo) return { success: false, error: 'Nao e possivel marcar a org de demo como Cataguases.' }
+
+  // Remove flag de qualquer org que a tenha atualmente
+  await (supabase as any)
+    .from('organizacoes')
+    .update({ is_cataguases: false })
+    .eq('is_cataguases', true)
+
+  const { error } = await (supabase as any)
+    .from('organizacoes')
+    .update({ is_cataguases: true })
+    .eq('id', organizacaoId)
+
+  if (error) return { success: false, error: error.message }
+
+  revalidatePath('/admin/organizacoes')
+  revalidatePath('/admin/painel-master')
+  return { success: true }
+}
+
+export async function concederCreditosAdmin(
+  organizacaoId: string,
+  creditos: number,
+  motivo: string
+): Promise<ResultadoAdmin> {
+  if (creditos <= 0) return { success: false, error: 'Quantidade deve ser maior que zero.' }
+  if (!motivo.trim()) return { success: false, error: 'Motivo obrigatorio.' }
+
+  const supabase = await createClient()
+  const admin = await verificarAdminMaster()
+  if (!admin) return { success: false, error: 'Sem permissao.' }
+
+  // Buscar admin_organizacao da org; se nao houver, qualquer usuario ativo
+  const { data: usuarios } = await (supabase as any)
+    .from('usuarios')
+    .select('id')
+    .eq('organizacao_id', organizacaoId)
+    .order('papel', { ascending: true }) // admin_organizacao < outros na ordem alfabetica
+    .limit(5)
+
+  const lista = (usuarios ?? []) as { id: string }[]
+  const admOrg = lista.find((_, i) => i === 0) // pega o primeiro; ordenado por papel
+  if (!admOrg) return { success: false, error: 'Nenhum usuario encontrado nessa organizacao.' }
+
+  const { concederCreditos } = await import('@/lib/actions/creditos')
+  const ref = `admin_manual_${organizacaoId}_${Date.now()}`
+  const res = await concederCreditos({
+    usuarioId: admOrg.id,
+    creditos,
+    referenciaExterna: ref,
+    descricao: `Concessao manual pelo admin da plataforma: ${motivo}`,
+    provedor: 'manual',
+  })
+
+  if (!res.success) return { success: false, error: (res as { success: false; error: string }).error }
+
+  revalidatePath('/admin/creditos')
+  return { success: true }
+}
+
+export async function listarOrgsComCreditos() {
+  const supabase = await createClient()
+  const admin = await verificarAdminMaster()
+  if (!admin) return null
+
+  const { data: orgs } = await (supabase as any)
+    .from('organizacoes')
+    .select('id, nome, municipio, estado, is_cataguases, is_demo')
+    .order('nome')
+
+  const { data: creditos } = await (supabase as any)
+    .from('creditos_usuario')
+    .select('organizacao_id, saldo')
+
+  const saldoPorOrg: Record<string, number> = {}
+  for (const c of (creditos ?? []) as { organizacao_id: string; saldo: number }[]) {
+    saldoPorOrg[c.organizacao_id] = (saldoPorOrg[c.organizacao_id] ?? 0) + c.saldo
+  }
+
+  return ((orgs ?? []) as { id: string; nome: string; municipio: string; estado: string; is_cataguases: boolean; is_demo: boolean }[])
+    .map(o => ({ ...o, saldo_total: saldoPorOrg[o.id] ?? 0 }))
+}
