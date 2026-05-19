@@ -86,6 +86,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         papel={papelAtual}
         isAdminPlataforma={papelAtual === 'admin_plataforma'}
         brasaoUrl={org?.brasao_url ?? null}
+        usuarioId={user.id}
       />
       <main 
         className="flex-1 max-w-[1400px] mx-auto w-full px-6 md:px-8 lg:px-12 py-10 pb-32"

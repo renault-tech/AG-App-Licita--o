@@ -29,6 +29,7 @@ interface AppHeaderProps {
   papel?: string | null
   isAdminPlataforma?: boolean
   brasaoUrl?: string | null
+  usuarioId?: string
 }
 
 const TABS = [
@@ -51,6 +52,7 @@ export function AppHeader({
   papel = null,
   isAdminPlataforma = false,
   brasaoUrl = null,
+  usuarioId,
 }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -130,7 +132,7 @@ export function AppHeader({
         )}
 
         {/* Sino */}
-        <SinoNotificacoes notificacoes={notificacoes} naoLidas={naoLidas} />
+        <SinoNotificacoes notificacoes={notificacoes} naoLidas={naoLidas} usuarioId={usuarioId} />
 
         {/* Seletor de tema */}
         <div className="relative">

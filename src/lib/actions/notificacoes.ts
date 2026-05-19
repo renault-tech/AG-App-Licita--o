@@ -58,3 +58,25 @@ export async function marcarTodasComoLidas(): Promise<void> {
 
   revalidatePath('/', 'layout')
 }
+
+export async function obterTodasNotificacoes(filtro?: 'nao_lidas'): Promise<{ notificacoes: Notificacao[]; naoLidas: number }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { notificacoes: [], naoLidas: 0 }
+
+  let query = (supabase as any)
+    .from('notificacoes')
+    .select('id, created_at, titulo, mensagem, lida, link, processo_id')
+    .eq('usuario_id', user.id)
+    .order('created_at', { ascending: false })
+
+  if (filtro === 'nao_lidas') {
+    query = query.eq('lida', false)
+  }
+
+  const { data } = await query
+  const notificacoes: Notificacao[] = data ?? []
+  const naoLidas = notificacoes.filter(n => !n.lida).length
+
+  return { notificacoes, naoLidas }
+}

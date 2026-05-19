@@ -1,19 +1,22 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell, Check, CheckCheck, ExternalLink } from 'lucide-react'
+import Link from 'next/link'
+import { Bell, Check, CheckCheck, ExternalLink, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { createClient } from '@/lib/supabase/client'
 import { marcarComoLida, marcarTodasComoLidas, type Notificacao } from '@/lib/actions/notificacoes'
 
 interface SinoNotificacoesProps {
   notificacoes: Notificacao[]
   naoLidas: number
+  usuarioId?: string
 }
 
 function formatarTempo(iso: string): string {
@@ -25,12 +28,41 @@ function formatarTempo(iso: string): string {
   return `${Math.floor(h / 24)}d`
 }
 
-export default function SinoNotificacoes({ notificacoes, naoLidas }: SinoNotificacoesProps) {
+export default function SinoNotificacoes({ notificacoes, naoLidas, usuarioId }: SinoNotificacoesProps) {
   const router = useRouter()
   const [aberto, setAberto] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [listaLocal, setListaLocal] = useState(notificacoes)
   const [naoLidasLocal, setNaoLidasLocal] = useState(naoLidas)
+  const [pulsando, setPulsando] = useState(false)
+
+  useEffect(() => {
+    if (!usuarioId) return
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`notificacoes-${usuarioId}`)
+      .on(
+        'postgres_changes' as any,
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notificacoes',
+          filter: `usuario_id=eq.${usuarioId}`,
+        },
+        (payload: { new: Record<string, unknown> }) => {
+          const nova = payload.new as unknown as Notificacao
+          setListaLocal(prev => [nova, ...prev].slice(0, 30))
+          setNaoLidasLocal(prev => prev + 1)
+          setPulsando(true)
+          setTimeout(() => setPulsando(false), 2500)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [usuarioId])
 
   function handleMarcarLida(id: string) {
     setListaLocal(prev => prev.map(n => n.id === id ? { ...n, lida: true } : n))
@@ -54,10 +86,15 @@ export default function SinoNotificacoes({ notificacoes, naoLidas }: SinoNotific
 
   return (
     <DropdownMenu open={aberto} onOpenChange={setAberto}>
-      <DropdownMenuTrigger className="relative p-1.5 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors outline-none" aria-label={`Notificacoes${naoLidasLocal > 0 ? `, ${naoLidasLocal} nao lidas` : ''}`}>
-        <Bell className="w-4 h-4" />
+      <DropdownMenuTrigger
+        className="relative p-1.5 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors outline-none"
+        aria-label={`Notificacoes${naoLidasLocal > 0 ? `, ${naoLidasLocal} nao lidas` : ''}`}
+      >
+        <Bell className={`w-4 h-4 transition-transform ${pulsando ? 'scale-125' : ''}`} />
         {naoLidasLocal > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-0.5">
+          <span
+            className={`absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-0.5 transition-transform ${pulsando ? 'scale-110' : ''}`}
+          >
             {naoLidasLocal > 99 ? '99+' : naoLidasLocal}
           </span>
         )}
@@ -142,11 +179,20 @@ export default function SinoNotificacoes({ notificacoes, naoLidas }: SinoNotific
           )}
         </div>
 
-        {listaLocal.length > 0 && (
-          <div className="border-t border-gray-100 px-4 py-2.5 text-center">
-            <p className="text-xs text-gray-400">{listaLocal.length} notificacao{listaLocal.length !== 1 ? 's' : ''}</p>
-          </div>
-        )}
+        {/* Rodape */}
+        <div className="border-t border-gray-100 px-4 py-2.5 flex items-center justify-between">
+          <p className="text-xs text-gray-400">
+            {listaLocal.length} notificacao{listaLocal.length !== 1 ? 's' : ''}
+          </p>
+          <Link
+            href="/notificacoes"
+            onClick={() => setAberto(false)}
+            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+          >
+            Ver todas
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   )

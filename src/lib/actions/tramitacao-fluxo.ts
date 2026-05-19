@@ -82,7 +82,7 @@ export async function avancarFase(
 
   const { data: processo } = await (supabase as any)
     .from('processos_licitatorios')
-    .select('id, fase_atual, organizacao_id')
+    .select('id, fase_atual, organizacao_id, numero_processo, objeto')
     .eq('id', processoId)
     .maybeSingle()
 
@@ -119,13 +119,15 @@ export async function avancarFase(
     .eq('papel', proximoPapel)
     .eq('ativo', true)
 
+  const identificador = processo.objeto ?? processo.numero_processo ?? 'processo'
+
   if (destinatarios && destinatarios.length > 0) {
     const notificacoes = destinatarios.map((u: { id: string }) => ({
       usuario_id: u.id,
       organizacao_id: usuario.organizacao_id,
       processo_id: processoId,
       titulo: 'Processo encaminhado para seu setor',
-      mensagem: `${usuario.nome_completo} encaminhou o processo para o seu setor.`,
+      mensagem: `${usuario.nome_completo} encaminhou "${identificador}" para seu setor.`,
       lida: false,
       link: `/processos/${processoId}`,
     }))
@@ -161,7 +163,7 @@ export async function devolverFase(
 
   const { data: processo } = await (supabase as any)
     .from('processos_licitatorios')
-    .select('id, fase_atual, organizacao_id')
+    .select('id, fase_atual, organizacao_id, numero_processo, objeto')
     .eq('id', processoId)
     .maybeSingle()
 
@@ -198,13 +200,15 @@ export async function devolverFase(
     .eq('papel', paraPapel)
     .eq('ativo', true)
 
+  const identificador = processo.objeto ?? processo.numero_processo ?? 'processo'
+
   if (destinatarios && destinatarios.length > 0) {
     const notificacoes = destinatarios.map((u: { id: string }) => ({
       usuario_id: u.id,
       organizacao_id: usuario.organizacao_id,
       processo_id: processoId,
-      titulo: 'Processo devolvido para seu setor',
-      mensagem: `${usuario.nome_completo} devolveu o processo com o seguinte motivo: ${motivo}`,
+      titulo: 'Processo devolvido para correcao',
+      mensagem: `${usuario.nome_completo} devolveu "${identificador}". Motivo: ${motivo}`,
       lida: false,
       link: `/processos/${processoId}`,
     }))
