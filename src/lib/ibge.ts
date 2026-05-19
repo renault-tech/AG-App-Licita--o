@@ -25,21 +25,17 @@ export interface MunicipioSimplificado {
 export async function buscarMunicipios(termo: string): Promise<MunicipioSimplificado[]> {
   if (termo.trim().length < 2) return []
 
+  const termoEncoded = encodeURIComponent(termo.trim())
   const res = await fetch(
-    `${IBGE_BASE}/localidades/municipios?orderBy=nome`,
-    { cache: 'force-cache' }
+    `${IBGE_BASE}/localidades/municipios?nome=${termoEncoded}&orderBy=nome`,
+    { cache: 'no-store' }
   )
 
   if (!res.ok) return []
 
   const municipios: MunicipioIBGE[] = await res.json()
-  const termoLower = termo.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
   return municipios
-    .filter(m => {
-      const nomeLower = m.nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-      return nomeLower.includes(termoLower)
-    })
     .slice(0, 10)
     .map(m => ({
       id: m.id,
