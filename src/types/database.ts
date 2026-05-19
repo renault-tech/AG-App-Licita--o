@@ -13,6 +13,12 @@ export type PapelUsuario =
   | 'admin_organizacao'
   | 'admin_plataforma'
 
+export type StatusAprovacaoUsuario =
+  | 'aguardando_aprovacao'
+  | 'ativo'
+  | 'recusado'
+  | 'suspenso'
+
 export type StatusDocumento = 'rascunho' | 'em_revisao' | 'assinado' | 'publicado' | 'devolvido'
 
 export type ModalidadeLicitacao =
@@ -58,6 +64,8 @@ export interface UsuarioRow {
   nome_completo: string
   cargo: string | null
   ativo: boolean
+  status_aprovacao: StatusAprovacaoUsuario
+  papel_solicitado: PapelUsuario | null
 }
 
 export interface SecretariaRow {
@@ -610,6 +618,7 @@ export interface Database {
       status_adesao_dfd: StatusAdesaoDFD
       status_participacao_dfd: StatusParticipacaoDFD
       tipo_participacao_dfd: TipoParticipacaoDFD
+      status_aprovacao_usuario: StatusAprovacaoUsuario
     }
   }
 }
