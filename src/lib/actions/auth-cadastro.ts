@@ -66,6 +66,7 @@ export async function cadastrarUsuario(
   })
 
   if (dbError) {
+    console.error('[cadastrarUsuario] Auth user criado mas insert na tabela falhou:', authData.user.id, dbError.message)
     return { success: false, error: 'Erro ao registrar usuario. Tente novamente.' }
   }
 
@@ -168,6 +169,7 @@ export async function cadastrarAdminOrg(
   })
 
   if (dbError) {
+    console.error('[cadastrarAdminOrg] Auth user criado mas insert na tabela falhou:', authData.user.id, dbError.message)
     return { success: false, error: 'Erro ao registrar administrador.' }
   }
 
@@ -180,6 +182,7 @@ export async function cadastrarAdminOrg(
   if (adminsPlataforma && adminsPlataforma.length > 0) {
     const notifs = adminsPlataforma.map((a: { id: string }) => ({
       usuario_id: a.id,
+      organizacao_id: novaOrg.id,
       titulo: 'Nova prefeitura aguardando ativacao',
       mensagem: `${parsed.data.nomePrefeitura} (${parsed.data.municipio}/${parsed.data.estado}) aguarda ativacao.`,
       lida: false,
