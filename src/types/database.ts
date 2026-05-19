@@ -680,3 +680,46 @@ export interface TramitacaoHistoricoRow {
   pendencias: string[] | null
   created_at: string
 }
+
+// -------------------------------------------------------
+// Tipos de chat interno (3 modos)
+// -------------------------------------------------------
+
+export interface MensagemProcessoRow {
+  id: string
+  processo_id: string
+  organizacao_id: string
+  usuario_id: string
+  nome_usuario: string
+  papel_usuario: PapelUsuario
+  conteudo: string
+  created_at: string
+}
+
+export interface MensagemSetorRow {
+  id: string
+  organizacao_id: string
+  setor: PapelUsuario
+  usuario_id: string
+  nome_usuario: string
+  conteudo: string
+  created_at: string
+}
+
+export interface MensagemDiretaRow {
+  id: string
+  organizacao_id: string
+  de_usuario_id: string
+  para_usuario_id: string
+  nome_remetente: string
+  conteudo: string
+  lida: boolean
+  created_at: string
+}
+
+export interface UsuarioListagemRow {
+  id: string
+  nome_completo: string
+  papel: PapelUsuario
+  cargo: string | null
+}
