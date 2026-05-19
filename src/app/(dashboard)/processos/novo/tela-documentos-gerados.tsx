@@ -11,6 +11,7 @@ import { enviarPedidoAdesaoWizard } from '@/lib/actions/avisos'
 import type { DadosWizard, DocumentosGerados, SecaoGerada } from './types'
 
 const LABELS_CAMPOS: Record<string, string> = {
+  texto_completo: 'Documento Completo (gerado por IA)',
   objeto_dfd: 'Objeto da Demanda',
   justificativa_necessidade: 'Justificativa da Necessidade',
   dotacao_orcamentaria: 'Dotacao Orcamentaria',

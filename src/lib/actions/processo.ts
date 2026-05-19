@@ -118,6 +118,9 @@ export async function criarProcessoComDocumentos(
     const tipoDfd = avisoId ? 'compartilhado' : 'individual'
     const statusAdesaoDfd = avisoId ? 'consolidado' : 'rascunho'
 
+    // Quando a IA gera o documento inteiro, o conteudo vem em 'texto_completo'
+    const dfdTextoCompleto = secoesDfd['texto_completo'] ?? null
+
     const { data: dfdCriado, error: dfdError } = await (supabase as any).from('dfd').insert({
       processo_id: processoId,
       organizacao_id: orgId,
@@ -129,7 +132,7 @@ export async function criarProcessoComDocumentos(
       secretario_responsavel: sec?.secretario_nome ?? null,
       responsavel_elaboracao: nomeCompleto,
       objeto: dados.objeto,
-      justificativa_necessidade: secoesDfd['justificativa_necessidade'] ?? null,
+      justificativa_necessidade: secoesDfd['justificativa_necessidade'] ?? dfdTextoCompleto ?? null,
       dotacao_orcamentaria: secoesDfd['dotacao_orcamentaria'] ?? null,
       tipo: tipoDfd,
       status_adesao: statusAdesaoDfd,
@@ -191,11 +194,12 @@ export async function criarProcessoComDocumentos(
     }
 
     const secoesEtp = Object.fromEntries(documentos.etp.secoes.map(s => [s.tipo_campo, s.texto]))
+    const etpTextoCompleto = secoesEtp['texto_completo'] ?? null
     const { error: etpError } = await (supabase as any).from('etp').insert({
       processo_id: processoId,
       organizacao_id: orgId,
       criado_por: user.id,
-      descricao_necessidade: secoesEtp['descricao_necessidade'] ?? null,
+      descricao_necessidade: secoesEtp['descricao_necessidade'] ?? etpTextoCompleto ?? null,
       requisitos_contratacao: secoesEtp['requisitos_contratacao'] ?? null,
       levantamento_mercado: secoesEtp['levantamento_mercado'] ?? null,
       estimativa_quantidades: null,
@@ -209,12 +213,13 @@ export async function criarProcessoComDocumentos(
     if (etpError) throw new Error(`Erro ao criar ETP: ${etpError.message}`)
 
     const secoesTr = Object.fromEntries(documentos.tr.secoes.map(s => [s.tipo_campo, s.texto]))
+    const trTextoCompleto = secoesTr['texto_completo'] ?? null
     const { error: trError } = await (supabase as any).from('termo_referencia').insert({
       processo_id: processoId,
       organizacao_id: orgId,
       criado_por: user.id,
       objeto: secoesTr['objeto_tr'] ?? null,
-      fundamentacao: secoesTr['fundamentacao'] ?? null,
+      fundamentacao: secoesTr['fundamentacao'] ?? trTextoCompleto ?? null,
       descricao: null,
       requisitos_tecnicos: dados.especificacoes_minimas || null,
       modelo_execucao: secoesTr['modelo_execucao'] ?? null,

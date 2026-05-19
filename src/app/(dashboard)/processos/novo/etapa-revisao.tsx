@@ -146,7 +146,9 @@ export default function EtapaRevisao({ dados, onChange, onIrParaEtapa }: Props) 
           <div className="text-sm text-blue-700">
             <p className="font-medium">Pronto para gerar 3 documentos: DFD, ETP e TR</p>
             <p className="text-xs mt-0.5 text-blue-600">
-              Tempo estimado: 10 a 20 segundos. Os documentos serao exibidos para revisao antes de salvar.
+              {dados.ia_modelo === 'com_ia'
+                ? 'Tempo estimado com IA: 30 a 60 segundos. Os documentos serao exibidos para revisao antes de salvar.'
+                : 'Tempo estimado: 10 a 20 segundos. Os documentos serao exibidos para revisao antes de salvar.'}
             </p>
           </div>
         </div>

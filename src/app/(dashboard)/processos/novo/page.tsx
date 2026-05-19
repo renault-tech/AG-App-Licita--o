@@ -14,6 +14,7 @@ import EtapaCondicoes from './etapa-condicoes'
 import EtapaRevisao from './etapa-revisao'
 import TelaDocumentosGerados from './tela-documentos-gerados'
 import { gerarDocumentos } from '@/lib/actions/gerar-documentos'
+import { gerarDocumentosWizard } from '@/lib/actions/gerar-documentos-wizard'
 import { criarProcessoComDocumentos } from '@/lib/actions/processo'
 import { listarSecretarias } from '@/lib/actions/secretarias'
 import { DADOS_WIZARD_INICIAL } from './types'
@@ -124,6 +125,22 @@ export default function NovoProcessoPage() {
   async function handleGerar() {
     setGerando(true)
     try { localStorage.removeItem('licitaia_wizard_aviso') } catch {}
+
+    if (dados.ia_modelo === 'com_ia') {
+      const resIA = await gerarDocumentosWizard(dados)
+      if (resIA.success && resIA.documentos) {
+        setGerando(false)
+        setDocumentosGerados({
+          dfd: { secoes: [{ tipo_campo: 'texto_completo', texto: resIA.documentos.dfd, origem: 'ia', processos_referencia: [] }] },
+          etp: { secoes: [{ tipo_campo: 'texto_completo', texto: resIA.documentos.etp, origem: 'ia', processos_referencia: [] }] },
+          tr:  { secoes: [{ tipo_campo: 'texto_completo', texto: resIA.documentos.tr,  origem: 'ia', processos_referencia: [] }] },
+        })
+        return
+      }
+      // Fallback silencioso para templates se a IA falhar
+      toast.warning('IA indisponivel. Gerando com templates padrao.')
+    }
+
     const res = await gerarDocumentos(dados)
     setGerando(false)
     if (!res.success || !res.documentos) {

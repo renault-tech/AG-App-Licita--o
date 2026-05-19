@@ -6,10 +6,10 @@ import {
   buildPromptDFD,
   buildPromptETP,
   buildPromptTR,
-  type DadosWizard,
 } from '@/lib/ai/prompts/gerar-documentos-simultaneos'
+import type { DadosWizard } from '@/app/(dashboard)/processos/novo/types'
 
-interface DocumentosGerados {
+interface DocumentosGeradosIA {
   dfd: string
   etp: string
   tr: string
@@ -17,7 +17,7 @@ interface DocumentosGerados {
 
 interface ResultadoGeracao {
   success: boolean
-  documentos?: DocumentosGerados
+  documentos?: DocumentosGeradosIA
   error?: string
 }
 
@@ -30,12 +30,7 @@ async function gerarTextoDocumento(prompt: string): Promise<string> {
   return res.text
 }
 
-/**
- * Gera DFD, ETP e TR simultaneamente ao finalizar o wizard.
- * Usa claude via adapter anthropic para documentos completos.
- */
 export async function gerarDocumentosWizard(
-  processoId: string,
   dados: DadosWizard
 ): Promise<ResultadoGeracao> {
   const supabase = await createClient()
@@ -55,12 +50,51 @@ export async function gerarDocumentosWizard(
     return { success: false, error: 'Sem permissao para gerar documentos.' }
   }
 
-  let documentos: DocumentosGerados
+  // Buscar nome da secretaria e dados da organizacao para enriquecer os prompts
+  const [secretariaRes, orgRes] = await Promise.all([
+    dados.secretaria_id
+      ? (supabase as any).from('secretarias').select('nome').eq('id', dados.secretaria_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    (supabase as any)
+      .from('organizacoes')
+      .select('nome, municipio, estado')
+      .eq('id', usuario.organizacao_id)
+      .maybeSingle(),
+  ])
+
+  const secretariaNome = (secretariaRes.data as any)?.nome as string | undefined
+  const org = orgRes.data as { nome: string; municipio: string; estado: string } | null
+
+  const justificativa = [dados.problema_atual, dados.impacto_sem_contratar, dados.solucao_proposta]
+    .filter(Boolean)
+    .join('\n\n')
+
+  const itensDescricao = dados.itens.length > 0
+    ? dados.itens.map(i => `${i.quantidade} ${i.unidade} de ${i.descricao}`).join('; ')
+    : undefined
+
+  const dadosPrompt = {
+    objeto: dados.objeto,
+    justificativaNecessidade: justificativa,
+    modalidade: dados.modalidade,
+    valorEstimado: dados.valor_estimado ?? undefined,
+    prazoExecucao: `${dados.prazo_dias} dias`,
+    secretaria: secretariaNome,
+    municipio: org?.municipio,
+    estado: org?.estado,
+    requisitosEspecificos: dados.especificacoes_minimas || undefined,
+    quantidadeItens: dados.itens.length || undefined,
+    descricaoItens: itensDescricao,
+    fonteRecurso: undefined,
+    unidadeRequisitante: secretariaNome,
+  }
+
+  let documentos: DocumentosGeradosIA
   try {
     const [dfd, etp, tr] = await Promise.all([
-      gerarTextoDocumento(buildPromptDFD(dados)),
-      gerarTextoDocumento(buildPromptETP(dados)),
-      gerarTextoDocumento(buildPromptTR(dados)),
+      gerarTextoDocumento(buildPromptDFD(dadosPrompt)),
+      gerarTextoDocumento(buildPromptETP(dadosPrompt)),
+      gerarTextoDocumento(buildPromptTR(dadosPrompt)),
     ])
     documentos = { dfd, etp, tr }
   } catch (err: unknown) {
