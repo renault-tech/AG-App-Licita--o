@@ -317,6 +317,113 @@ export async function montarPayloadEdital(processoId: string): Promise<PayloadDo
   }
 }
 
+export async function montarPayloadDeclaracao(processoId: string): Promise<PayloadDocumento | null> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: decl } = await (supabase as any)
+    .from('declaracoes_setor')
+    .select('*')
+    .eq('processo_id', processoId)
+    .maybeSingle()
+  if (!decl) return null
+
+  const { data: processo } = await (supabase as any)
+    .from('processos_licitatorios')
+    .select('objeto, modalidade, numero_processo, organizacao_id, secretaria_id')
+    .eq('id', processoId)
+    .maybeSingle()
+  if (!processo) return null
+
+  const cabecalho = await buscarCabecalho(supabase, processo.organizacao_id, processo.secretaria_id ?? null)
+  cabecalho.geradoPorIA = decl.gerado_por_ia ?? false
+
+  const declaranteBloco = [
+    decl.declarante_nome ? `Nome: ${decl.declarante_nome}` : null,
+    decl.declarante_cargo ? `Cargo: ${decl.declarante_cargo}` : null,
+    decl.declarante_setor ? `Setor: ${decl.declarante_setor}` : null,
+  ].filter(Boolean).join('\n')
+
+  const secoes = [
+    { titulo: '1. Objeto da Contratação', conteudo: decl.objeto ?? processo.objeto ?? '' },
+    { titulo: '2. Declarante', conteudo: declaranteBloco || '(Não informado)' },
+    { titulo: '3. Justificativa', conteudo: decl.justificativa ?? '' },
+    decl.local_data ? { titulo: '4. Local e Data', conteudo: decl.local_data } : null,
+  ].filter(Boolean) as { titulo: string; conteudo: string }[]
+
+  return {
+    cabecalho,
+    tipoDocumento: 'DECLARAÇÃO DO SETOR REQUISITANTE',
+    numeroProcesso: processo.numero_processo ?? null,
+    objeto: processo.objeto,
+    modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,
+    dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
+    secoes,
+    rodapeIA: decl.gerado_por_ia ?? false,
+    statusDocumento: decl.status ?? null,
+  }
+}
+
+export async function montarPayloadOficio(processoId: string): Promise<PayloadDocumento | null> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: oficio } = await (supabase as any)
+    .from('oficios_abertura')
+    .select('*')
+    .eq('processo_id', processoId)
+    .maybeSingle()
+  if (!oficio) return null
+
+  const { data: processo } = await (supabase as any)
+    .from('processos_licitatorios')
+    .select('objeto, modalidade, numero_processo, organizacao_id')
+    .eq('id', processoId)
+    .maybeSingle()
+  if (!processo) return null
+
+  const cabecalho = await buscarCabecalho(supabase, processo.organizacao_id, null)
+  cabecalho.geradoPorIA = oficio.gerado_por_ia ?? false
+
+  const destinatarioBloco = [
+    oficio.destinatario_nome ? `Nome: ${oficio.destinatario_nome}` : null,
+    oficio.destinatario_cargo ? `Cargo: ${oficio.destinatario_cargo}` : null,
+  ].filter(Boolean).join('\n')
+
+  const emitenteBloco = [
+    oficio.emitente_nome ? `Nome: ${oficio.emitente_nome}` : null,
+    oficio.emitente_cargo ? `Cargo: ${oficio.emitente_cargo}` : null,
+    oficio.local_data ? oficio.local_data : null,
+  ].filter(Boolean).join('\n')
+
+  const titulo = oficio.numero_oficio
+    ? `OFÍCIO Nº ${oficio.numero_oficio}`
+    : 'OFÍCIO DE ABERTURA'
+
+  const secoes = [
+    { titulo: '1. Destinatário', conteudo: destinatarioBloco || '(Não informado)' },
+    { titulo: '2. Assunto', conteudo: oficio.assunto ?? '' },
+    { titulo: '3. Corpo do Ofício', conteudo: oficio.corpo ?? '' },
+    { titulo: '4. Emitente', conteudo: emitenteBloco || '(Não informado)' },
+  ]
+
+  return {
+    cabecalho,
+    tipoDocumento: titulo,
+    numeroProcesso: processo.numero_processo ?? null,
+    objeto: processo.objeto,
+    modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,
+    dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
+    secoes,
+    rodapeIA: oficio.gerado_por_ia ?? false,
+    statusDocumento: oficio.status ?? null,
+  }
+}
+
 export async function montarPayloadParecer(processoId: string): Promise<PayloadDocumento | null> {
   const supabase = await createClient()
 

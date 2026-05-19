@@ -6,16 +6,20 @@ import {
   montarPayloadRiscos,
   montarPayloadEdital,
   montarPayloadParecer,
+  montarPayloadDeclaracao,
+  montarPayloadOficio,
 } from '@/lib/documentos/montar-payload'
 import { gerarPdf } from '@/lib/documentos/gerar-pdf'
 
 const MONTADORES: Record<string, (id: string) => Promise<any>> = {
-  dfd:    montarPayloadDFD,
-  etp:    montarPayloadETP,
-  tr:     montarPayloadTR,
-  riscos: montarPayloadRiscos,
-  edital: montarPayloadEdital,
-  parecer: montarPayloadParecer,
+  dfd:        montarPayloadDFD,
+  etp:        montarPayloadETP,
+  tr:         montarPayloadTR,
+  riscos:     montarPayloadRiscos,
+  edital:     montarPayloadEdital,
+  parecer:    montarPayloadParecer,
+  declaracao: montarPayloadDeclaracao,
+  oficio:     montarPayloadOficio,
 }
 
 export async function GET(request: NextRequest) {

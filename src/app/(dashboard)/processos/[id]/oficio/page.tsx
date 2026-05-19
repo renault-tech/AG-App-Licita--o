@@ -3,6 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import { obterOficio } from '@/lib/actions/oficio'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { StepPageHeader } from '@/components/licita/step-page-header'
+import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import EditorOficio from './editor-oficio'
 
 export default async function OficioPage({
@@ -32,10 +33,13 @@ export default async function OficioPage({
 
   return (
     <div className="space-y-4">
-      <StepPageHeader
-        title="Ofício de Abertura"
-        subtitle="Comunica formalmente à Procuradoria a abertura do processo para emissão do Parecer Jurídico."
-      />
+      <div className="flex items-start justify-between gap-4">
+        <StepPageHeader
+          title="Ofício de Abertura"
+          subtitle="Comunica formalmente à Procuradoria a abertura do processo para emissão do Parecer Jurídico."
+        />
+        <BotoesExportacao tipo="oficio" processoId={id} nomeDocumento="OFICIO" />
+      </div>
       <EditorOficio
         oficio={oficio}
         processoId={id}
