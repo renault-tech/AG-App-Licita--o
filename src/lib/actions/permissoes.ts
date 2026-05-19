@@ -22,10 +22,10 @@ const ALL_TABS = [
 ] as const
 
 const PAPEIS_CONFIGURÁVEIS: PapelUsuario[] = [
-  'requisitante', 'setor_licitacao', 'procurador', 'autoridade_competente',
+  'requisitante', 'setor_compras', 'setor_licitacao', 'procurador', 'gestor_publico', 'publicacao',
 ]
 
-function permissoesPadrao(papel: string): ItemPermissao[] {
+function permissoesPadrao(papel: PapelUsuario): ItemPermissao[] {
   const tabsVisiveis = TABS_VISIVEIS_POR_PAPEL[papel] ?? []
   return ALL_TABS.map(slug => ({
     tab_slug: slug,

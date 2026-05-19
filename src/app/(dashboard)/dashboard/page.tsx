@@ -677,7 +677,7 @@ export default async function DashboardPage() {
 
   if (papel === 'requisitante')          return <DashboardRequisitante userId={user.id} {...props} />
   if (papel === 'procurador')            return <DashboardProcurador {...props} />
-  if (papel === 'autoridade_competente') return <DashboardAutoridadeCompetente {...props} />
+  if (papel === 'gestor_publico') return <DashboardAutoridadeCompetente {...props} />
   if (papel === 'setor_licitacao')       return <DashboardSetorLicitacao {...props} />
   return <DashboardAdmin {...props} />
 }

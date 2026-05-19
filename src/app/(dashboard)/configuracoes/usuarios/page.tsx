@@ -5,9 +5,11 @@ import FormConvite from './form-convite'
 
 const PAPEIS_LABELS: Record<string, string> = {
   requisitante: 'Requisitante',
+  setor_compras: 'Setor de Compras',
   setor_licitacao: 'Setor de Licitacao',
   procurador: 'Procurador',
-  autoridade_competente: 'Autoridade Competente',
+  gestor_publico: 'Gestor Publico',
+  publicacao: 'Publicacao',
   admin_organizacao: 'Administrador',
   admin_plataforma: 'Admin Plataforma',
 }

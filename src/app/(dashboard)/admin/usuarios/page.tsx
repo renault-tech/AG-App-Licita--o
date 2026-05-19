@@ -13,21 +13,25 @@ function Tooltip({ texto }: { texto: string }) {
 }
 
 const PAPEL_LABEL: Record<string, string> = {
-  requisitante:          'Requisitante',
-  setor_licitacao:       'Setor de Licitacao',
-  procurador:            'Procurador',
-  autoridade_competente: 'Autoridade Competente',
-  admin_organizacao:     'Admin da Organizacao',
-  admin_plataforma:      'Admin da Plataforma',
+  requisitante:      'Requisitante',
+  setor_compras:     'Setor de Compras',
+  setor_licitacao:   'Setor de Licitacao',
+  procurador:        'Procurador',
+  gestor_publico:    'Gestor Publico',
+  publicacao:        'Publicacao',
+  admin_organizacao: 'Admin da Organizacao',
+  admin_plataforma:  'Admin da Plataforma',
 }
 
 const PAPEL_COR: Record<string, string> = {
-  requisitante:          'text-gray-600 bg-gray-100',
-  setor_licitacao:       'text-blue-700 bg-blue-50',
-  procurador:            'text-purple-700 bg-purple-50',
-  autoridade_competente: 'text-amber-700 bg-amber-50',
-  admin_organizacao:     'text-teal-700 bg-teal-50',
-  admin_plataforma:      'text-red-700 bg-red-50',
+  requisitante:      'text-gray-600 bg-gray-100',
+  setor_compras:     'text-orange-700 bg-orange-50',
+  setor_licitacao:   'text-blue-700 bg-blue-50',
+  procurador:        'text-purple-700 bg-purple-50',
+  gestor_publico:    'text-amber-700 bg-amber-50',
+  publicacao:        'text-cyan-700 bg-cyan-50',
+  admin_organizacao: 'text-teal-700 bg-teal-50',
+  admin_plataforma:  'text-red-700 bg-red-50',
 }
 
 export default async function AdminUsuariosPage() {

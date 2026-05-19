@@ -1,0 +1,154 @@
+<h2>Fluxo entre os 8 perfis da plataforma LicitaIA</h2>
+<p class="subtitle">Visualização do caminho de um processo licitatório, do início à publicação</p>
+
+<div style="overflow-x:auto; padding: 8px 0;">
+<div style="display:flex; align-items:stretch; gap:0; min-width: 900px;">
+
+  <!-- Perfil 1: Requisitante -->
+  <div style="flex:1; background:#EBF4FF; border:2px solid #3B82F6; border-radius:12px 0 0 12px; padding:16px 12px; display:flex; flex-direction:column; gap:8px;">
+    <div style="background:#3B82F6; color:white; border-radius:6px; padding:6px 10px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; text-align:center;">1. Requisitante</div>
+    <div style="font-size:12px; color:#1E3A5F; line-height:1.5;">
+      <div style="font-weight:600; margin-bottom:4px;">Inicia o processo</div>
+      <ul style="margin:0; padding-left:14px; color:#374151;">
+        <li>Preenche formulário completo</li>
+        <li>Gera DFD, ETP e TR</li>
+        <li>Envia para Setor de Compras</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Seta -->
+  <div style="display:flex;align-items:center;padding:0 4px;background:#F3F4F6;">
+    <div style="font-size:20px;color:#6B7280;">→</div>
+  </div>
+
+  <!-- Perfil 2: Setor de Compras -->
+  <div style="flex:1; background:#FEF3C7; border:2px solid #F59E0B; border-top:2px solid #F59E0B; border-bottom:2px solid #F59E0B; border-left:none; border-right:none; padding:16px 12px; display:flex; flex-direction:column; gap:8px;">
+    <div style="background:#F59E0B; color:white; border-radius:6px; padding:6px 10px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; text-align:center;">2. Setor de Compras</div>
+    <div style="font-size:12px; color:#78350F; line-height:1.5;">
+      <div style="font-weight:600; margin-bottom:4px;">Revisor 1</div>
+      <ul style="margin:0; padding-left:14px; color:#374151;">
+        <li>Revisão com auxílio de IA</li>
+        <li>Corrige formatação e português</li>
+        <li>Pode devolver ao Requisitante</li>
+        <li>Aprova → Licitações</li>
+      </ul>
+    </div>
+    <div style="font-size:10px; color:#92400E; background:#FDE68A; border-radius:4px; padding:4px 6px; text-align:center;">↩ Pode devolver ao Requisitante</div>
+  </div>
+
+  <!-- Seta -->
+  <div style="display:flex;align-items:center;padding:0 4px;background:#F3F4F6;">
+    <div style="font-size:20px;color:#6B7280;">→</div>
+  </div>
+
+  <!-- Perfil 3: Setor de Licitações -->
+  <div style="flex:1; background:#EDE9FE; border:2px solid #7C3AED; border-top:2px solid #7C3AED; border-bottom:2px solid #7C3AED; border-left:none; border-right:none; padding:16px 12px; display:flex; flex-direction:column; gap:8px;">
+    <div style="background:#7C3AED; color:white; border-radius:6px; padding:6px 10px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; text-align:center;">3. Licitações</div>
+    <div style="font-size:12px; color:#3B0764; line-height:1.5;">
+      <div style="font-weight:600; margin-bottom:4px;">Revisor 2</div>
+      <ul style="margin:0; padding-left:14px; color:#374151;">
+        <li>Segunda revisão legal</li>
+        <li>Gera Edital e Ofício</li>
+        <li>Encaminha à Procuradoria</li>
+        <li>Após parecer → Gestor</li>
+      </ul>
+    </div>
+    <div style="font-size:10px; color:#4C1D95; background:#DDD6FE; border-radius:4px; padding:4px 6px; text-align:center;">↩ Pode devolver ao Requisitante ou Compras</div>
+  </div>
+
+  <!-- Seta -->
+  <div style="display:flex;align-items:center;padding:0 4px;background:#F3F4F6;">
+    <div style="font-size:20px;color:#6B7280;">→</div>
+  </div>
+
+  <!-- Perfil 4: Procuradoria -->
+  <div style="flex:1; background:#FEE2E2; border:2px solid #DC2626; border-top:2px solid #DC2626; border-bottom:2px solid #DC2626; border-left:none; border-right:none; padding:16px 12px; display:flex; flex-direction:column; gap:8px;">
+    <div style="background:#DC2626; color:white; border-radius:6px; padding:6px 10px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; text-align:center;">4. Procuradoria</div>
+    <div style="font-size:12px; color:#7F1D1D; line-height:1.5;">
+      <div style="font-weight:600; margin-bottom:4px;">Parecer jurídico</div>
+      <ul style="margin:0; padding-left:14px; color:#374151;">
+        <li>Analisa documentos</li>
+        <li>Emite parecer (IA opcional)</li>
+        <li>Aprovado → Gestor</li>
+        <li>Contrário → Licitações</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Seta -->
+  <div style="display:flex;align-items:center;padding:0 4px;background:#F3F4F6;">
+    <div style="font-size:20px;color:#6B7280;">→</div>
+  </div>
+
+  <!-- Perfil 5: Gestor (Prefeito) -->
+  <div style="flex:1; background:#ECFDF5; border:2px solid #059669; border-top:2px solid #059669; border-bottom:2px solid #059669; border-left:none; border-right:none; padding:16px 12px; display:flex; flex-direction:column; gap:8px;">
+    <div style="background:#059669; color:white; border-radius:6px; padding:6px 10px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; text-align:center;">5. Gestor</div>
+    <div style="font-size:12px; color:#064E3B; line-height:1.5;">
+      <div style="font-weight:600; margin-bottom:4px;">Prefeito / Autoridade</div>
+      <ul style="margin:0; padding-left:14px; color:#374151;">
+        <li>Assina autorização</li>
+        <li>Documento formal de envio</li>
+        <li>Aprovado → Publicação</li>
+        <li>Recusa → Licitações</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Seta -->
+  <div style="display:flex;align-items:center;padding:0 4px;background:#F3F4F6;">
+    <div style="font-size:20px;color:#6B7280;">→</div>
+  </div>
+
+  <!-- Perfil 6: Publicação -->
+  <div style="flex:1; background:#F0FDF4; border:2px solid #16A34A; border-radius:0 12px 12px 0; padding:16px 12px; display:flex; flex-direction:column; gap:8px;">
+    <div style="background:#16A34A; color:white; border-radius:6px; padding:6px 10px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; text-align:center;">6. Publicação</div>
+    <div style="font-size:12px; color:#14532D; line-height:1.5;">
+      <div style="font-weight:600; margin-bottom:4px;">Setor de Comunicação</div>
+      <ul style="margin:0; padding-left:14px; color:#374151;">
+        <li>Visualiza editais prontos</li>
+        <li>Publica no canal oficial</li>
+        <li>Marca como publicado</li>
+        <li>Notifica todos os setores</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div style="margin-top:24px; display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+
+  <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:16px;">
+    <div style="font-size:12px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px;">Perfis de gestão (transversais)</div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <div style="display:flex; align-items:center; gap:10px; background:#1E293B; border-radius:8px; padding:10px 12px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:#F59E0B;flex-shrink:0;"></div>
+        <div>
+          <div style="color:white;font-size:12px;font-weight:600;">Admin Master (você)</div>
+          <div style="color:#94A3B8;font-size:11px;">Acesso pleno a tudo. Valida Admin de Org.</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; background:#334155; border-radius:8px; padding:10px 12px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:#60A5FA;flex-shrink:0;"></div>
+        <div>
+          <div style="color:white;font-size:12px;font-weight:600;">Admin da Organização</div>
+          <div style="color:#94A3B8;font-size:11px;">Gestão da prefeitura: usuários, layout, permissões, fluxo.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:16px;">
+    <div style="font-size:12px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px;">Chat e linha do tempo (todos os perfis)</div>
+    <div style="display:flex; flex-direction:column; gap:6px; font-size:12px; color:#374151;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="color:#7C3AED;font-size:16px;">💬</span> Chat recolhível por processo ou setor, fixável na tela</div>
+      <div style="display:flex;align-items:center;gap:8px;"><span style="color:#059669;font-size:16px;">📋</span> Linha do tempo: cada fase gera entrada com data, autor e status</div>
+      <div style="display:flex;align-items:center;gap:8px;"><span style="color:#F59E0B;font-size:16px;">🔔</span> Notificação popup ao avançar de fase, com link direto</div>
+      <div style="display:flex;align-items:center;gap:8px;"><span style="color:#DC2626;font-size:16px;">👁</span> Cada perfil vê apenas o que é pertinente à sua área</div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:20px; text-align:center;">Este é o fluxo proposto. Veja abaixo as próximas perguntas de refinamento no terminal.</p>

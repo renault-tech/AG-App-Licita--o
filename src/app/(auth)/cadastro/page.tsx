@@ -3,41 +3,78 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { Loader2, UserPlus } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { Loader2, UserPlus, Building2, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/client'
+import { cadastrarUsuario } from '@/lib/actions/auth-cadastro'
+import { LABEL_PAPEL } from '@/lib/permissions'
+
+// Papeis que um usuario pode solicitar no auto-cadastro (exclui admin_plataforma)
+type PapelCadastravel =
+  | 'requisitante'
+  | 'setor_compras'
+  | 'setor_licitacao'
+  | 'procurador'
+  | 'gestor_publico'
+  | 'publicacao'
+
+const PAPEIS_CADASTRAVEIS: PapelCadastravel[] = [
+  'requisitante',
+  'setor_compras',
+  'setor_licitacao',
+  'procurador',
+  'gestor_publico',
+  'publicacao',
+]
 
 export default function CadastroPage() {
+  const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+  const [papelSolicitado, setPapelSolicitado] = useState<PapelCadastravel | ''>('')
+  const [organizacaoId, setOrganizacaoId] = useState('')
+  const [organizacoes, setOrganizacoes] = useState<{ id: string; nome: string }[]>([])
   const [carregando, setCarregando] = useState(false)
   const [enviado, setEnviado] = useState(false)
+  const [carregandoOrgs, setCarregandoOrgs] = useState(false)
+  const [buscouOrgs, setBuscouOrgs] = useState(false)
+
+  async function carregarOrganizacoes() {
+    if (buscouOrgs) return
+    setCarregandoOrgs(true)
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('organizacoes')
+      .select('id, nome')
+      .eq('ativo', true)
+      .order('nome')
+    setOrganizacoes(data ?? [])
+    setBuscouOrgs(true)
+    setCarregandoOrgs(false)
+  }
 
   async function handleCadastro(e: React.FormEvent) {
     e.preventDefault()
-    if (senha.length < 8) {
-      toast.error('A senha deve ter pelo menos 8 caracteres.')
-      return
-    }
-    setCarregando(true)
+    if (!papelSolicitado) { toast.error('Selecione o seu papel na prefeitura.'); return }
+    if (!organizacaoId) { toast.error('Selecione a sua prefeitura.'); return }
 
-    const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
-      email,
-      password: senha,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding` },
+    setCarregando(true)
+    const resultado = await cadastrarUsuario({
+      email, senha, nomeCompleto: nome,
+      papelSolicitado,
+      organizacaoId,
     })
 
-    if (error) {
-      toast.error(error.message)
+    if (!resultado.success) {
+      toast.error(resultado.error ?? 'Erro ao cadastrar.')
       setCarregando(false)
       return
     }
 
-    toast.success('Conta criada! Verifique seu e-mail.')
     setEnviado(true)
     setCarregando(false)
   }
@@ -46,16 +83,13 @@ export default function CadastroPage() {
     return (
       <Card className="shadow-lg border-0 text-center">
         <CardContent className="pt-8 pb-6 space-y-3">
-          <div className="text-4xl">📧</div>
-          <h2 className="text-lg font-semibold text-gray-800">Confirme seu e-mail</h2>
-          <p className="text-sm text-gray-500">
-            Enviamos um link de confirmação para <strong>{email}</strong>.
-            Acesse sua caixa de entrada e clique no link para ativar sua conta.
+          <CheckCircle2 className="w-10 h-10 text-green-600 mx-auto" />
+          <h2 className="text-lg font-semibold">Solicitacao enviada!</h2>
+          <p className="text-sm text-muted-foreground">
+            Sua conta foi criada e aguarda aprovacao do administrador da sua prefeitura.
+            Confirme seu e-mail primeiro, depois aguarde a liberacao do acesso.
           </p>
-          <div className="bg-blue-50 border border-blue-200 text-blue-800 text-xs p-3 rounded-md text-left">
-            <strong>Dica para ambiente local:</strong> Acesse a caixa de entrada simulada do Supabase em <a href="http://localhost:54324" target="_blank" className="underline font-bold">http://localhost:54324</a> para ver o e-mail de confirmação e clicar no link.
-          </div>
-          <Link href="/login" className="text-sm text-blue-600 hover:underline">
+          <Link href="/login" className="text-sm font-semibold hover:underline">
             Voltar ao login
           </Link>
         </CardContent>
@@ -64,55 +98,83 @@ export default function CadastroPage() {
   }
 
   return (
-    <Card className="shadow-lg border-0">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-xl font-semibold text-gray-800">Criar Conta</CardTitle>
-        <CardDescription>Cadastre-se para acessar a plataforma</CardDescription>
-      </CardHeader>
+    <div className="space-y-4">
+      <Card className="shadow-lg border-0">
+        <CardHeader>
+          <CardTitle className="text-xl">Solicitar Acesso</CardTitle>
+          <CardDescription>Para uma prefeitura ja cadastrada na plataforma</CardDescription>
+        </CardHeader>
 
-      <form onSubmit={handleCadastro}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">E-mail institucional</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="seu@email.gov.br"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="senha">Senha (mínimo 8 caracteres)</Label>
-            <Input
-              id="senha"
-              type="password"
-              placeholder="••••••••"
-              value={senha}
-              onChange={e => setSenha(e.target.value)}
-              required
-              minLength={8}
-            />
-          </div>
-        </CardContent>
+        <form onSubmit={handleCadastro}>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="nome">Nome completo</Label>
+              <Input id="nome" value={nome} onChange={e => setNome(e.target.value)} required placeholder="Seu nome completo" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email-cad">E-mail institucional</Label>
+              <Input id="email-cad" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="seu@email.gov.br" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="senha-cad">Senha (minimo 8 caracteres)</Label>
+              <Input id="senha-cad" type="password" value={senha} onChange={e => setSenha(e.target.value)} required minLength={8} placeholder="••••••••" />
+            </div>
+            <div className="space-y-2">
+              <Label>Prefeitura</Label>
+              <Select onOpenChange={open => { if (open) carregarOrganizacoes() }} onValueChange={v => setOrganizacaoId(typeof v === 'string' ? v : '')}>
+                <SelectTrigger>
+                  <SelectValue placeholder={carregandoOrgs ? 'Carregando...' : 'Selecione sua prefeitura'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {organizacoes.map(o => (
+                    <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Seu papel na prefeitura</Label>
+              <Select onValueChange={v => setPapelSolicitado(v as PapelCadastravel)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione seu papel" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAPEIS_CADASTRAVEIS.map(p => (
+                    <SelectItem key={p} value={p}>{LABEL_PAPEL[p]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
 
-        <CardFooter className="flex flex-col gap-3">
-          <Button type="submit" className="w-full" disabled={carregando}>
-            {carregando ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Aguarde...</>
-            ) : (
-              <><UserPlus className="w-4 h-4 mr-2" /> Criar conta</>
-            )}
-          </Button>
-          <p className="text-sm text-center text-gray-500">
-            Já tem acesso?{' '}
-            <Link href="/login" className="text-blue-600 hover:underline font-medium">
-              Entrar
-            </Link>
-          </p>
-        </CardFooter>
-      </form>
-    </Card>
+          <CardFooter className="flex flex-col gap-3">
+            <Button type="submit" className="w-full" disabled={carregando}>
+              {carregando
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Aguarde...</>
+                : <><UserPlus className="w-4 h-4 mr-2" /> Solicitar acesso</>
+              }
+            </Button>
+            <p className="text-sm text-center text-muted-foreground">
+              Ja tem acesso?{' '}
+              <Link href="/login" className="font-semibold hover:underline">Entrar</Link>
+            </p>
+          </CardFooter>
+        </form>
+      </Card>
+
+      <Link
+        href="/cadastro/nova-prefeitura"
+        className="flex items-center justify-between p-4 rounded-xl border bg-muted/30 hover:bg-muted/50 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <Building2 className="w-5 h-5 text-muted-foreground" />
+          <div>
+            <div className="text-sm font-semibold">Minha prefeitura nao esta cadastrada</div>
+            <div className="text-xs text-muted-foreground">Cadastre sua prefeitura como administrador</div>
+          </div>
+        </div>
+        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+      </Link>
+    </div>
   )
 }

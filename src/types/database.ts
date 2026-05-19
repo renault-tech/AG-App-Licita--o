@@ -5,11 +5,19 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type PapelUsuario =
   | 'requisitante'
+  | 'setor_compras'
   | 'setor_licitacao'
   | 'procurador'
-  | 'autoridade_competente'
+  | 'gestor_publico'
+  | 'publicacao'
   | 'admin_organizacao'
   | 'admin_plataforma'
+
+export type StatusAprovacaoUsuario =
+  | 'aguardando_aprovacao'
+  | 'ativo'
+  | 'recusado'
+  | 'suspenso'
 
 export type StatusDocumento = 'rascunho' | 'em_revisao' | 'assinado' | 'publicado' | 'devolvido'
 
@@ -56,6 +64,8 @@ export interface UsuarioRow {
   nome_completo: string
   cargo: string | null
   ativo: boolean
+  status_aprovacao: StatusAprovacaoUsuario
+  papel_solicitado: PapelUsuario | null
 }
 
 export interface SecretariaRow {
@@ -82,6 +92,7 @@ export interface ProcessoLicitatorioRow {
   status: StatusDocumento
   criado_por: string
   etapa_atual: number
+  fase_atual: FaseProcesso
 }
 
 export interface DFDRow {
@@ -607,6 +618,7 @@ export interface Database {
       status_adesao_dfd: StatusAdesaoDFD
       status_participacao_dfd: StatusParticipacaoDFD
       tipo_participacao_dfd: TipoParticipacaoDFD
+      status_aprovacao_usuario: StatusAprovacaoUsuario
     }
   }
 }
@@ -648,4 +660,75 @@ export interface PermissaoPapelRow {
   pode_ver: boolean
   pode_editar: boolean
   updated_at: string
+}
+
+// -------------------------------------------------------
+// Tipos de tramitacao e fluxo de fases
+// -------------------------------------------------------
+
+export type FaseProcesso =
+  | 'requisitante'
+  | 'setor_compras'
+  | 'setor_licitacao'
+  | 'procurador'
+  | 'gestor_publico'
+  | 'publicacao'
+
+export type TipoTramitacao = 'avanco' | 'devolucao'
+
+export interface TramitacaoHistoricoRow {
+  id: string
+  processo_id: string
+  organizacao_id: string
+  usuario_id: string
+  nome_usuario: string
+  de_papel: FaseProcesso
+  para_papel: FaseProcesso
+  tipo: TipoTramitacao
+  motivo: string | null
+  pendencias: string[] | null
+  created_at: string
+}
+
+// -------------------------------------------------------
+// Tipos de chat interno (3 modos)
+// -------------------------------------------------------
+
+export interface MensagemProcessoRow {
+  id: string
+  processo_id: string
+  organizacao_id: string
+  usuario_id: string
+  nome_usuario: string
+  papel_usuario: PapelUsuario
+  conteudo: string
+  created_at: string
+}
+
+export interface MensagemSetorRow {
+  id: string
+  organizacao_id: string
+  setor: PapelUsuario
+  usuario_id: string
+  nome_usuario: string
+  conteudo: string
+  created_at: string
+}
+
+export interface MensagemDiretaRow {
+  id: string
+  organizacao_id: string
+  de_usuario_id: string
+  para_usuario_id: string
+  nome_remetente: string
+  conteudo: string
+  lida: boolean
+  created_at: string
+}
+
+export interface UsuarioListagemRow {
+  id: string
+  nome_completo: string
+  papel: PapelUsuario
+  cargo: string | null
 }

@@ -10,9 +10,11 @@ import type { PapelUsuario } from '@/types/database'
 
 const PAPEIS = [
   { value: 'requisitante', label: 'Requisitante' },
+  { value: 'setor_compras', label: 'Setor de Compras' },
   { value: 'setor_licitacao', label: 'Setor de Licitacao' },
   { value: 'procurador', label: 'Procurador' },
-  { value: 'autoridade_competente', label: 'Autoridade Competente' },
+  { value: 'gestor_publico', label: 'Gestor Publico' },
+  { value: 'publicacao', label: 'Publicacao' },
   { value: 'admin_organizacao', label: 'Administrador' },
 ]
 

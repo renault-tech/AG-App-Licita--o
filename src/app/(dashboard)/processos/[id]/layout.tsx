@@ -16,7 +16,8 @@ import {
 import { getPermissoesOrg } from '@/lib/cached-permissions'
 import { StatusPill } from '@/components/licita/status-pill'
 import type { StatusProcesso } from '@/components/licita/status-pill'
-import type { PapelUsuario } from '@/types/database'
+import type { PapelUsuario, FaseProcesso, TramitacaoHistoricoRow } from '@/types/database'
+import { ProcessoTimelineWithSheet } from '@/components/processo/processo-timeline-with-sheet'
 
 const ETAPAS = [
   { slug: 'dfd',         label: 'DFD',           icon: FileText,       desc: 'Formalização da Demanda' },
@@ -56,11 +57,21 @@ export default async function ProcessoLayout({
 
   const { data: processo } = await (supabase
     .from('processos_licitatorios') as any)
-    .select('id, objeto, modalidade, status, numero_processo, valor_estimado')
+    .select('id, objeto, modalidade, status, numero_processo, valor_estimado, fase_atual, organizacao_id')
     .eq('id', id)
     .maybeSingle()
 
   if (!processo) return notFound()
+
+  // Busca historico de tramitacao para alimentar a timeline
+  const { data: historicoRaw } = await (supabase
+    .from('tramitacao_historico') as any)
+    .select('id, processo_id, organizacao_id, usuario_id, nome_usuario, de_papel, para_papel, tipo, motivo, pendencias, created_at')
+    .eq('processo_id', id)
+    .order('created_at', { ascending: true })
+
+  const historico = (historicoRaw ?? []) as TramitacaoHistoricoRow[]
+  const faseAtual = (processo.fase_atual ?? 'requisitante') as FaseProcesso
 
   const papel = (await obterPapelUsuario()) as PapelUsuario | null
 
@@ -176,7 +187,7 @@ export default async function ProcessoLayout({
         {/* Navegacao por etapas */}
         <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--hairline)' }}>
 
-          {/* Layout restrito: procurador e autoridade_competente */}
+          {/* Layout restrito: procurador, gestor_publico e publicacao */}
           {acessoRestrito ? (
             <div className="flex items-center gap-3">
               <div
@@ -184,12 +195,14 @@ export default async function ProcessoLayout({
                 style={{ background: 'var(--primaryWash)', color: 'var(--primary)' }}
               >
                 <Scale className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-                {papel === 'procurador' ? 'Parecer Jurídico' : 'Autorização da Autoridade Competente'}
+                {papel === 'procurador' ? 'Parecer Jurídico' : papel === 'gestor_publico' ? 'Autorização do Gestor Público' : 'Publicação'}
               </div>
               <p className="text-xs" style={{ color: 'var(--muted)' }}>
                 {papel === 'procurador'
-                  ? 'Análise a regularidade do processo conforme Art. 53 da Lei 14.133/21.'
-                  : 'Autorize ou devolva o processo conforme Art. 72 da Lei 14.133/21.'}
+                  ? 'Analise a regularidade do processo conforme Art. 53 da Lei 14.133/21.'
+                  : papel === 'gestor_publico'
+                  ? 'Autorize ou devolva o processo conforme Art. 72 da Lei 14.133/21.'
+                  : 'Registre a publicacao nos canais institucionais.'}
               </p>
             </div>
           ) : (
@@ -276,6 +289,14 @@ export default async function ProcessoLayout({
           )}
         </div>
       </div>
+
+      {/* Timeline de tramitacao — mostra por qual setor o processo passou */}
+      <ProcessoTimelineWithSheet
+        historico={historico}
+        faseAtual={faseAtual}
+        organizacaoId={processo.organizacao_id}
+        className="mb-6"
+      />
 
       {/* Conteudo da etapa */}
       <div>{children}</div>
