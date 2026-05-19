@@ -140,6 +140,14 @@ function ProcessoRow({ p, href }: { p: any; href: string }) {
               </span>
             </>
           )}
+          {p.created_at && (
+            <>
+              <span style={{ color: 'var(--hairline)' }}>|</span>
+              <span className="text-sm" style={{ color: 'var(--mutedSoft)' }}>
+                {tempoRelativo(p.created_at)}
+              </span>
+            </>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-3 shrink-0">
@@ -178,6 +186,22 @@ function SaldoBaixoAlert({ saldo }: { saldo: number }) {
       </div>
     </div>
   )
+}
+
+function tempoRelativo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const dias = Math.floor(diff / 86400000)
+  if (dias === 0) return 'Hoje'
+  if (dias === 1) return 'Ontem'
+  if (dias < 30) return `há ${dias} dias`
+  const meses = Math.floor(dias / 30)
+  return `há ${meses} ${meses === 1 ? 'mês' : 'meses'}`
+}
+
+function formatarMoeda(valor: number): string {
+  if (valor >= 1_000_000) return `R$ ${(valor / 1_000_000).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} M`
+  if (valor >= 1_000) return `R$ ${(valor / 1_000).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} mil`
+  return `R$ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
 }
 
 function NewButton({ label, href }: { label: string; href: string }) {
@@ -270,7 +294,7 @@ async function DashboardSetorLicitacao({
 
   const { data: todosProcessos } = await supabase
     .from('processos_licitatorios')
-    .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at')
+    .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at, cotacao_pendente')
     .eq('organizacao_id', organizacaoId)
     .order('created_at', { ascending: false })
 
@@ -287,6 +311,9 @@ async function DashboardSetorLicitacao({
   const emRevisao = processos.filter((p: any) => p.status === 'em_revisao').length
   const orgSub    = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
 
+  const valorTotalAtivo = ativos.reduce((s: number, p: any) => s + (Number(p.valor_estimado) || 0), 0)
+  const cotacaoPendente = processos.filter((p: any) => p.cotacao_pendente && (p.status === 'rascunho' || p.status === 'em_revisao'))
+
   return (
     <div className="space-y-8">
       <SectionHeader
@@ -296,9 +323,9 @@ async function DashboardSetorLicitacao({
         action={<NewButton label="Novo Processo" href="/processos/novo" />}
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-5">
         {totalAvisosAbertos > 0 && (
-          <Link href="/processos/aviso-compra-conjunta/novo" className="col-span-2 lg:col-span-4">
+          <Link href="/processos/aviso-compra-conjunta/novo" className="col-span-2 lg:col-span-5">
             <div
               className="flex items-center gap-3 p-4 rounded-[var(--r-md)] border cursor-pointer transition-opacity hover:opacity-80"
               style={{ background: 'var(--warnWash)', borderColor: 'var(--warn)' + '40' }}
@@ -316,10 +343,28 @@ async function DashboardSetorLicitacao({
             </div>
           </Link>
         )}
-        <KPICard label="Processos"     value={processos.length} sub="Total na organização" icon={<FileText className="w-5 h-5" />} />
-        <KPICard label="Em Elaboração" value={ativos.length}    sub="Em andamento"         icon={<Clock className="w-5 h-5" />}   accent />
-        <KPICard label="Em Revisão"    value={emRevisao}        sub="Aguardando análise"   icon={<Filter className="w-5 h-5" />} />
-        <KPICard label="Publicados"    value={arquivo.length}   sub="Concluídos"           icon={<CheckCircle className="w-5 h-5" />} />
+        {cotacaoPendente.length > 0 && (
+          <div className="col-span-2 lg:col-span-5 flex items-center gap-3 p-4 rounded-[var(--r-md)] border"
+            style={{ background: 'var(--primaryWash)', borderColor: 'var(--primary)' + '40' }}
+          >
+            <div className="w-9 h-9 rounded-[var(--r-sm)] flex items-center justify-center shrink-0" style={{ background: 'var(--primary)' + '20' }}>
+              <AlertCircle className="w-4 h-4" style={{ color: 'var(--primary)' }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold" style={{ color: 'var(--primary)' }}>
+                {cotacaoPendente.length} processo{cotacaoPendente.length !== 1 ? 's' : ''} com cotação de preços pendente
+              </p>
+              <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                A pesquisa de preços é obrigatória antes da elaboração do ETP (Art. 23, Lei 14.133/21)
+              </p>
+            </div>
+          </div>
+        )}
+        <KPICard label="Processos"          value={processos.length}    sub="Total na organização"   icon={<FileText className="w-5 h-5" />} />
+        <KPICard label="Em Elaboração"      value={ativos.length}       sub="Em andamento"            icon={<Clock className="w-5 h-5" />}    accent />
+        <KPICard label="Em Revisão"         value={emRevisao}           sub="Aguardando análise"      icon={<Filter className="w-5 h-5" />} />
+        <KPICard label="Publicados"         value={arquivo.length}      sub="Concluídos"              icon={<CheckCircle className="w-5 h-5" />} />
+        <KPICard label="Valor em Elaboração" value={valorTotalAtivo > 0 ? formatarMoeda(valorTotalAtivo) : '—'} sub="Soma dos processos ativos" icon={<FileText className="w-5 h-5" />} />
       </div>
 
       <ListCard
@@ -595,6 +640,16 @@ async function DashboardAdmin({
   const arquivo     = processos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado')
   const orgSub      = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
 
+  const ativos = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao')
+  const valorTotalAtivo = ativos.reduce((s: number, p: any) => s + (Number(p.valor_estimado) || 0), 0)
+
+  const dataInicio30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  const { count: acoesIA30d } = await (supabase as any)
+    .from('acoes_ia')
+    .select('id', { count: 'exact', head: true })
+    .eq('organizacao_id', organizacaoId)
+    .gte('created_at', dataInicio30d)
+
   return (
     <div className="space-y-8">
       <SectionHeader
@@ -604,11 +659,12 @@ async function DashboardAdmin({
         action={<NewButton label="Novo Processo" href="/processos/novo" />}
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-5">
         <KPICard label="Processos"     value={processos.length} sub="Total criados"             icon={<FileText className="w-5 h-5" />} />
         <KPICard label="Em Elaboração" value={emAndamento}      sub="Em andamento"               icon={<Clock className="w-5 h-5" />}    accent />
         <KPICard label="Publicados"    value={publicados}       sub={`de ${arquivo.length} concluídos`} icon={<CheckCircle className="w-5 h-5" />} />
-        <KPICard label="Créditos IA"   value={saldo}            sub="Disponíveis"                icon={<Zap className="w-5 h-5" />}      />
+        <KPICard label="Créditos IA"   value={saldo}            sub={`${acoesIA30d ?? 0} ações nos últimos 30 dias`} icon={<Zap className="w-5 h-5" />} />
+        <KPICard label="Valor em Elaboração" value={valorTotalAtivo > 0 ? formatarMoeda(valorTotalAtivo) : '—'} sub="Soma dos processos ativos" icon={<FileText className="w-5 h-5" />} />
       </div>
 
       <ListCard
