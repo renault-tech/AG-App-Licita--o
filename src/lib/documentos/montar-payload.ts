@@ -424,6 +424,89 @@ export async function montarPayloadOficio(processoId: string): Promise<PayloadDo
   }
 }
 
+export async function montarPayloadCotacao(processoId: string): Promise<PayloadDocumento | null> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: cotacao } = await (supabase as any)
+    .from('cotacoes')
+    .select('*')
+    .eq('processo_id', processoId)
+    .maybeSingle()
+  if (!cotacao) return null
+
+  const { data: processo } = await (supabase as any)
+    .from('processos_licitatorios')
+    .select('objeto, modalidade, numero_processo, organizacao_id')
+    .eq('id', processoId)
+    .maybeSingle()
+  if (!processo) return null
+
+  const { data: fornecedores } = await (supabase as any)
+    .from('cotacoes_fornecedores')
+    .select('*')
+    .eq('cotacao_id', cotacao.id)
+
+  const cabecalho = await buscarCabecalho(supabase, processo.organizacao_id, null)
+
+  const FONTE_LABEL: Record<string, string> = {
+    pncp:            'Portal Nacional de Contratações Públicas (PNCP)',
+    banco_municipal: 'Banco de Preços Municipal',
+    pesquisa_direta: 'Pesquisa Direta com Fornecedores',
+  }
+
+  const fmt = (v: number | null | undefined) =>
+    v != null ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Não calculado'
+
+  const fonteBloco = [
+    `Fonte: ${FONTE_LABEL[cotacao.fonte] ?? cotacao.fonte}`,
+    cotacao.justificativa_fonte ? `Justificativa: ${cotacao.justificativa_fonte}` : null,
+  ].filter(Boolean).join('\n')
+
+  const listaFornecedores: any[] = Array.isArray(fornecedores) ? fornecedores : []
+
+  const fornecedoresBloco = listaFornecedores.length === 0
+    ? '(Nenhum fornecedor cadastrado)'
+    : listaFornecedores.map((f: any, i: number) => {
+        const linhas = [
+          `${i + 1}. ${f.nome_fornecedor ?? 'Nome não informado'}`,
+          f.cnpj_fornecedor ? `   CNPJ: ${f.cnpj_fornecedor}` : null,
+          `   Valor Proposto: ${fmt(f.valor_proposto)}`,
+          f.justificativa_escolha ? `   Justificativa da Escolha: ${f.justificativa_escolha}` : null,
+        ]
+        return linhas.filter(Boolean).join('\n')
+      }).join('\n\n')
+
+  const estatisticasBloco = [
+    `Valor Médio: ${fmt(cotacao.valor_medio)}`,
+    `Valor da Mediana: ${fmt(cotacao.valor_mediana)}`,
+    `Valor Estimado da Contratação: ${fmt(cotacao.valor_estimado)}`,
+    cotacao.tem_outlier
+      ? 'Alerta de Outlier: Sim. Identificada variação superior a 30% da mediana em ao menos uma proposta. Recomenda-se justificar ou excluir a proposta discrepante.'
+      : 'Alerta de Outlier: Não. Todas as propostas dentro do intervalo aceitável.',
+  ].join('\n')
+
+  const secoes = [
+    { titulo: '1. Fonte da Pesquisa de Preços', conteudo: fonteBloco },
+    { titulo: '2. Fornecedores Consultados', conteudo: fornecedoresBloco },
+    { titulo: '3. Análise Estatística dos Preços', conteudo: estatisticasBloco },
+  ]
+
+  return {
+    cabecalho,
+    tipoDocumento: 'PESQUISA DE PREÇOS E COTAÇÃO',
+    numeroProcesso: processo.numero_processo ?? null,
+    objeto: processo.objeto,
+    modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,
+    dataGeracao: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
+    secoes,
+    rodapeIA: false,
+    statusDocumento: cotacao.status ?? null,
+  }
+}
+
 export async function montarPayloadParecer(processoId: string): Promise<PayloadDocumento | null> {
   const supabase = await createClient()
 

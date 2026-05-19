@@ -8,6 +8,7 @@ import {
   montarPayloadParecer,
   montarPayloadDeclaracao,
   montarPayloadOficio,
+  montarPayloadCotacao,
 } from '@/lib/documentos/montar-payload'
 import { gerarDocx } from '@/lib/documentos/gerar-docx'
 
@@ -20,6 +21,7 @@ const MONTADORES: Record<string, (id: string) => Promise<any>> = {
   parecer:    montarPayloadParecer,
   declaracao: montarPayloadDeclaracao,
   oficio:     montarPayloadOficio,
+  cotacao:    montarPayloadCotacao,
 }
 
 export async function GET(request: NextRequest) {
