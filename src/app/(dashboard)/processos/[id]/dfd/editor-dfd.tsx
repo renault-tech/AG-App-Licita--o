@@ -17,10 +17,11 @@ import {
   atualizarDFD,
   salvarItensDFD,
   gerarJustificativaIA,
-  aprimorarTextoIA,
 } from '@/lib/actions/dfd'
 import BotaoTramitacao from '@/components/documentos/botao-tramitacao'
 import ModalEncaminharAdesao from './modal-encaminhar-adesao'
+import { BotaoMelhorarCampo } from '@/components/ai/botao-melhorar-campo'
+import { AvisoCotacaoPendente } from '@/components/processo/aviso-cotacao-pendente'
 import type { PapelUsuario, StatusDocumento, DFDItemRow, DFDParticipacaoRow } from '@/types/database'
 
 // -------------------------------------------------------
@@ -293,11 +294,13 @@ export default function EditorDFD({
   processoId,
   papelUsuario,
   podeEditar = true,
+  cotacaoPendente = false,
 }: {
   dfd: DFDCompleto
   processoId: string
   papelUsuario: PapelUsuario
   podeEditar?: boolean
+  cotacaoPendente?: boolean
 }) {
   const assinado = dfd.status === 'assinado'
   const emAdesao = dfd.status_adesao === 'aguardando_adesao'
@@ -319,7 +322,6 @@ export default function EditorDFD({
 
   const [salvando, setSalvando] = useState(false)
   const [gerandoJust, setGerandoJust] = useState(false)
-  const [aprimorando, setAprimorando] = useState(false)
   const [modalEncaminhar, setModalEncaminhar] = useState(false)
   const [justEditadaIA, setJustEditadaIA] = useState(false)
 
@@ -365,23 +367,6 @@ export default function EditorDFD({
     setGerandoJust(false)
   }
 
-  async function handleAprimorarJustificativa() {
-    if (!justificativa || justificativa.length < 10) {
-      toast.warning('Escreva a justificativa antes de aprimorar.')
-      return
-    }
-    setAprimorando(true)
-    const res = await aprimorarTextoIA(justificativa, 'justificativa_necessidade')
-    if (res.success && res.texto) {
-      setJustificativa(res.texto)
-      setJustEditadaIA(true)
-      toast.success('Texto aprimorado pela IA.')
-    } else {
-      toast.error(res.error ?? 'Erro ao aprimorar.')
-    }
-    setAprimorando(false)
-  }
-
   const podeEncaminhar =
     dfd.status_adesao === 'rascunho' &&
     !assinado &&
@@ -413,10 +398,23 @@ export default function EditorDFD({
 
           {/* Objeto */}
           <div className="space-y-2">
-            <Label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-              <FileText className="w-3.5 h-3.5 text-gray-400" />
-              1. Objeto
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                <FileText className="w-3.5 h-3.5 text-gray-400" />
+                1. Objeto
+              </Label>
+              {!readonly && (
+                <BotaoMelhorarCampo
+                  textoAtual={objeto}
+                  contexto={{
+                    nomeCampo: 'Objeto da Contratacao',
+                    documentoContexto: 'DFD — Documento de Formalizacao da Demanda',
+                    artigo: 'Art. 6, X da Lei 14.133/21',
+                  }}
+                  onTextMelhorado={texto => setObjeto(texto)}
+                />
+              )}
+            </div>
             <Textarea
               rows={4}
               value={objeto}
@@ -447,28 +445,22 @@ export default function EditorDFD({
                     size="sm"
                     className="h-7 text-xs text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100 gap-1"
                     onClick={handleGerarJustificativa}
-                    disabled={gerandoJust || aprimorando}
+                    disabled={gerandoJust}
                   >
                     {gerandoJust
                       ? <Loader2 className="w-3 h-3 animate-spin" />
                       : <Wand2 className="w-3 h-3" />}
                     Gerar com IA
                   </Button>
-                  {justificativa && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 text-xs gap-1"
-                      onClick={handleAprimorarJustificativa}
-                      disabled={gerandoJust || aprimorando}
-                    >
-                      {aprimorando
-                        ? <Loader2 className="w-3 h-3 animate-spin" />
-                        : <Wand2 className="w-3 h-3" />}
-                      Aprimorar
-                    </Button>
-                  )}
+                  <BotaoMelhorarCampo
+                    textoAtual={justificativa}
+                    contexto={{
+                      nomeCampo: 'Justificativa da Necessidade',
+                      documentoContexto: 'DFD — Documento de Formalizacao da Demanda',
+                      artigo: 'Art. 6, X, alinea "a" da Lei 14.133/21',
+                    }}
+                    onTextMelhorado={texto => { setJustificativa(texto); setJustEditadaIA(true) }}
+                  />
                 </div>
               )}
             </div>
@@ -533,6 +525,11 @@ export default function EditorDFD({
 
         </CardContent>
 
+        {cotacaoPendente && !readonly && (
+          <div className="px-6 pb-0 pt-4">
+            <AvisoCotacaoPendente processoId={processoId} />
+          </div>
+        )}
         <CardFooter className="flex items-center justify-between border-t border-gray-100 bg-gray-50/50 px-6 py-4 rounded-b-xl gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <BotaoTramitacao

@@ -25,12 +25,19 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
 
   if (!usuarioRaw) return notFound()
 
-  // Carrega DFD (cria se nao existir)
-  const [dfdInicial, papel, permissoesOrg] = await Promise.all([
+  // Carrega DFD (cria se nao existir) e flag de cotacao pendente do processo
+  const [dfdInicial, papel, permissoesOrg, processoRaw] = await Promise.all([
     obterDFD(processoId),
     obterPapelUsuario(),
     getPermissoesOrg(),
+    (supabase as any)
+      .from('processos_licitatorios')
+      .select('cotacao_pendente')
+      .eq('id', processoId)
+      .maybeSingle(),
   ])
+
+  const cotacaoPendente = (processoRaw.data as any)?.cotacao_pendente ?? false
 
   if (!dfdInicial) return notFound()
 
@@ -143,6 +150,7 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
         processoId={processoId}
         papelUsuario={papelUsuario}
         podeEditar={podeEditar}
+        cotacaoPendente={cotacaoPendente}
       />
     </div>
   )

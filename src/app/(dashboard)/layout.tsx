@@ -3,10 +3,13 @@ import { createClient } from '@/lib/supabase/server'
 import { AppHeader } from '@/components/layout/app-header'
 import DemoSwitcher from '@/components/layout/demo-switcher'
 import { ChatPanel } from '@/components/chat/chat-panel'
+import { DemoBanner } from '@/components/admin/demo-banner'
+import { DemoPerfilSwitcher } from '@/components/admin/demo-perfil-switcher'
 import { obterNotificacoes } from '@/lib/actions/notificacoes'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { seedClausulasPadrao } from '@/lib/actions/clausulas'
 import { contarNaoLidas } from '@/lib/actions/chat'
+import { getDemoSession, sairModoDemo, trocarPapelDemo } from '@/lib/demo-session'
 import type { PapelUsuario } from '@/types/database'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -17,6 +20,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   // Seed silencioso: so insere clausulas_padrao se tabela estiver vazia
   seedClausulasPadrao().catch(() => {})
+
+  const demoSession = await getDemoSession()
+
+  async function handleSairDemo() {
+    'use server'
+    await sairModoDemo()
+  }
+
+  async function handleTrocarPapelDemo(novoPapel: PapelUsuario) {
+    'use server'
+    await trocarPapelDemo(novoPapel)
+  }
 
   const [usuarioComOrgRes, creditosRes, { notificacoes, naoLidas }, papelAtual, contagem] = await Promise.all([
     supabase
@@ -47,6 +62,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
+      {demoSession.ativo && demoSession.papelSimulado && (
+        <>
+          <DemoBanner
+            papelSimulado={demoSession.papelSimulado}
+            onSair={handleSairDemo}
+          />
+          <DemoPerfilSwitcher
+            papelAtual={demoSession.papelSimulado}
+            onTrocar={handleTrocarPapelDemo}
+          />
+          <div style={{ paddingTop: 44 }} />
+        </>
+      )}
       <AppHeader
         orgNome={org?.nome ?? 'Prefeitura Municipal'}
         orgCnpj={org?.cnpj ?? ''}

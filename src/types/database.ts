@@ -54,6 +54,8 @@ export interface OrganizacaoRow {
   municipio: string
   estado: string
   ativo: boolean
+  is_cataguases: boolean
+  is_demo: boolean
 }
 
 export interface UsuarioRow {
@@ -93,6 +95,7 @@ export interface ProcessoLicitatorioRow {
   criado_por: string
   etapa_atual: number
   fase_atual: FaseProcesso
+  cotacao_pendente: boolean
 }
 
 export interface DFDRow {
