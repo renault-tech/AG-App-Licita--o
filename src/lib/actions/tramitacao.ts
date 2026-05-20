@@ -115,7 +115,7 @@ export async function aprovarDocumento(
   const usuario = await obterUsuarioComPapel()
   if (!usuario) return { success: false, error: 'Não autenticado.' }
 
-  if (usuario.papel !== 'setor_licitacao' && usuario.papel !== 'admin_organizacao') {
+  if (usuario.papel !== 'setor_licitacao' && usuario.papel !== 'admin_organizacao' && usuario.papel !== 'admin_plataforma') {
     return { success: false, error: 'Sem permissão para aprovar documentos.' }
   }
 
@@ -153,7 +153,7 @@ export async function devolverDocumento(
   const usuario = await obterUsuarioComPapel()
   if (!usuario) return { success: false, error: 'Não autenticado.' }
 
-  if (usuario.papel !== 'setor_licitacao' && usuario.papel !== 'admin_organizacao') {
+  if (usuario.papel !== 'setor_licitacao' && usuario.papel !== 'admin_organizacao' && usuario.papel !== 'admin_plataforma') {
     return { success: false, error: 'Sem permissão para devolver documentos.' }
   }
 

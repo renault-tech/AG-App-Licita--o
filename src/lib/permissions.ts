@@ -57,12 +57,13 @@ export const PODE_CONFIGURAR: PapelUsuario[] = [
   'admin_organizacao', 'admin_plataforma',
 ]
 
-/** Verifica se um papel tem uma determinada permissao. */
+/** Verifica se um papel tem uma determinada permissao. admin_plataforma sempre retorna true. */
 export function podeFazer(
   papel: PapelUsuario | null | undefined,
   permissao: PapelUsuario[]
 ): boolean {
   if (!papel) return false
+  if (papel === 'admin_plataforma') return true
   return permissao.includes(papel)
 }
 

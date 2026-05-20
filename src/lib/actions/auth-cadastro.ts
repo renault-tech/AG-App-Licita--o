@@ -71,11 +71,11 @@ export async function cadastrarUsuario(
     return { success: false, error: 'Erro ao registrar usuario. Tente novamente.' }
   }
 
-  const { data: admins } = await supabase
+  const { data: admins } = await (supabase as any)
     .from('usuarios')
     .select('id')
     .eq('organizacao_id', parsed.data.organizacaoId)
-    .eq('papel', 'admin_organizacao')
+    .in('papel', ['admin_organizacao', 'admin_plataforma'])
     .eq('ativo', true)
 
   if (admins && admins.length > 0) {
