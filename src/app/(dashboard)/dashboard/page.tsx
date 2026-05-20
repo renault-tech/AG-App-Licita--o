@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import type { PapelUsuario } from '@/types/database'
 import { KPICard } from '@/components/licita/kpi-card'
 import { StatusPill } from '@/components/licita/status-pill'
@@ -1000,7 +1001,7 @@ export default async function DashboardPage() {
 
   const usuario      = usuarioData as { nome_completo: string; organizacao_id: string; papel: PapelUsuario } | null
   const organizacaoId = usuario?.organizacao_id
-  if (!organizacaoId) return null
+  if (!organizacaoId) redirect('/onboarding')
 
   const papel = usuario?.papel
 

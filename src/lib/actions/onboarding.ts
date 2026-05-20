@@ -25,13 +25,17 @@ export async function criarOrganizacaoEAdmin(
   if (!user) return { success: false, error: 'Sessao expirada. Faca login novamente.' }
 
   // Verifica se já tem organização
-  const { data: usuarioExistente } = await supabase
+  const { data: usuarioExistente } = await (supabase as any)
     .from('usuarios')
-    .select('*')
+    .select('organizacao_id')
     .eq('id', user.id)
     .maybeSingle()
 
-  if (usuarioExistente) return { success: false, error: 'Voce ja possui uma organizacao configurada.' }
+  if ((usuarioExistente as { organizacao_id?: string } | null)?.organizacao_id) {
+    // Usuario ja configurado: nao reprocessar, apenas redirecionar para o dashboard
+    revalidatePath('/', 'layout')
+    return { success: true }
+  }
 
   const papel = resolverPapel(user.email ?? '')
   const serviceClient = await createServiceClient()

@@ -62,14 +62,19 @@ export default function OnboardingPage() {
 
   async function onSubmit(data: OnboardingInput) {
     setSalvando(true)
-    const result = await criarOrganizacaoEAdmin(data)
-    if (!result.success) {
-      toast.error(result.error)
+    try {
+      const result = await criarOrganizacaoEAdmin(data)
+      if (!result.success) {
+        toast.error(result.error)
+        return
+      }
+      toast.success('Organizacao configurada com sucesso!')
+      router.replace('/dashboard')
+    } catch {
+      toast.error('Erro ao configurar organizacao. Tente novamente.')
+    } finally {
       setSalvando(false)
-      return
     }
-    toast.success('Organizacao configurada com sucesso!')
-    router.replace('/dashboard')
   }
 
   function formatarCNPJ(valor: string) {
