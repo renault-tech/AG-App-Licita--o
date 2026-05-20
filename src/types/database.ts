@@ -371,12 +371,51 @@ export interface AcaoIARow {
   tipo_acao: TipoAcaoIA
   provedor: string
   modelo: string
-  tokens_entrada: number
-  tokens_saida: number
+  tokens_entrada: number          // legado: chars, mantido para retrocompatibilidade
+  tokens_saida: number            // legado: chars
+  tokens_entrada_real: number | null
+  tokens_saida_real: number | null
+  chars_entrada: number | null
+  chars_saida: number | null
   creditos_consumidos: number
   input_resumo: string | null
   sucesso: boolean
   erro_mensagem: string | null
+}
+
+export interface RateLimitConfigRow {
+  id: string
+  organizacao_id: string | null
+  usuario_id: string | null
+  escopo: 'org' | 'user' | 'global'
+  perfil: 'conservador' | 'padrao' | 'intenso' | 'personalizado'
+  max_chamadas: number
+  janela_segundos: number
+  modo: 'fixo' | 'adaptativo'
+  ativo: boolean
+  criado_em: string
+}
+
+export interface RateLimitJanelaRow {
+  id: string
+  chave: string
+  chamadas: number
+  janela_inicio: string
+  ultimo_ip: string | null
+  ips_detectados: string[]
+  anomalia_flag: boolean
+  atualizado_em: string
+}
+
+export interface ClausulaAplicadaRow {
+  id: string
+  organizacao_id: string
+  clausula_id: string | null
+  processo_id: string | null
+  acao_ia_id: string | null
+  tokens_economizados: number
+  modo: 'contexto' | 'validacao' | null
+  criado_em: string
 }
 
 export interface NotificacaoRow {
