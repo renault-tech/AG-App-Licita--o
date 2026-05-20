@@ -85,8 +85,9 @@ CREATE POLICY "rate_limit_configs_org" ON rate_limit_configs
   );
 
 -- janelas: acesso via service role apenas (server-side)
-CREATE POLICY "rate_limit_janelas_service" ON rate_limit_janelas
-  FOR ALL USING (true);
+-- service role bypassa RLS por definicao; usuarios comuns nao devem acessar diretamente
+CREATE POLICY "rate_limit_janelas_deny_users" ON rate_limit_janelas
+  FOR ALL USING (false);
 
 CREATE POLICY "clausulas_aplicadas_org" ON clausulas_aplicadas
   FOR ALL USING (
