@@ -100,4 +100,72 @@ describe('verificarRateLimit', () => {
     const result = await verificarRateLimit('org1', 'user1', '1.1.1.1')
     expect(result.permitido).toBe(true)
   })
+
+  it('reduz limite pela metade em modo adaptativo com anomalia', async () => {
+    // Mock que retorna config com modo adaptativo e max_chamadas = 10
+    const configAdaptativo = {
+      max_chamadas: 10,
+      janela_segundos: 3600,
+      modo: 'adaptativo',
+    }
+    const janelaComIPs = {
+      id: 'j1',
+      chamadas: 5,  // 5 de 10 normal, mas 5 de 5 com reducao
+      ips_detectados: ['1.1.1.1', '2.2.2.2'],
+      anomalia_flag: false,
+      janela_inicio: new Date().toISOString(),
+    }
+
+    // Mock customizado com config adaptativo
+    const updateChain = { eq: vi.fn().mockReturnValue({ then: vi.fn() }) }
+    const insertChain = { select: vi.fn().mockReturnValue({ single: vi.fn().mockResolvedValue({ data: null }) }) }
+    const janelaSelectChain = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          gte: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              limit: vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue({ data: janelaComIPs }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    }
+    const configSelectChain = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          or: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              limit: vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue({ data: configAdaptativo }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    }
+    const mockComConfig = {
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'rate_limit_configs') return configSelectChain
+        if (table === 'rate_limit_janelas') {
+          return {
+            ...janelaSelectChain,
+            insert: vi.fn().mockReturnValue(insertChain),
+            update: vi.fn().mockReturnValue(updateChain),
+          }
+        }
+        return {}
+      }),
+    }
+
+    vi.mocked(createClient).mockResolvedValue(mockComConfig as any)
+    const result = await verificarRateLimit('org1', 'user1', '3.3.3.3')
+
+    // Com anomalia (3 IPs) e modo adaptativo, limite cai de 10 para 5
+    // chamadas = 5, maxChamadas reduzido = 5, entao nao e permitido
+    expect(result.anomalia).toBe(true)
+    expect(result.permitido).toBe(false)  // 5 >= 5 (limite reduzido)
+    expect(result.chamadasRestantes).toBe(0)
+  })
 })

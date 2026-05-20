@@ -85,6 +85,7 @@ export async function verificarRateLimit(
     const permitido = janela.chamadas < maxChamadas
     const chamadasRestantes = Math.max(0, maxChamadas - janela.chamadas)
 
+    // Fire-and-forget: falha no contador nao bloqueia a requisicao (fail open intencional)
     ;(supabase as any)
       .from('rate_limit_janelas')
       .update({

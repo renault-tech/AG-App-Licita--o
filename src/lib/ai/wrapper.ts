@@ -50,7 +50,7 @@ export async function executarIAComCreditos(
   if (!rateLimit.permitido) {
     return {
       success: false,
-      error: `Limite de chamadas de IA atingido. Tente novamente apos ${rateLimit.resetEm.toLocaleTimeString('pt-BR')}.`,
+      error: `Limite de chamadas de IA atingido. Tente novamente após ${rateLimit.resetEm.toLocaleTimeString('pt-BR')}.`,
     }
   }
 
