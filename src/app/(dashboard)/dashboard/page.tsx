@@ -116,10 +116,8 @@ function ProcessoRow({ p, href }: { p: any; href: string }) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-4 px-6 py-5 transition-colors group"
+      className="flex items-center gap-4 px-6 py-5 transition-colors group hover:bg-[var(--surfaceAlt)]"
       style={{ borderBottom: '1px solid var(--hairline)' }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surfaceAlt)' }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
     >
       <div
         className="w-10 h-10 rounded-[var(--r-md)] flex items-center justify-center shrink-0"

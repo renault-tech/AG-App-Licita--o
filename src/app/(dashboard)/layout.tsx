@@ -25,16 +25,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const demoSession = await getDemoSession()
 
-  async function handleSairDemo() {
-    'use server'
-    await sairModoDemo()
-  }
-
-  async function handleTrocarPapelDemo(novoPapel: PapelUsuario) {
-    'use server'
-    await trocarPapelDemo(novoPapel)
-  }
-
   const [usuarioComOrgRes, creditosRes, { notificacoes, naoLidas }, papelAtual, contagem] = await Promise.all([
     supabase
       .from('usuarios')
@@ -71,11 +61,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <>
           <DemoBanner
             papelSimulado={demoSession.papelSimulado}
-            onSair={handleSairDemo}
+            onSair={sairModoDemo}
           />
           <DemoPerfilSwitcher
             papelAtual={demoSession.papelSimulado}
-            onTrocar={handleTrocarPapelDemo}
+            onTrocar={trocarPapelDemo}
           />
           <div style={{ paddingTop: 44 }} />
         </>

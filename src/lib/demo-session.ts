@@ -1,4 +1,4 @@
-// src/lib/demo-session.ts
+'use server'
 // Gerencia o estado do Modo Demo via cookies de sessao
 // O modo demo e exclusivo do Admin Master e nao afeta dados reais
 
