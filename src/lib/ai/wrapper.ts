@@ -6,12 +6,18 @@ import type { TipoAcaoIA, UsuarioRow, CreditosUsuarioRow, AcaoIARow } from '@/ty
 import type { AIProvider } from './types'
 import { headers } from 'next/headers'
 import { verificarRateLimit } from './rate-limiter'
+import { buscarClausulasRelevantes, injetarClausulasNoPrompt } from './clausulas-lookup'
 
 export interface RequestIA {
   prompt: string
   tipoAcao: TipoAcaoIA
   processoId?: string
   temperature?: number
+  // Campos opcionais para lookup de clausulas aprendidas
+  documentoTipo?: 'dfd' | 'etp' | 'tr'
+  modalidade?: string
+  categoriaObjeto?: string
+  camposNecessarios?: string[]
 }
 
 export interface ResultadoIA {
@@ -52,6 +58,19 @@ export async function executarIAComCreditos(
       success: false,
       error: `Limite de chamadas de IA atingido. Tente novamente após ${rateLimit.resetEm.toLocaleTimeString('pt-BR')}.`,
     }
+  }
+
+  // Lookup de clausulas aprendidas: enriquecer prompt quando disponivel
+  let promptFinal = params.prompt
+  if (params.documentoTipo && params.camposNecessarios) {
+    const lookup = await buscarClausulasRelevantes(
+      organizacaoId,
+      params.documentoTipo,
+      params.modalidade ?? '',
+      params.categoriaObjeto ?? '',
+      params.camposNecessarios
+    )
+    promptFinal = injetarClausulasNoPrompt(params.prompt, lookup)
   }
 
   const [creditosRaw, orgRaw] = await Promise.all([
@@ -100,7 +119,7 @@ export async function executarIAComCreditos(
 
   try {
     const res = await gerarTextoIA({
-      prompt: params.prompt,
+      prompt: promptFinal,
       temperature,
       provider: providerOverride,
     })
@@ -113,7 +132,7 @@ export async function executarIAComCreditos(
     const envProvider = (process.env.AI_PROVIDER ?? 'gemini') as AIProvider
     if (providerOverride && providerOverride !== envProvider) {
       try {
-        const res = await gerarTextoIA({ prompt: params.prompt, temperature, provider: envProvider })
+        const res = await gerarTextoIA({ prompt: promptFinal, temperature, provider: envProvider })
         texto = res.text
         tokensEntradaReal = res.tokensIn
         tokensSaidaReal = res.tokensOut
