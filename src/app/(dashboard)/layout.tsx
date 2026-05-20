@@ -11,6 +11,8 @@ import { seedClausulasPadrao } from '@/lib/actions/clausulas'
 import { contarNaoLidas } from '@/lib/actions/chat'
 import { getDemoSession, sairModoDemo, trocarPapelDemo } from '@/lib/demo-session'
 import type { PapelUsuario } from '@/types/database'
+import type { ThemeName } from '@/lib/theme/provider'
+import { OrgThemeApplicator } from '@/components/licita/org-theme-applicator'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -36,7 +38,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const [usuarioComOrgRes, creditosRes, { notificacoes, naoLidas }, papelAtual, contagem] = await Promise.all([
     supabase
       .from('usuarios')
-      .select('id, nome_completo, cargo, organizacao_id, organizacoes(nome, cnpj, brasao_url)')
+      .select('id, nome_completo, cargo, organizacao_id, organizacoes(nome, cnpj, brasao_url, tema_padrao)')
       .eq('id', user.id)
       .maybeSingle(),
     (supabase as any).from('creditos_usuario').select('saldo').eq('usuario_id', user.id).maybeSingle(),
@@ -50,7 +52,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     nome_completo?: string
     cargo?: string
     organizacao_id?: string
-    organizacoes?: { nome?: string; cnpj?: string; brasao_url?: string } | null
+    organizacoes?: { nome?: string; cnpj?: string; brasao_url?: string; tema_padrao?: string } | null
   } | null
   const usuario = row
   const org = row?.organizacoes ?? null
@@ -60,8 +62,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     ? { id: row.id, papel: papelAtual, organizacao_id: row.organizacao_id }
     : null
 
+  const temaPadraoOrg = (org as any)?.tema_padrao as ThemeName ?? 'petroleo'
+
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
+      <OrgThemeApplicator temaOrg={temaPadraoOrg} />
       {demoSession.ativo && demoSession.papelSimulado && (
         <>
           <DemoBanner

@@ -21,6 +21,8 @@ function cnpjValido(cnpj: string): boolean {
   return calc(12) === parseInt(s[12]) && calc(13) === parseInt(s[13])
 }
 
+const TEMAS_VALIDOS = ['petroleo', 'grafite', 'brasao', 'noite', 'cataguases'] as const
+
 export const schemaOrganizacao = z.object({
   nome: z.string().min(3, 'Nome deve ter ao menos 3 caracteres').max(200),
   cnpj: z
@@ -32,6 +34,7 @@ export const schemaOrganizacao = z.object({
   estado: z.enum(ESTADOS_BR, { message: 'Estado invalido' }),
   cabecalho_institucional: z.string().max(500).optional(),
   rodape_institucional: z.string().max(500).optional(),
+  tema_padrao: z.enum(TEMAS_VALIDOS).optional(),
 })
 
 export type OrganizacaoInput = z.infer<typeof schemaOrganizacao>

@@ -1,0 +1,157 @@
+/* eslint-disable @next/next/no-img-element */
+'use client'
+
+import { Brasao } from '@/components/licita/brasao'
+import type { ThemeName } from '@/lib/theme/provider'
+
+interface AuthLayoutClientProps {
+  children: React.ReactNode
+  brasaoUrl: string | null
+  orgNome: string | null
+  temaPadrao: string
+}
+
+export default function AuthLayoutClient({
+  children,
+  brasaoUrl,
+  orgNome,
+  temaPadrao,
+}: AuthLayoutClientProps) {
+  const navyDeep = '#112239'
+  const gold     = '#D4A020'
+  const goldSoft = '#E8C060'
+  const cream    = '#F5F0E0'
+
+  // Brasao: imagem da org ou SVG padrao
+  const logoSection = brasaoUrl ? (
+    <img
+      src={brasaoUrl}
+      alt={orgNome ? `Logo ${orgNome}` : 'Logo da Prefeitura'}
+      className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+      style={{ transform: 'scale(1.8)' }}
+    />
+  ) : (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <Brasao size={160} theme={(temaPadrao as ThemeName) ?? 'petroleo'} />
+    </div>
+  )
+
+  // Versao mobile do logo
+  const logoMobile = brasaoUrl ? (
+    <img
+      src={brasaoUrl}
+      alt={orgNome ? `Logo ${orgNome}` : 'Logo da Prefeitura'}
+      className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+      style={{ transform: 'scale(1.8)' }}
+    />
+  ) : (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <Brasao size={120} theme={(temaPadrao as ThemeName) ?? 'petroleo'} />
+    </div>
+  )
+
+  return (
+    <div className="min-h-screen flex" style={{ background: '#EDE8D8' }}>
+      {/* Painel esquerdo: identidade institucional */}
+      <div
+        className="hidden lg:flex lg:w-[440px] xl:w-[500px] shrink-0 flex-col"
+        style={{ background: navyDeep, position: 'relative', overflow: 'hidden' }}
+      >
+        {/* Linha dourada decorativa no topo */}
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${gold}, ${goldSoft}, ${gold})` }} />
+
+        <div className="flex-1 flex flex-col justify-between p-10 xl:p-12 relative z-10">
+          {/* Topo: logo + nome plataforma */}
+          <div className="flex items-center gap-3">
+            <div
+              className="rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', width: 38, height: 38 }}
+            >
+              <span className="text-white font-bold text-sm" style={{ fontFamily: 'var(--font-inter)' }}>LI</span>
+            </div>
+            <div>
+              <span
+                className="text-lg font-bold tracking-tight"
+                style={{ color: cream, fontFamily: 'var(--font-newsreader)' }}
+              >
+                LicitaIA
+              </span>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] mt-0.5" style={{ color: gold }}>
+                Lei 14.133/21
+              </p>
+            </div>
+          </div>
+
+          {/* Centro: logo da prefeitura (dinamica) */}
+          <div className="flex-1 w-full relative min-h-0 my-8">
+            {logoSection}
+          </div>
+
+          {/* Rodape: descricao + bullets */}
+          <div className="shrink-0 flex flex-col items-start space-y-8">
+            <p
+              className="text-[13.5px] leading-relaxed max-w-[300px]"
+              style={{ color: 'rgba(245,240,224,0.65)', fontFamily: 'var(--font-inter)' }}
+            >
+              Plataforma de automacao de processos licitatorios. Do DFD ao edital, com auxilio de inteligencia artificial.
+            </p>
+
+            <div className="space-y-2.5">
+              {[
+                'Conformidade com a Lei 14.133/21',
+                'Geracao assistida por IA',
+                'Fluxo completo de tramitacao',
+              ].map(item => (
+                <div key={item} className="flex items-center gap-2.5">
+                  <div className="rounded-full shrink-0" style={{ width: 5, height: 5, background: gold }} />
+                  <span className="text-sm" style={{ color: 'rgba(245,240,224,0.60)' }}>{item}</span>
+                </div>
+              ))}
+              <p className="text-[11px] mt-4 pt-4" style={{ color: 'rgba(245,240,224,0.25)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                &copy; {new Date().getFullYear()} LicitaIA
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Linha dourada decorativa no rodape */}
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${gold}, ${goldSoft}, ${gold})` }} />
+      </div>
+
+      {/* Painel direito: formulario */}
+      <div
+        className="flex-1 flex items-center justify-center px-6 py-12"
+        style={{ zoom: 'var(--zoom-level, 1)' }}
+      >
+        <div className="w-full max-w-md">
+          {/* Logo mobile */}
+          <div className="lg:hidden flex flex-col items-center mb-10 gap-6">
+            <div className="w-full h-[200px] relative">
+              {logoMobile}
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2.5">
+                <div
+                  className="rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: navyDeep, width: 32, height: 32 }}
+                >
+                  <span className="text-white font-bold text-xs">LI</span>
+                </div>
+                <span
+                  className="text-lg font-bold tracking-tight"
+                  style={{ color: navyDeep, fontFamily: 'var(--font-newsreader)' }}
+                >
+                  LicitaIA
+                </span>
+              </div>
+              <p className="text-[10px] font-semibold text-center uppercase tracking-[0.18em] mt-1" style={{ color: gold }}>
+                Lei 14.133/21
+              </p>
+            </div>
+          </div>
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
