@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, BookOpen, Bot, Building2, Users,
-  HelpCircle, Settings2, Coins,
+  HelpCircle, Settings2, Coins, BarChart2,
 } from 'lucide-react'
 
 const NAV = [
@@ -25,6 +25,12 @@ const NAV = [
     label: 'Gestao de IA',
     icon: Bot,
     tooltip: 'Monitore consumo de tokens por provedor, curva de aprendizado e economia acumulada de recursos.',
+  },
+  {
+    href: '/admin/observabilidade',
+    label: 'Observabilidade',
+    icon: BarChart2,
+    tooltip: 'Graficos de consumo de tokens, economia por clausulas aprendidas e anomalias de rate limiting.',
   },
   {
     href: '/admin/organizacoes',
