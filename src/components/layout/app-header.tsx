@@ -17,6 +17,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { Notificacao } from '@/lib/actions/notificacoes'
+import { LABEL_PAPEL, COR_PAPEL } from '@/lib/permissions'
+import type { PapelUsuario } from '@/types/database'
 
 interface AppHeaderProps {
   orgNome: string
@@ -150,6 +152,20 @@ export function AppHeader({
           <ThemeSwitcherPanel open={themePanelOpen} onClose={() => setThemePanelOpen(false)} />
         </div>
 
+        {/* Pill de papel ativo */}
+        {papel && LABEL_PAPEL[papel as PapelUsuario] && (
+          <div
+            className="hidden sm:flex items-center px-2.5 py-1 rounded-[var(--r-pill)] text-[11px] font-semibold shrink-0"
+            style={{
+              background: `${COR_PAPEL[papel as PapelUsuario]}18`,
+              color: COR_PAPEL[papel as PapelUsuario],
+              border: `1px solid ${COR_PAPEL[papel as PapelUsuario]}35`,
+            }}
+          >
+            {LABEL_PAPEL[papel as PapelUsuario]}
+          </div>
+        )}
+
         {/* Avatar + dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-full outline-none group">
@@ -165,6 +181,18 @@ export function AppHeader({
             <div className="px-4 py-3 border-b border-hairline">
               <p className="text-[15px] font-semibold text-ink truncate">{nomeUsuario ?? 'Usuario'}</p>
               {cargo && <p className="text-sm text-muted truncate">{cargo}</p>}
+              {papel && LABEL_PAPEL[papel as PapelUsuario] && (
+                <span
+                  className="inline-flex mt-1.5 px-2 py-0.5 rounded-[var(--r-pill)] text-[11px] font-semibold"
+                  style={{
+                    background: `${COR_PAPEL[papel as PapelUsuario]}18`,
+                    color: COR_PAPEL[papel as PapelUsuario],
+                    border: `1px solid ${COR_PAPEL[papel as PapelUsuario]}35`,
+                  }}
+                >
+                  {LABEL_PAPEL[papel as PapelUsuario]}
+                </span>
+              )}
             </div>
             {saldoCreditos !== null && saldoCreditos !== undefined && (
               <div className="px-4 py-2.5 border-b border-hairline">
