@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -31,7 +30,6 @@ const ESTADOS_NOMES: Record<string, string> = {
 }
 
 export default function OnboardingPage() {
-  const router = useRouter()
   const [etapa, setEtapa] = useState<1 | 2>(1)
   const [salvando, setSalvando] = useState(false)
 
@@ -69,7 +67,8 @@ export default function OnboardingPage() {
         return
       }
       toast.success('Organizacao configurada com sucesso!')
-      router.replace('/dashboard')
+      // Hard reload garante dados frescos do banco apos criacao via serviceClient
+      window.location.replace('/dashboard')
     } catch {
       toast.error('Erro ao configurar organizacao. Tente novamente.')
     } finally {
