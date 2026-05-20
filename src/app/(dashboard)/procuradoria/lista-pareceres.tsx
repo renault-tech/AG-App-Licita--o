@@ -89,7 +89,7 @@ function ItemParecer({
         <p className="font-semibold text-sm truncate" style={{ color: 'var(--ink)' }}>
           {item.processo.numero_processo && (
             <span className="font-normal mr-1" style={{ color: 'var(--muted)' }}>
-              {item.processo.numero_processo} —
+              {item.processo.numero_processo} -
             </span>
           )}
           {item.processo.objeto}

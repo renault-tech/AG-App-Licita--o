@@ -143,10 +143,8 @@ export default async function ProcessosPage() {
               return (
                 <div
                   key={p.id}
-                  className="flex items-center gap-2 px-6 py-5 transition-colors group"
+                  className="flex items-center gap-2 px-6 py-5 transition-colors group hover:bg-[var(--surfaceAlt)]"
                   style={{ borderBottom: '1px solid var(--hairline)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surfaceAlt)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                 >
                   <Link href={`/processos/${p.id}/dfd`} className="flex items-center gap-4 flex-1 min-w-0">
                     <div
@@ -157,7 +155,7 @@ export default async function ProcessosPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-                        {p.numero_processo ? `${p.numero_processo} — ` : ''}{p.objeto}
+                        {p.numero_processo ? `${p.numero_processo} - ` : ''}{p.objeto}
                       </p>
                       <div className="flex items-center gap-2.5 mt-1 flex-wrap">
                         <span className="text-sm" style={{ color: 'var(--muted)' }}>{modalidade}</span>

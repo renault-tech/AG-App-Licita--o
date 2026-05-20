@@ -127,7 +127,7 @@ function ProcessoRow({ p, href }: { p: any; href: string }) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-          {p.numero_processo ? `${p.numero_processo} — ` : ''}{p.objeto}
+          {p.numero_processo ? `${p.numero_processo} - ` : ''}{p.objeto}
         </p>
         <div className="flex items-center gap-2.5 mt-1 flex-wrap">
           <span className="text-sm" style={{ color: 'var(--muted)' }}>{modalidade}</span>
@@ -453,17 +453,15 @@ async function DashboardProcurador({
                 <Link
                   key={par.id}
                   href={`/processos/${par.processo_id}/parecer`}
-                  className="flex items-center gap-4 px-6 py-4 transition-colors"
+                  className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-[var(--surfaceAlt)]"
                   style={{ borderBottom: '1px solid var(--hairline)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surfaceAlt)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                 >
                   <div className="w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center shrink-0" style={{ background: 'var(--accentWash)' }}>
                     <Scale className="w-4 h-4" style={{ color: 'var(--accent)' }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-                      {proc.numero_processo ? `${proc.numero_processo} — ` : ''}{proc.objeto}
+                      {proc.numero_processo ? `${proc.numero_processo} - ` : ''}{proc.objeto}
                     </p>
                     <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
                   </div>
@@ -489,17 +487,15 @@ async function DashboardProcurador({
                 <Link
                   key={par.id}
                   href={`/processos/${par.processo_id}/parecer`}
-                  className="flex items-center gap-4 px-6 py-4 transition-colors"
+                  className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-[var(--surfaceAlt)]"
                   style={{ borderBottom: '1px solid var(--hairline)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surfaceAlt)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                 >
                   <div className="w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center shrink-0" style={{ background: 'var(--successWash)' }}>
                     <CheckCircle2 className="w-4 h-4" style={{ color: 'var(--success)' }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-                      {proc.numero_processo ? `${proc.numero_processo} — ` : ''}{proc.objeto}
+                      {proc.numero_processo ? `${proc.numero_processo} - ` : ''}{proc.objeto}
                     </p>
                     <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
                   </div>
@@ -554,17 +550,15 @@ async function DashboardAutoridadeCompetente({
     return (
       <Link
         href={`/processos/${aut.processo_id}/autorizacao`}
-        className="flex items-center gap-4 px-6 py-4 transition-colors"
+        className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-[var(--surfaceAlt)]"
         style={{ borderBottom: '1px solid var(--hairline)' }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surfaceAlt)' }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
       >
         <div className="w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
           <Icon className="w-4 h-4" style={{ color: iconColor }} />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-            {proc.numero_processo ? `${proc.numero_processo} — ` : ''}{proc.objeto}
+            {proc.numero_processo ? `${proc.numero_processo} - ` : ''}{proc.objeto}
           </p>
           <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
         </div>
@@ -853,17 +847,15 @@ async function DashboardPublicacao({
                 <Link
                   key={pub.id}
                   href={`/processos/${pub.processo_id}/publicacao`}
-                  className="flex items-center gap-4 px-6 py-4 transition-colors"
+                  className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-[var(--surfaceAlt)]"
                   style={{ borderBottom: '1px solid var(--hairline)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surfaceAlt)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                 >
                   <div className="w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center shrink-0" style={{ background: 'var(--successWash)' }}>
                     <Globe className="w-4 h-4" style={{ color: 'var(--success)' }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-                      {proc.numero_processo ? `${proc.numero_processo} — ` : ''}{proc.objeto}
+                      {proc.numero_processo ? `${proc.numero_processo} - ` : ''}{proc.objeto}
                     </p>
                     <div className="flex items-center gap-2.5 mt-0.5 flex-wrap">
                       <span className="text-sm" style={{ color: 'var(--muted)' }}>
@@ -900,8 +892,6 @@ async function DashboardAdminPlataforma({
   primeiroNome: string; saudacao: string
 }) {
   const service = await createServiceClient()
-  const supabase = await createClient()
-
   const dataInicio30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
   const [
