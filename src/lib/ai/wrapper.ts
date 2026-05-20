@@ -82,6 +82,8 @@ export async function executarIAComCreditos(
   let sucesso = false
   let erroMensagem: string | null = null
   let creditosDebitar = 1
+  let tokensEntradaReal: number | null = null
+  let tokensSaidaReal: number | null = null
 
   try {
     const res = await gerarTextoIA({
@@ -90,6 +92,8 @@ export async function executarIAComCreditos(
       provider: providerOverride,
     })
     texto = res.text
+    tokensEntradaReal = res.tokensIn
+    tokensSaidaReal = res.tokensOut
     sucesso = true
   } catch (err) {
     // Se org tem provider configurado e falhou, tentar o provider padrao do env como fallback
@@ -98,6 +102,8 @@ export async function executarIAComCreditos(
       try {
         const res = await gerarTextoIA({ prompt: params.prompt, temperature, provider: envProvider })
         texto = res.text
+        tokensEntradaReal = res.tokensIn
+        tokensSaidaReal = res.tokensOut
         sucesso = true
       } catch (err2) {
         erroMensagem = err2 instanceof Error ? err2.message : 'Falha de comunicação com o provedor de IA.'
@@ -121,8 +127,8 @@ export async function executarIAComCreditos(
       modelo: modeloUsado,
       tokens_entrada: params.prompt.length,
       tokens_saida: texto.length,
-      tokens_entrada_real: null,
-      tokens_saida_real: null,
+      tokens_entrada_real: tokensEntradaReal,
+      tokens_saida_real: tokensSaidaReal,
       chars_entrada: params.prompt.length,
       chars_saida: texto.length,
       creditos_consumidos: creditosDebitar,
