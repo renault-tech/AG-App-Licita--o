@@ -89,7 +89,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       >
         {children}
       </main>
-      {papelAtual && <DemoSwitcher papelAtual={papelAtual as PapelUsuario} />}
+      {demoSession.ativo && papelAtual && <DemoSwitcher papelAtual={papelAtual as PapelUsuario} />}
       {usuarioChat && (
         <ChatPanel
           usuarioId={usuarioChat.id}

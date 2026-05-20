@@ -291,27 +291,52 @@ async function DashboardSetorLicitacao({
 }) {
   const supabase = await createClient()
 
-  const { data: todosProcessos } = await supabase
-    .from('processos_licitatorios')
-    .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at, cotacao_pendente')
-    .eq('organizacao_id', organizacaoId)
-    .order('created_at', { ascending: false })
+  const [
+    { data: naMinhaFase },
+    { data: emProcuradoria },
+    { data: devolvidos },
+    { count: totalPublicados },
+    { data: avisosAbertosData },
+  ] = await Promise.all([
+    supabase
+      .from('processos_licitatorios')
+      .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at')
+      .eq('organizacao_id', organizacaoId)
+      .eq('fase_atual', 'setor_licitacao')
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('processos_licitatorios')
+      .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at')
+      .eq('organizacao_id', organizacaoId)
+      .eq('fase_atual', 'procurador')
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('processos_licitatorios')
+      .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at')
+      .eq('organizacao_id', organizacaoId)
+      .eq('fase_atual', 'setor_licitacao')
+      .eq('status', 'em_revisao')
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('processos_licitatorios')
+      .select('id', { count: 'exact', head: true })
+      .eq('organizacao_id', organizacaoId)
+      .eq('status', 'publicado'),
+    (supabase as any)
+      .from('avisos_compra_conjunta')
+      .select('id')
+      .eq('organizacao_id', organizacaoId)
+      .eq('status', 'aberto'),
+  ])
 
-  const { data: avisosAbertosData } = await (supabase as any)
-    .from('avisos_compra_conjunta')
-    .select('id')
-    .eq('organizacao_id', organizacaoId)
-    .eq('status', 'aberto')
-
+  const fila               = (naMinhaFase as any[] | null) ?? []
+  const paraProcuradoria   = (emProcuradoria as any[] | null) ?? []
+  const devolvidosList     = (devolvidos as any[] | null) ?? []
   const totalAvisosAbertos = (avisosAbertosData as any[] | null ?? []).length
-  const processos = (todosProcessos as any[] | null) ?? []
-  const ativos    = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao')
-  const arquivo   = processos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado')
-  const emRevisao = processos.filter((p: any) => p.status === 'em_revisao').length
-  const orgSub    = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
+  const orgSub             = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
 
-  const valorTotalAtivo = ativos.reduce((s: number, p: any) => s + (Number(p.valor_estimado) || 0), 0)
-  const cotacaoPendente = processos.filter((p: any) => p.cotacao_pendente && (p.status === 'rascunho' || p.status === 'em_revisao'))
+  const valorFila = fila.reduce((s: number, p: any) => s + (Number(p.valor_estimado) || 0), 0)
 
   return (
     <div className="space-y-8">
@@ -322,9 +347,10 @@ async function DashboardSetorLicitacao({
         action={<NewButton label="Novo Processo" href="/processos/novo" />}
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-5">
+      {/* Alertas de ação */}
+      <div className="space-y-2">
         {totalAvisosAbertos > 0 && (
-          <Link href="/processos/aviso-compra-conjunta/novo" className="col-span-2 lg:col-span-5">
+          <Link href="/processos/aviso-compra-conjunta/novo">
             <div
               className="flex items-center gap-3 p-4 rounded-[var(--r-md)] border cursor-pointer transition-opacity hover:opacity-80"
               style={{ background: 'var(--warnWash)', borderColor: 'var(--warn)' + '40' }}
@@ -342,53 +368,47 @@ async function DashboardSetorLicitacao({
             </div>
           </Link>
         )}
-        {cotacaoPendente.length > 0 && (
-          <div className="col-span-2 lg:col-span-5 flex items-center gap-3 p-4 rounded-[var(--r-md)] border"
-            style={{ background: 'var(--primaryWash)', borderColor: 'var(--primary)' + '40' }}
+        {devolvidosList.length > 0 && (
+          <div
+            className="flex items-center gap-3 p-4 rounded-[var(--r-md)] border"
+            style={{ background: 'var(--dangerWash)', borderColor: 'var(--danger)' + '40' }}
           >
-            <div className="w-9 h-9 rounded-[var(--r-sm)] flex items-center justify-center shrink-0" style={{ background: 'var(--primary)' + '20' }}>
-              <AlertCircle className="w-4 h-4" style={{ color: 'var(--primary)' }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold" style={{ color: 'var(--primary)' }}>
-                {cotacaoPendente.length} processo{cotacaoPendente.length !== 1 ? 's' : ''} com cotação de preços pendente
-              </p>
-              <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                A pesquisa de preços é obrigatória antes da elaboração do ETP (Art. 23, Lei 14.133/21)
-              </p>
-            </div>
+            <AlertCircle className="w-4 h-4 shrink-0" style={{ color: 'var(--danger)' }} />
+            <p className="text-sm font-semibold" style={{ color: 'var(--danger)' }}>
+              {devolvidosList.length} processo{devolvidosList.length !== 1 ? 's' : ''} devolvido{devolvidosList.length !== 1 ? 's' : ''} para correção
+            </p>
           </div>
         )}
-        <KPICard label="Processos"          value={processos.length}    sub="Total na organização"   icon={<FileText className="w-5 h-5" />} />
-        <KPICard label="Em Elaboração"      value={ativos.length}       sub="Em andamento"            icon={<Clock className="w-5 h-5" />}    accent />
-        <KPICard label="Em Revisão"         value={emRevisao}           sub="Aguardando análise"      icon={<Filter className="w-5 h-5" />} />
-        <KPICard label="Publicados"         value={arquivo.length}      sub="Concluídos"              icon={<CheckCircle className="w-5 h-5" />} />
-        <KPICard label="Valor em Elaboração" value={valorTotalAtivo > 0 ? formatarMoeda(valorTotalAtivo) : '—'} sub="Soma dos processos ativos" icon={<FileText className="w-5 h-5" />} />
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        <KPICard label="Na Minha Fila"   value={fila.length}           sub="Aguardando minha ação"   icon={<Filter className="w-5 h-5" />}    accent />
+        <KPICard label="Em Procuradoria" value={paraProcuradoria.length} sub="Encaminhados para parecer" icon={<Scale className="w-5 h-5" />} />
+        <KPICard label="Publicados"      value={totalPublicados ?? 0}  sub="Processos concluídos"     icon={<CheckCircle className="w-5 h-5" />} />
+        <KPICard label="Valor na Fila"   value={valorFila > 0 ? formatarMoeda(valorFila) : '—'} sub="Soma dos processos ativos" icon={<FileText className="w-5 h-5" />} />
       </div>
 
       <ListCard
-        title="Em Andamento"
-        subtitle="Processos em elaboração ou revisão"
+        title="Processos na Minha Fila"
+        subtitle="Processos em fase de licitações aguardando elaboração do edital ou encaminhamento"
         action={
-          processos.length > 0 ? (
-            <Link href="/processos/novo">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}>
-                <PlusCircle className="w-3.5 h-3.5" /> Novo
-              </Button>
-            </Link>
-          ) : undefined
+          <Link href="/processos/novo">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}>
+              <PlusCircle className="w-3.5 h-3.5" /> Novo
+            </Button>
+          </Link>
         }
       >
-        {ativos.length === 0 ? (
-          <EmptyState icon={Gavel} title="Nenhum processo em andamento" body="Todos os processos foram concluídos ou nenhum foi iniciado ainda." />
+        {fila.length === 0 ? (
+          <EmptyState icon={CheckCircle2} title="Fila vazia" body="Nenhum processo aguardando ação do setor de licitações no momento." />
         ) : (
-          <div>{ativos.map((p: any) => <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/dfd`} />)}</div>
+          <div>{fila.map((p: any) => <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/edital`} />)}</div>
         )}
       </ListCard>
 
-      {arquivo.length > 0 && (
-        <ListCard title="Arquivo" subtitle="Processos publicados ou concluídos">
-          <div>{arquivo.map((p: any) => <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/publicacao`} />)}</div>
+      {paraProcuradoria.length > 0 && (
+        <ListCard title="Enviados para Procuradoria" subtitle="Processos encaminhados para parecer jurídico (Art. 53, Lei 14.133/21)">
+          <div>{paraProcuradoria.map((p: any) => <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/edital`} />)}</div>
         </ListCard>
       )}
 
@@ -620,70 +640,134 @@ async function DashboardAdmin({
   org: any; saldo: number; primeiroNome: string; saudacao: string; organizacaoId: string
 }) {
   const supabase = await createClient()
-
-  const { data: todosProcessos } = await supabase
-    .from('processos_licitatorios')
-    .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at')
-    .eq('organizacao_id', organizacaoId)
-    .order('created_at', { ascending: false })
-
-  const processos   = (todosProcessos as any[] | null) ?? []
-  const emAndamento = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao').length
-  const publicados  = processos.filter((p: any) => p.status === 'publicado').length
-  const arquivo     = processos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado')
-  const orgSub      = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
-
-  const ativos = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao')
-  const valorTotalAtivo = ativos.reduce((s: number, p: any) => s + (Number(p.valor_estimado) || 0), 0)
-
   const dataInicio30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-  const { count: acoesIA30d } = await (supabase as any)
-    .from('acoes_ia')
-    .select('id', { count: 'exact', head: true })
-    .eq('organizacao_id', organizacaoId)
-    .gte('created_at', dataInicio30d)
+
+  const [
+    { count: totalUsuarios },
+    { count: totalSecretarias },
+    { data: processosData },
+    { count: acoesIA30d },
+    { data: gargalosData },
+  ] = await Promise.all([
+    (supabase as any).from('usuarios').select('id', { count: 'exact', head: true }).eq('organizacao_id', organizacaoId),
+    (supabase as any).from('secretarias').select('id', { count: 'exact', head: true }).eq('organizacao_id', organizacaoId),
+    supabase.from('processos_licitatorios')
+      .select('id, status, fase_atual, valor_estimado, created_at')
+      .eq('organizacao_id', organizacaoId),
+    (supabase as any).from('acoes_ia').select('id', { count: 'exact', head: true })
+      .eq('organizacao_id', organizacaoId)
+      .gte('created_at', dataInicio30d),
+    supabase.from('processos_licitatorios')
+      .select('id, objeto, numero_processo, modalidade, fase_atual')
+      .eq('organizacao_id', organizacaoId)
+      .in('status', ['rascunho', 'em_revisao'])
+      .order('created_at', { ascending: false })
+      .limit(20),
+  ])
+
+  const processos = (processosData as any[] | null) ?? []
+  const gargalos  = (gargalosData as any[] | null) ?? []
+  const orgSub    = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
+
+  const porFase: Record<string, number> = {}
+  gargalos.forEach((p: any) => {
+    const fase = p.fase_atual || 'sem_fase'
+    porFase[fase] = (porFase[fase] ?? 0) + 1
+  })
+
+  const emAndamento     = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao').length
+  const publicados      = processos.filter((p: any) => p.status === 'publicado').length
+  const valorEmAndamento = processos
+    .filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao')
+    .reduce((s: number, p: any) => s + (Number(p.valor_estimado) || 0), 0)
+
+  const FASE_LABEL: Record<string, string> = {
+    requisitante:   'Requisitante',
+    setor_compras:  'Setor de Compras',
+    setor_licitacao:'Setor de Licitações',
+    procurador:     'Procuradoria',
+    gestor_publico: 'Gestor/Prefeito',
+    publicacao:     'Publicação',
+    sem_fase:       'Sem fase definida',
+  }
+
+  const atalhos = [
+    { href: '/configuracoes/usuarios',     icon: Users,     label: 'Usuários',     sub: `${totalUsuarios ?? 0} cadastrados` },
+    { href: '/configuracoes/secretarias',  icon: Building2, label: 'Secretarias',  sub: `${totalSecretarias ?? 0} cadastradas` },
+    { href: '/configuracoes/organizacao',  icon: ShieldCheck, label: 'Organização', sub: 'Dados e configurações' },
+    { href: '/creditos',                   icon: Zap,       label: 'Créditos IA',  sub: `${saldo} créditos disponíveis` },
+  ]
 
   return (
     <div className="space-y-8">
       <SectionHeader
-        supTitle="Painel de Controle"
+        supTitle="Administração"
         title={`${saudacao}, ${primeiroNome}.`}
         subtitle={orgSub}
         action={<NewButton label="Novo Processo" href="/processos/novo" />}
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-5">
-        <KPICard label="Processos"     value={processos.length} sub="Total criados"             icon={<FileText className="w-5 h-5" />} />
-        <KPICard label="Em Elaboração" value={emAndamento}      sub="Em andamento"               icon={<Clock className="w-5 h-5" />}    accent />
-        <KPICard label="Publicados"    value={publicados}       sub={`de ${arquivo.length} concluídos`} icon={<CheckCircle className="w-5 h-5" />} />
-        <KPICard label="Créditos IA"   value={saldo}            sub={`${acoesIA30d ?? 0} ações nos últimos 30 dias`} icon={<Zap className="w-5 h-5" />} />
-        <KPICard label="Valor em Elaboração" value={valorTotalAtivo > 0 ? formatarMoeda(valorTotalAtivo) : '—'} sub="Soma dos processos ativos" icon={<FileText className="w-5 h-5" />} />
+      {/* KPIs gerenciais */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        <KPICard label="Processos Ativos"   value={emAndamento}    sub="Em elaboração ou revisão"   icon={<Clock className="w-5 h-5" />}       accent />
+        <KPICard label="Publicados"         value={publicados}     sub="Processos concluídos"        icon={<CheckCircle className="w-5 h-5" />}       />
+        <KPICard label="Ações de IA (30d)"  value={acoesIA30d ?? 0} sub="Últimos 30 dias"           icon={<Zap className="w-5 h-5" />}               />
+        <KPICard label="Valor em Andamento" value={valorEmAndamento > 0 ? formatarMoeda(valorEmAndamento) : '—'} sub="Soma dos processos ativos" icon={<FileText className="w-5 h-5" />} />
       </div>
 
-      <ListCard
-        title="Processos Licitatórios"
-        subtitle="Todos os processos da organização"
-        action={
-          processos.length > 0 ? (
-            <Link href="/processos/novo">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}>
-                <PlusCircle className="w-3.5 h-3.5" /> Novo
+      {/* Atalhos de configuração */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {atalhos.map(({ href, icon: Icon, label, sub }) => (
+          <Link key={href} href={href}>
+            <div
+              className="flex items-center gap-3 p-4 rounded-[var(--r-lg)] border cursor-pointer transition-colors hover:bg-[var(--surfaceAlt)]"
+              style={{ background: 'var(--surface)', borderColor: 'var(--hairline)' }}
+            >
+              <div className="w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center shrink-0" style={{ background: 'var(--primaryWash)' }}>
+                <Icon className="w-4 h-4" style={{ color: 'var(--primary)' }} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold truncate" style={{ color: 'var(--ink)' }}>{label}</p>
+                <p className="text-[11px] truncate" style={{ color: 'var(--muted)' }}>{sub}</p>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 shrink-0 ml-auto" style={{ color: 'var(--mutedSoft)' }} />
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* Gargalos por fase */}
+      {gargalos.length > 0 && (
+        <ListCard
+          title="Processos por Fase"
+          subtitle="Processos em andamento agrupados por etapa do fluxo"
+          action={
+            <Link href="/processos">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" style={{ borderColor: 'var(--hairline)', color: 'var(--inkSoft)' }}>
+                Ver todos <ArrowRight className="w-3 h-3" />
               </Button>
             </Link>
-          ) : undefined
-        }
-      >
-        {processos.length === 0 ? (
-          <EmptyState
-            icon={Gavel}
-            title="Nenhum processo ainda"
-            body='Clique em "Novo Processo" para iniciar a elaboração do primeiro processo licitatório.'
-            cta={<NewButton label="Criar primeiro processo" href="/processos/novo" />}
-          />
-        ) : (
-          <div>{processos.map((p: any) => <ProcessoRow key={p.id} p={p} href={`/processos/${p.id}/dfd`} />)}</div>
-        )}
-      </ListCard>
+          }
+        >
+          <div className="px-6 py-4 grid grid-cols-2 lg:grid-cols-3 gap-3">
+            {Object.entries(porFase).map(([fase, qtd]) => (
+              <div
+                key={fase}
+                className="flex items-center justify-between px-3 py-2.5 rounded-[var(--r-md)] border"
+                style={{ background: 'var(--surfaceAlt)', borderColor: 'var(--hairline)' }}
+              >
+                <span className="text-sm" style={{ color: 'var(--inkSoft)' }}>{FASE_LABEL[fase] ?? fase}</span>
+                <span
+                  className="text-sm font-bold ml-2"
+                  style={{ color: qtd >= 3 ? 'var(--danger)' : qtd >= 2 ? 'var(--warn)' : 'var(--ink)' }}
+                >
+                  {qtd}
+                </span>
+              </div>
+            ))}
+          </div>
+        </ListCard>
+      )}
 
       {saldo < 10 && <SaldoBaixoAlert saldo={saldo} />}
     </div>
