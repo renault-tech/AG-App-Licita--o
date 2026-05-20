@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { gerarTextoIA, getProviderInfo } from './client'
 import type { TipoAcaoIA, UsuarioRow, CreditosUsuarioRow, AcaoIARow } from '@/types/database'
 import type { AIProvider } from './types'
+import { headers } from 'next/headers'
+import { verificarRateLimit } from './rate-limiter'
 
 export interface RequestIA {
   prompt: string
@@ -40,6 +42,17 @@ export async function executarIAComCreditos(
   if (!usuario) return { success: false, error: 'Perfil de usuário não encontrado.' }
 
   const organizacaoId = usuario.organizacao_id
+
+  // Rate limiting: verificar antes de qualquer chamada a IA
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '0.0.0.0'
+  const rateLimit = await verificarRateLimit(organizacaoId, user.id, ip)
+  if (!rateLimit.permitido) {
+    return {
+      success: false,
+      error: `Limite de chamadas de IA atingido. Tente novamente apos ${rateLimit.resetEm.toLocaleTimeString('pt-BR')}.`,
+    }
+  }
 
   const [creditosRaw, orgRaw] = await Promise.all([
     supabase
