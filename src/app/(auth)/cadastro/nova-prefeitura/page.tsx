@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { Loader2, Building2, ChevronLeft, Search } from 'lucide-react'
+import { Loader2, Building2, ChevronLeft, Search, AlertCircle, UserPlus, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -29,6 +29,7 @@ export default function NovaPrefeituraPage() {
   const [nomePref, setNomePref] = useState('')
   const [carregando, setCarregando] = useState(false)
   const [concluido, setConcluido] = useState(false)
+  const [cnpjJaExiste, setCnpjJaExiste] = useState(false)
 
   useEffect(() => {
     if (termoBusca.length < 2) { setSugestoes([]); return }
@@ -47,6 +48,7 @@ export default function NovaPrefeituraPage() {
     setNomePref(nomePrefeitura(m))
     setMostrarSugestoes(false)
     setTermoBusca('')
+    setCnpjJaExiste(false)
     setPasso(2)
   }
 
@@ -55,7 +57,7 @@ export default function NovaPrefeituraPage() {
     return nums.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const cnpjNums = cnpj.replace(/\D/g, '')
     if (cnpjNums.length !== 14) { toast.error('CNPJ deve ter 14 digitos.'); return }
@@ -72,7 +74,11 @@ export default function NovaPrefeituraPage() {
     })
 
     if (!resultado.success) {
-      toast.error(resultado.error ?? 'Erro ao cadastrar.')
+      if (resultado.codigoErro === 'cnpj_existente') {
+        setCnpjJaExiste(true)
+      } else {
+        toast.error(resultado.error ?? 'Erro ao cadastrar.')
+      }
       setCarregando(false)
       return
     }
@@ -91,6 +97,50 @@ export default function NovaPrefeituraPage() {
             O cadastro de {nomePref} foi enviado. Confirme seu e-mail e aguarde a ativacao pelo administrador da plataforma.
           </p>
           <Link href="/login" className="text-sm font-semibold hover:underline">Voltar ao login</Link>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (cnpjJaExiste) {
+    return (
+      <Card className="shadow-lg border-0">
+        <CardContent className="pt-8 pb-6 space-y-5">
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold">Prefeitura ja cadastrada</p>
+              <p className="text-sm mt-1">
+                {nomePref ? `${nomePref} ja` : 'Esta prefeitura ja'} possui cadastro na plataforma. Voce pode entrar com sua conta ou solicitar acesso como usuario.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Link href="/login" className="flex items-center gap-3 p-3.5 rounded-lg border hover:bg-accent transition-colors">
+              <LogIn className="w-4 h-4 text-muted-foreground shrink-0" />
+              <div>
+                <div className="text-sm font-semibold">Ja tenho uma conta</div>
+                <div className="text-xs text-muted-foreground">Acessar com e-mail e senha</div>
+              </div>
+            </Link>
+
+            <Link href="/cadastro" className="flex items-center gap-3 p-3.5 rounded-lg border hover:bg-accent transition-colors">
+              <UserPlus className="w-4 h-4 text-muted-foreground shrink-0" />
+              <div>
+                <div className="text-sm font-semibold">Solicitar acesso</div>
+                <div className="text-xs text-muted-foreground">Criar conta vinculada a esta prefeitura</div>
+              </div>
+            </Link>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => { setCnpjJaExiste(false); setCnpj('') }}
+            className="text-sm text-muted-foreground hover:underline w-full text-center"
+          >
+            Informei o CNPJ errado, corrigir
+          </button>
         </CardContent>
       </Card>
     )

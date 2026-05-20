@@ -7,6 +7,7 @@ import type { PapelUsuario } from '@/types/database'
 interface ResultadoCadastro {
   success: boolean
   error?: string
+  codigoErro?: 'cnpj_existente' | string
 }
 
 const SchemaCadastroUsuario = z.object({
@@ -123,7 +124,7 @@ export async function cadastrarAdminOrg(
   const orgExistente = orgExistenteRaw as { id: string } | null
 
   if (orgExistente) {
-    return { success: false, error: 'Ja existe uma prefeitura cadastrada com este CNPJ. Entre em contato com o suporte.' }
+    return { success: false, codigoErro: 'cnpj_existente', error: 'Esta prefeitura ja esta cadastrada na plataforma.' }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
