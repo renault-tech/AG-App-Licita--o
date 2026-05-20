@@ -28,7 +28,6 @@ export default function AuthLayoutClient({
       src={brasaoUrl}
       alt={orgNome ? `Logo ${orgNome}` : 'Logo da Prefeitura'}
       className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-      style={{ transform: 'scale(1.8)' }}
     />
   ) : (
     <div className="absolute inset-0 flex items-center justify-center">
@@ -42,7 +41,6 @@ export default function AuthLayoutClient({
       src={brasaoUrl}
       alt={orgNome ? `Logo ${orgNome}` : 'Logo da Prefeitura'}
       className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-      style={{ transform: 'scale(1.8)' }}
     />
   ) : (
     <div className="absolute inset-0 flex items-center justify-center">
@@ -83,7 +81,7 @@ export default function AuthLayoutClient({
           </div>
 
           {/* Centro: logo da prefeitura (dinamica) */}
-          <div className="flex-1 w-full relative min-h-0 my-8">
+          <div className="flex-1 w-full relative min-h-0 my-8 overflow-hidden">
             {logoSection}
           </div>
 

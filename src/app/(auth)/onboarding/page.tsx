@@ -180,7 +180,10 @@ export default function OnboardingPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Estado *</Label>
-                  <Select onValueChange={v => setValue('estado', v as OnboardingInput['estado'])}>
+                  <Select
+                    value={watch('estado') ?? ''}
+                    onValueChange={v => setValue('estado', v as OnboardingInput['estado'], { shouldValidate: true })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="UF" />
                     </SelectTrigger>
