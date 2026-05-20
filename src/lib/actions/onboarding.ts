@@ -57,12 +57,23 @@ export async function criarOrganizacaoEAdmin(
       }
 
       const { data: adminExistente } = await (serviceClient.from('usuarios') as any)
-        .select('id')
+        .select('id, papel')
         .eq('organizacao_id', orgExistente.id)
         .in('papel', ['admin_organizacao', 'admin_plataforma'])
         .maybeSingle()
 
       if (adminExistente) {
+        // Se o admin existente é o próprio usuário autenticado, ele já está configurado.
+        // Atualiza o papel se necessário (ex: ADMIN_PLATFORM_EMAIL definido depois do primeiro cadastro).
+        if (adminExistente.id === user.id) {
+          if (adminExistente.papel !== papel) {
+            await (serviceClient.from('usuarios') as any)
+              .update({ papel })
+              .eq('id', user.id)
+          }
+          revalidatePath('/', 'layout')
+          return { success: true }
+        }
         return { success: false, error: 'Esta prefeitura ja esta configurada e possui um administrador. Solicite acesso ao administrador da organizacao.' }
       }
 
