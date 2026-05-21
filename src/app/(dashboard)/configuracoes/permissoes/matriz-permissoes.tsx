@@ -19,10 +19,12 @@ const TABS_PROCESSO = [
 ]
 
 const PAPEIS_CONFIGURÁVEIS: { papel: PapelUsuario; label: string; descricao: string }[] = [
-  { papel: 'requisitante',          label: 'Requisitante',          descricao: 'Servidor que solicita a contratacao' },
-  { papel: 'setor_licitacao',       label: 'Setor de Licitacoes',   descricao: 'Responsavel pela instrucao processual' },
-  { papel: 'procurador',            label: 'Procurador',            descricao: 'Emite parecer juridico (Art. 53)' },
-  { papel: 'gestor_publico', label: 'Gestor Publico', descricao: 'Autoriza a abertura do certame' },
+  { papel: 'requisitante',    label: 'Requisitante',    descricao: 'Servidor que solicita a contratacao' },
+  { papel: 'setor_compras',   label: 'Compras',         descricao: 'Primeiro revisor, responsavel pela cotacao' },
+  { papel: 'setor_licitacao', label: 'Licitacoes',      descricao: 'Responsavel pela instrucao processual' },
+  { papel: 'procurador',      label: 'Procurador',      descricao: 'Emite parecer juridico (Art. 53)' },
+  { papel: 'gestor_publico',  label: 'Gestor',          descricao: 'Autoriza a abertura do certame' },
+  { papel: 'publicacao',      label: 'Publicacao',      descricao: 'Responsavel pela publicacao oficial' },
 ]
 
 type Props = {
