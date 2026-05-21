@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { Settings2 } from 'lucide-react'
 import { PODE_CONFIGURAR } from '@/lib/permissions'
@@ -12,14 +13,20 @@ export default async function ConfiguracoesLayout({ children }: { children: Reac
 
   const { data: usuarioData } = await supabase
     .from('usuarios')
-    .select('papel')
+    .select('papel, organizacao_id')
     .eq('id', user.id)
     .maybeSingle()
 
   const papel = (usuarioData as any)?.papel as PapelUsuario | undefined
 
-  if (!papel || !PODE_CONFIGURAR.includes(papel)) {
-    redirect('/dashboard')
+  const headersList = await headers()
+  const pathname = headersList.get('x-pathname') ?? ''
+  const isIaPage = pathname.startsWith('/configuracoes/ia')
+
+  // Pagina de IA: qualquer usuario autenticado. Demais paginas: somente admins.
+  if (!papel) redirect('/login')
+  if (!isIaPage && !PODE_CONFIGURAR.includes(papel)) {
+    redirect('/configuracoes/ia')
   }
 
   /* Buscar brasao da org para exibir no cabecalho */
@@ -73,7 +80,7 @@ export default async function ConfiguracoesLayout({ children }: { children: Reac
       </div>
 
       <div className="flex gap-8">
-        <SidebarConfiguracoes brasaoUrl={brasaoUrl} orgNome={orgNome} />
+        <SidebarConfiguracoes brasaoUrl={brasaoUrl} orgNome={orgNome} papel={papel} />
         <div className="flex-1 min-w-0">
           {children}
         </div>

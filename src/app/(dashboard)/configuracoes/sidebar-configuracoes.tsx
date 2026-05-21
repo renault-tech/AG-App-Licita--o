@@ -3,8 +3,10 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Building2, Users, Bot, Settings2, PenTool, Lock } from 'lucide-react'
+import { PODE_CONFIGURAR } from '@/lib/permissions'
+import type { PapelUsuario } from '@/types/database'
 
-const NAV = [
+const NAV_ADMIN = [
   { href: '/configuracoes/organizacao',          label: 'Organização',            icon: Settings2  },
   { href: '/configuracoes/secretarias',           label: 'Secretarias',            icon: Building2  },
   { href: '/configuracoes/usuarios',              label: 'Usuários',               icon: Users      },
@@ -13,13 +15,20 @@ const NAV = [
   { href: '/configuracoes/assinatura-eletronica', label: 'Assinatura',             icon: PenTool    },
 ]
 
+const NAV_USUARIO = [
+  { href: '/configuracoes/ia', label: 'Inteligência Artificial', icon: Bot },
+]
+
 interface SidebarConfiguracoesProps {
   brasaoUrl?: string | null
   orgNome?: string | null
+  papel?: PapelUsuario | null
 }
 
-export default function SidebarConfiguracoes({ brasaoUrl, orgNome }: SidebarConfiguracoesProps) {
+export default function SidebarConfiguracoes({ brasaoUrl, orgNome, papel }: SidebarConfiguracoesProps) {
   const pathname = usePathname()
+  const isAdmin = papel ? PODE_CONFIGURAR.includes(papel) : false
+  const NAV = isAdmin ? NAV_ADMIN : NAV_USUARIO
 
   return (
     <nav className="w-52 shrink-0">
