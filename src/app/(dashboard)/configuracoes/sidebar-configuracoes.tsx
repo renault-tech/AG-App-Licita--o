@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, Users, Bot, Settings2, PenTool, Lock } from 'lucide-react'
+import { Building2, Users, Bot, Settings2, PenTool, Lock, Radio } from 'lucide-react'
 
 const NAV = [
   { href: '/configuracoes/organizacao',          label: 'Organização',            icon: Settings2  },
@@ -10,6 +10,7 @@ const NAV = [
   { href: '/configuracoes/usuarios',              label: 'Usuários',               icon: Users      },
   { href: '/configuracoes/permissoes',            label: 'Permissões',             icon: Lock       },
   { href: '/configuracoes/ia',                    label: 'Inteligência Artificial', icon: Bot        },
+  { href: '/configuracoes/faixa-de-informacoes', label: 'Faixa de Informações',   icon: Radio      },
   { href: '/configuracoes/assinatura-eletronica', label: 'Assinatura',             icon: PenTool    },
 ]
 
