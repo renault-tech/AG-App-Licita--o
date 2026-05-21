@@ -33,11 +33,13 @@ interface AppHeaderProps {
   brasaoUrl?: string | null
   eventosTicker?: TickerEvento[]
   tickerCategorias?: Record<TickerCategoriaId, boolean>
+  naoLidosChat?: number
 }
 
 const TABS = [
   { href: '/dashboard',     label: 'Painel',       match: (p: string) => p === '/dashboard' },
   { href: '/processos',     label: 'Processos',    match: (p: string) => p.startsWith('/processos') },
+  { href: '/chat',          label: 'Chat',         match: (p: string) => p.startsWith('/chat') },
   { href: '/creditos',      label: 'Creditos',     match: (p: string) => p.startsWith('/creditos') },
   { href: '/configuracoes', label: 'Configuracoes', match: (p: string) => p.startsWith('/configuracoes') || p.startsWith('/admin') },
 ]
@@ -57,6 +59,7 @@ export function AppHeader({
   brasaoUrl = null,
   eventosTicker = [],
   tickerCategorias = TICKER_CATEGORIAS_DEFAULT,
+  naoLidosChat = 0,
 }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -226,13 +229,21 @@ export function AppHeader({
               <Link
                 key={tab.href}
                 href={tab.href}
-                className="px-3.5 py-1.5 rounded-[var(--r-md)] text-[13px] tracking-[-0.01em] transition-colors font-medium"
+                className="relative px-3.5 py-1.5 rounded-[var(--r-md)] text-[13px] tracking-[-0.01em] transition-colors font-medium"
                 style={active
                   ? { background: 'var(--primaryWash)', color: 'var(--primary)', fontWeight: 600 }
                   : { color: 'var(--inkSoft)' }
                 }
               >
                 {tab.label}
+                {tab.href === '/chat' && naoLidosChat > 0 && (
+                  <span
+                    className="absolute -top-0.5 -right-0.5 text-[9px] font-bold px-1 py-px rounded-full min-w-[14px] text-center"
+                    style={{ background: 'var(--danger)', color: '#fff', lineHeight: '1.2' }}
+                  >
+                    {naoLidosChat > 99 ? '99+' : naoLidosChat}
+                  </span>
+                )}
               </Link>
             )
           })}
