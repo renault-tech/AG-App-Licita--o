@@ -35,8 +35,8 @@ export default async function ChatLayout({ children }: { children: React.ReactNo
       style={{
         background: 'var(--surface)',
         borderColor: 'var(--hairline)',
-        height: 'calc(100vh - 180px)',
-        minHeight: '500px',
+        height: 'calc((100vh - 220px) / var(--zoom-level, 1))',
+        minHeight: '480px',
       }}
     >
       <SidebarCanais canais={canais} />

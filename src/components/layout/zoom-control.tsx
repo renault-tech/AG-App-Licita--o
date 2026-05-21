@@ -81,7 +81,7 @@ export default function ZoomControl() {
 
   return (
     <div
-      className="fixed bottom-16 right-6 z-[55] flex items-center gap-0.5 rounded-full border border-[#E3E2E6] bg-white/95 backdrop-blur-md px-1.5 py-1 transition-all"
+      className="fixed bottom-[72px] right-6 z-[55] flex items-center gap-0.5 rounded-full border border-[#E3E2E6] bg-white/95 backdrop-blur-md px-1.5 py-1 transition-all"
       style={{ boxShadow: '0px 4px 16px rgba(26, 54, 93, 0.08)' }}
     >
       {/* Zoom out */}

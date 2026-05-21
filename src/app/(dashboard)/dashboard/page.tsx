@@ -7,7 +7,6 @@ import {
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import type { PapelUsuario } from '@/types/database'
-import { KPICard } from '@/components/licita/kpi-card'
 import { StatusPill } from '@/components/licita/status-pill'
 import type { StatusProcesso } from '@/components/licita/status-pill'
 import { EditorialKicker, HeadlineSerif, Wordmark } from '@/components/licita/editorial'
@@ -36,20 +35,83 @@ const AUTORIZACAO_STATUS: Record<string, { label: string; bg: string; color: str
   devolvido:  { label: 'Devolvido',              bg: 'var(--dangerWash)',  color: 'var(--danger)'  },
 }
 
+// Calcula numero da edicao quinzenal do ano
+function calcEdicao(): string {
+  const now = new Date()
+  const startOfYear = new Date(now.getFullYear(), 0, 1)
+  const dayOfYear = Math.ceil((Number(now) - Number(startOfYear)) / 86400000)
+  const n = Math.max(1, Math.ceil(dayOfYear / 15))
+  return `ED. ${String(n).padStart(3, '0')} / QUINZENÁRIO`
+}
+
+// Barra horizontal de KPIs estilo capa de relatório editorial
+function KPIBar({ items }: {
+  items: { label: string; value: number | string; sub?: string; accent?: boolean }[]
+}) {
+  return (
+    <div
+      className="flex items-stretch overflow-x-auto"
+      style={{ borderTop: '2px solid var(--rule)', borderBottom: '1px solid var(--hairline)' }}
+    >
+      {items.map((item, i) => (
+        <div
+          key={i}
+          className="flex flex-col justify-center gap-0.5 px-7 py-5 shrink-0"
+          style={i > 0 ? { borderLeft: '1px solid var(--hairline)' } : {}}
+        >
+          <div
+            style={{
+              color: 'var(--muted)',
+              fontSize: 9.5,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              fontWeight: 700,
+              fontFamily: 'var(--font-mono, monospace)',
+            }}
+          >
+            {item.label}
+          </div>
+          <div
+            className="l-h l-tnum"
+            style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: 44,
+              lineHeight: 0.92,
+              letterSpacing: '-0.03em',
+              color: item.accent ? 'var(--accent)' : 'var(--ink)',
+              fontWeight: 500,
+            }}
+          >
+            {item.value}
+          </div>
+          {item.sub && (
+            <div className="text-[11px] mt-0.5" style={{ color: 'var(--inkSoft)' }}>{item.sub}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function SectionHeader({
-  supTitle, title, subtitle, action,
+  supTitle, edition, title, contextLine, subtitle, action,
 }: {
-  supTitle: string; title: string; subtitle?: string; action?: React.ReactNode
+  supTitle: string
+  edition?: string
+  title: string
+  contextLine?: string
+  subtitle?: string
+  action?: React.ReactNode
 }) {
   const hoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')
   return (
     <div>
       {/* Masthead editorial */}
       <div
-        className="flex items-center justify-between pb-3.5 mb-6"
+        className="flex items-center justify-between pb-3.5 mb-5"
         style={{ borderBottom: '2px solid var(--rule)' }}
       >
-        <EditorialKicker kicker={supTitle} date={hoje} />
+        <EditorialKicker kicker={supTitle} edition={edition} date={hoje} />
         <div
           className="font-mono text-[10px] font-semibold uppercase hidden sm:block"
           style={{ color: 'var(--muted)', letterSpacing: '0.14em' }}
@@ -59,12 +121,28 @@ function SectionHeader({
       </div>
 
       {/* Hero titular */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
         <div>
           {subtitle && (
-            <div className="l-meta mb-3" style={{ color: 'var(--muted)' }}>{subtitle}</div>
+            <div className="l-meta mb-2" style={{ color: 'var(--muted)' }}>{subtitle}</div>
           )}
           <HeadlineSerif size="lg" as="h1">{title}</HeadlineSerif>
+          {contextLine && (
+            <p
+              className="mt-3 l-h"
+              style={{
+                fontFamily: 'var(--font-heading)',
+                fontStyle: 'italic',
+                fontSize: 19,
+                lineHeight: 1.4,
+                color: 'var(--inkSoft)',
+                fontWeight: 400,
+                maxWidth: '54ch',
+              }}
+            >
+              {contextLine}
+            </p>
+          )}
         </div>
         {action}
       </div>
@@ -139,7 +217,7 @@ function ProcessoRow({ p, href }: { p: any; href: string }) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-          {p.numero_processo ? `${p.numero_processo} — ` : ''}{p.objeto}
+          {p.numero_processo ? `${p.numero_processo} · ` : ''}{p.objeto}
         </p>
         <div className="flex items-center gap-2.5 mt-1 flex-wrap">
           <span className="text-sm" style={{ color: 'var(--muted)' }}>{modalidade}</span>
@@ -205,12 +283,26 @@ function NewButton({ label, href }: { label: string; href: string }) {
   )
 }
 
+function FooterEditorial() {
+  return (
+    <div
+      className="pt-4 flex items-center justify-between"
+      style={{ borderTop: '1px solid var(--hairline)' }}
+    >
+      <Wordmark />
+      <div className="font-mono text-[9.5px]" style={{ color: 'var(--muted)', letterSpacing: '0.12em' }}>
+        Painel atualizado · {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
+      </div>
+    </div>
+  )
+}
+
 // ─── View: Requisitante ───────────────────────────────────────────────────────
 
 async function DashboardRequisitante({
-  userId, org, saldo, primeiroNome, saudacao,
+  userId, org, saldo, primeiroNome, saudacao, cargo,
 }: {
-  userId: string; org: any; saldo: number; primeiroNome: string; saudacao: string
+  userId: string; org: any; saldo: number; primeiroNome: string; saudacao: string; cargo: string | null
 }) {
   const supabase = await createClient()
   const { data: meusProcessos } = await supabase
@@ -219,26 +311,32 @@ async function DashboardRequisitante({
     .eq('criado_por', userId)
     .order('created_at', { ascending: false })
 
-  const processos = (meusProcessos as any[] | null) ?? []
+  const processos   = (meusProcessos as any[] | null) ?? []
   const emAndamento = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao').length
   const concluidos  = processos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado').length
 
-  const orgSub = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
+  const contextLine = emAndamento > 0
+    ? `${emAndamento} demanda${emAndamento !== 1 ? 's' : ''} em elaboração aguarda${emAndamento !== 1 ? 'm' : ''} conclusão.`
+    : processos.length > 0
+      ? 'Todas as suas demandas foram concluídas.'
+      : 'Nenhuma demanda iniciada ainda.'
 
   return (
     <div className="space-y-8">
       <SectionHeader
         supTitle="Minhas Demandas"
+        edition={calcEdicao()}
         title={`${saudacao}, ${primeiroNome}.`}
-        subtitle={orgSub}
+        subtitle={cargo ?? undefined}
+        contextLine={contextLine}
         action={<NewButton label="Nova Demanda" href="/processos/novo" />}
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-        <KPICard label="Minhas Demandas" value={processos.length} sub="Total criadas"           icon={<FileText className="w-5 h-5" />} />
-        <KPICard label="Em Elaboração"   value={emAndamento}      sub="Em andamento"             icon={<Clock className="w-5 h-5" />}    accent />
-        <KPICard label="Concluídas"      value={concluidos}       sub="Publicadas ou assinadas"  icon={<CheckCircle className="w-5 h-5" />} />
-      </div>
+      <KPIBar items={[
+        { label: 'Demandas',     value: processos.length, sub: 'total criadas'          },
+        { label: 'Em Elaboração', value: emAndamento,     sub: 'em andamento', accent: emAndamento > 0 },
+        { label: 'Concluídas',   value: concluidos,       sub: 'publicadas ou assinadas' },
+      ]} />
 
       <ListCard
         title="Meus Processos"
@@ -266,17 +364,7 @@ async function DashboardRequisitante({
       </ListCard>
 
       {saldo < 10 && <SaldoBaixoAlert saldo={saldo} />}
-
-      {/* Footer editorial */}
-      <div
-        className="pt-4 flex items-center justify-between"
-        style={{ borderTop: '1px solid var(--hairline)' }}
-      >
-        <Wordmark />
-        <div className="font-mono text-[9.5px]" style={{ color: 'var(--muted)', letterSpacing: '0.12em' }}>
-          Painel atualizado · {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
-        </div>
-      </div>
+      <FooterEditorial />
     </div>
   )
 }
@@ -284,9 +372,9 @@ async function DashboardRequisitante({
 // ─── View: Setor de Licitacoes ────────────────────────────────────────────────
 
 async function DashboardSetorLicitacao({
-  org, saldo, primeiroNome, saudacao, organizacaoId,
+  org, saldo, primeiroNome, saudacao, organizacaoId, cargo,
 }: {
-  org: any; saldo: number; primeiroNome: string; saudacao: string; organizacaoId: string
+  org: any; saldo: number; primeiroNome: string; saudacao: string; organizacaoId: string; cargo: string | null
 }) {
   const supabase = await createClient()
 
@@ -307,42 +395,50 @@ async function DashboardSetorLicitacao({
   const ativos    = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao')
   const arquivo   = processos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado')
   const emRevisao = processos.filter((p: any) => p.status === 'em_revisao').length
-  const orgSub    = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
+
+  const contextLine = emRevisao > 0
+    ? `${emRevisao} processo${emRevisao !== 1 ? 's' : ''} aguarda${emRevisao !== 1 ? 'm' : ''} revisão agora.`
+    : ativos.length > 0
+      ? `${ativos.length} processo${ativos.length !== 1 ? 's' : ''} em elaboração.`
+      : 'Todos os processos em dia.'
 
   return (
     <div className="space-y-8">
       <SectionHeader
         supTitle="Setor de Licitações"
+        edition={calcEdicao()}
         title={`${saudacao}, ${primeiroNome}.`}
-        subtitle={orgSub}
+        subtitle={cargo ?? undefined}
+        contextLine={contextLine}
         action={<NewButton label="Novo Processo" href="/processos/novo" />}
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-        {totalAvisosAbertos > 0 && (
-          <Link href="/processos/aviso-compra-conjunta/novo" className="col-span-2 lg:col-span-4">
-            <div
-              className="flex items-center gap-3 p-4 rounded-[var(--r-md)] border cursor-pointer transition-opacity hover:opacity-80"
-              style={{ background: 'var(--warnWash)', borderColor: 'var(--warn)' + '40' }}
-            >
-              <div className="w-9 h-9 rounded-[var(--r-sm)] flex items-center justify-center shrink-0" style={{ background: 'var(--warn)' + '20' }}>
-                <Share2 className="w-4 h-4" style={{ color: 'var(--warn)' }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold" style={{ color: 'var(--warn)' }}>
-                  {totalAvisosAbertos} aviso{totalAvisosAbertos !== 1 ? 's' : ''} de compra conjunta aberto{totalAvisosAbertos !== 1 ? 's' : ''}
-                </p>
-                <p className="text-xs" style={{ color: 'var(--muted)' }}>Clique para criar ou gerenciar avisos</p>
-              </div>
-              <ArrowRight className="w-4 h-4 shrink-0" style={{ color: 'var(--warn)' }} />
+      <KPIBar items={[
+        { label: 'Processos',     value: processos.length, sub: 'total na organização' },
+        { label: 'Em Elaboração', value: ativos.length,    sub: 'em andamento', accent: ativos.length > 0 },
+        { label: 'Em Revisão',    value: emRevisao,        sub: 'aguardando análise', accent: emRevisao > 0 },
+        { label: 'Publicados',    value: arquivo.length,   sub: 'concluídos'          },
+      ]} />
+
+      {totalAvisosAbertos > 0 && (
+        <Link href="/processos/aviso-compra-conjunta/novo">
+          <div
+            className="flex items-center gap-3 p-4 rounded-[var(--r-md)] border cursor-pointer transition-opacity hover:opacity-80"
+            style={{ background: 'var(--warnWash)', borderColor: 'var(--warn)' + '40' }}
+          >
+            <div className="w-9 h-9 rounded-[var(--r-sm)] flex items-center justify-center shrink-0" style={{ background: 'var(--warn)' + '20' }}>
+              <Share2 className="w-4 h-4" style={{ color: 'var(--warn)' }} />
             </div>
-          </Link>
-        )}
-        <KPICard label="Processos"     value={processos.length} sub="Total na organização" icon={<FileText className="w-5 h-5" />} />
-        <KPICard label="Em Elaboração" value={ativos.length}    sub="Em andamento"         icon={<Clock className="w-5 h-5" />}   accent />
-        <KPICard label="Em Revisão"    value={emRevisao}        sub="Aguardando análise"   icon={<Filter className="w-5 h-5" />} />
-        <KPICard label="Publicados"    value={arquivo.length}   sub="Concluídos"           icon={<CheckCircle className="w-5 h-5" />} />
-      </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold" style={{ color: 'var(--warn)' }}>
+                {totalAvisosAbertos} aviso{totalAvisosAbertos !== 1 ? 's' : ''} de compra conjunta aberto{totalAvisosAbertos !== 1 ? 's' : ''}
+              </p>
+              <p className="text-xs" style={{ color: 'var(--muted)' }}>Clique para criar ou gerenciar avisos</p>
+            </div>
+            <ArrowRight className="w-4 h-4 shrink-0" style={{ color: 'var(--warn)' }} />
+          </div>
+        </Link>
+      )}
 
       <ListCard
         title="Em Andamento"
@@ -371,17 +467,7 @@ async function DashboardSetorLicitacao({
       )}
 
       {saldo < 10 && <SaldoBaixoAlert saldo={saldo} />}
-
-      {/* Footer editorial */}
-      <div
-        className="pt-4 flex items-center justify-between"
-        style={{ borderTop: '1px solid var(--hairline)' }}
-      >
-        <Wordmark />
-        <div className="font-mono text-[9.5px]" style={{ color: 'var(--muted)', letterSpacing: '0.12em' }}>
-          Painel atualizado · {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
-        </div>
-      </div>
+      <FooterEditorial />
     </div>
   )
 }
@@ -389,9 +475,9 @@ async function DashboardSetorLicitacao({
 // ─── View: Procurador ─────────────────────────────────────────────────────────
 
 async function DashboardProcurador({
-  org, primeiroNome, saudacao, organizacaoId,
+  org, primeiroNome, saudacao, organizacaoId, cargo,
 }: {
-  org: any; primeiroNome: string; saudacao: string; organizacaoId: string
+  org: any; primeiroNome: string; saudacao: string; organizacaoId: string; cargo: string | null
 }) {
   const supabase = await createClient()
 
@@ -414,17 +500,26 @@ async function DashboardProcurador({
 
   const fila     = pareceresList.filter((p: any) => p.status === 'pendente' || p.status === 'devolvido')
   const historico = pareceresList.filter((p: any) => p.status === 'aprovado' || p.status === 'aprovado_com_ressalvas')
-  const orgSub   = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
+
+  const contextLine = fila.length > 0
+    ? `${fila.length} parecer${fila.length !== 1 ? 'es' : ''} aguarda${fila.length !== 1 ? 'm' : ''} sua análise.`
+    : 'Nenhum parecer pendente no momento.'
 
   return (
     <div className="space-y-8">
-      <SectionHeader supTitle="Procuradoria" title={`${saudacao}, ${primeiroNome}.`} subtitle={orgSub} />
+      <SectionHeader
+        supTitle="Procuradoria"
+        edition={calcEdicao()}
+        title={`${saudacao}, ${primeiroNome}.`}
+        subtitle={cargo ?? undefined}
+        contextLine={contextLine}
+      />
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-        <KPICard label="Fila de Pareceres" value={fila.length}          sub="Aguardando análise jurídica" icon={<Scale className="w-5 h-5" />}       accent />
-        <KPICard label="Aprovados"         value={historico.length}     sub="Pareceres favoráveis"        icon={<CheckCircle2 className="w-5 h-5" />} />
-        <KPICard label="Total"             value={pareceresList.length} sub="Processos avaliados"         icon={<Gavel className="w-5 h-5" />}        />
-      </div>
+      <KPIBar items={[
+        { label: 'Fila',      value: fila.length,          sub: 'aguardando análise jurídica', accent: fila.length > 0 },
+        { label: 'Aprovados', value: historico.length,     sub: 'pareceres favoráveis'        },
+        { label: 'Total',     value: pareceresList.length, sub: 'processos avaliados'         },
+      ]} />
 
       <ListCard
         title="Fila de Pareceres"
@@ -452,7 +547,7 @@ async function DashboardProcurador({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-                      {proc.numero_processo ? `${proc.numero_processo} — ` : ''}{proc.objeto}
+                      {proc.numero_processo ? `${proc.numero_processo} · ` : ''}{proc.objeto}
                     </p>
                     <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
                   </div>
@@ -488,7 +583,7 @@ async function DashboardProcurador({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-                      {proc.numero_processo ? `${proc.numero_processo} — ` : ''}{proc.objeto}
+                      {proc.numero_processo ? `${proc.numero_processo} · ` : ''}{proc.objeto}
                     </p>
                     <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
                   </div>
@@ -503,16 +598,7 @@ async function DashboardProcurador({
         </ListCard>
       )}
 
-      {/* Footer editorial */}
-      <div
-        className="pt-4 flex items-center justify-between"
-        style={{ borderTop: '1px solid var(--hairline)' }}
-      >
-        <Wordmark />
-        <div className="font-mono text-[9.5px]" style={{ color: 'var(--muted)', letterSpacing: '0.12em' }}>
-          Painel atualizado · {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
-        </div>
-      </div>
+      <FooterEditorial />
     </div>
   )
 }
@@ -520,9 +606,9 @@ async function DashboardProcurador({
 // ─── View: Autoridade Competente ──────────────────────────────────────────────
 
 async function DashboardAutoridadeCompetente({
-  org, primeiroNome, saudacao, organizacaoId,
+  org, primeiroNome, saudacao, organizacaoId, cargo,
 }: {
-  org: any; primeiroNome: string; saudacao: string; organizacaoId: string
+  org: any; primeiroNome: string; saudacao: string; organizacaoId: string; cargo: string | null
 }) {
   const supabase = await createClient()
 
@@ -545,7 +631,10 @@ async function DashboardAutoridadeCompetente({
 
   const pendentes   = autorizacoesList.filter((a: any) => a.status === 'pendente' || a.status === 'devolvido')
   const autorizados = autorizacoesList.filter((a: any) => a.status === 'autorizado')
-  const orgSub      = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
+
+  const contextLine = pendentes.length > 0
+    ? `${pendentes.length} processo${pendentes.length !== 1 ? 's' : ''} aguarda${pendentes.length !== 1 ? 'm' : ''} sua autorização.`
+    : 'Nenhuma autorização pendente.'
 
   function AutRow({ aut, icon: Icon, iconBg, iconColor }: { aut: any; icon: React.ElementType; iconBg: string; iconColor: string }) {
     const proc = processosMap[aut.processo_id]
@@ -564,7 +653,7 @@ async function DashboardAutoridadeCompetente({
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-            {proc.numero_processo ? `${proc.numero_processo} — ` : ''}{proc.objeto}
+            {proc.numero_processo ? `${proc.numero_processo} · ` : ''}{proc.objeto}
           </p>
           <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{MODALIDADE_LABEL[proc.modalidade] ?? proc.modalidade}</p>
         </div>
@@ -578,13 +667,19 @@ async function DashboardAutoridadeCompetente({
 
   return (
     <div className="space-y-8">
-      <SectionHeader supTitle="Autoridade Competente" title={`${saudacao}, ${primeiroNome}.`} subtitle={orgSub} />
+      <SectionHeader
+        supTitle="Autoridade Competente"
+        edition={calcEdicao()}
+        title={`${saudacao}, ${primeiroNome}.`}
+        subtitle={cargo ?? undefined}
+        contextLine={contextLine}
+      />
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-        <KPICard label="Aguardando"  value={pendentes.length}        sub="Processos para autorizar" icon={<Clock className="w-5 h-5" />}      accent />
-        <KPICard label="Autorizados" value={autorizados.length}      sub="Processos autorizados"    icon={<ShieldCheck className="w-5 h-5" />} />
-        <KPICard label="Total"       value={autorizacoesList.length} sub="Processos avaliados"      icon={<FileText className="w-5 h-5" />}    />
-      </div>
+      <KPIBar items={[
+        { label: 'Aguardando',  value: pendentes.length,        sub: 'processos para autorizar', accent: pendentes.length > 0 },
+        { label: 'Autorizados', value: autorizados.length,      sub: 'processos autorizados'    },
+        { label: 'Total',       value: autorizacoesList.length, sub: 'processos avaliados'      },
+      ]} />
 
       <ListCard
         title="Aguardando Autorização"
@@ -615,16 +710,7 @@ async function DashboardAutoridadeCompetente({
         </ListCard>
       )}
 
-      {/* Footer editorial */}
-      <div
-        className="pt-4 flex items-center justify-between"
-        style={{ borderTop: '1px solid var(--hairline)' }}
-      >
-        <Wordmark />
-        <div className="font-mono text-[9.5px]" style={{ color: 'var(--muted)', letterSpacing: '0.12em' }}>
-          Painel atualizado · {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
-        </div>
-      </div>
+      <FooterEditorial />
     </div>
   )
 }
@@ -632,9 +718,9 @@ async function DashboardAutoridadeCompetente({
 // ─── View: Admin ──────────────────────────────────────────────────────────────
 
 async function DashboardAdmin({
-  org, saldo, primeiroNome, saudacao, organizacaoId,
+  org, saldo, primeiroNome, saudacao, organizacaoId, cargo,
 }: {
-  org: any; saldo: number; primeiroNome: string; saudacao: string; organizacaoId: string
+  org: any; saldo: number; primeiroNome: string; saudacao: string; organizacaoId: string; cargo: string | null
 }) {
   const supabase = await createClient()
 
@@ -648,23 +734,30 @@ async function DashboardAdmin({
   const emAndamento = processos.filter((p: any) => p.status === 'rascunho' || p.status === 'em_revisao').length
   const publicados  = processos.filter((p: any) => p.status === 'publicado').length
   const arquivo     = processos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado')
-  const orgSub      = org ? `${org.nome} · ${org.municipio} / ${org.estado}` : undefined
+
+  const contextLine = emAndamento > 0
+    ? `${emAndamento} processo${emAndamento !== 1 ? 's' : ''} em elaboração na organização.`
+    : processos.length > 0
+      ? 'Todos os processos publicados ou concluídos.'
+      : 'Nenhum processo criado ainda.'
 
   return (
     <div className="space-y-8">
       <SectionHeader
         supTitle="Painel de Controle"
+        edition={calcEdicao()}
         title={`${saudacao}, ${primeiroNome}.`}
-        subtitle={orgSub}
+        subtitle={cargo ?? undefined}
+        contextLine={contextLine}
         action={<NewButton label="Novo Processo" href="/processos/novo" />}
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-        <KPICard label="Processos"     value={processos.length} sub="Total criados"             icon={<FileText className="w-5 h-5" />} />
-        <KPICard label="Em Elaboração" value={emAndamento}      sub="Em andamento"               icon={<Clock className="w-5 h-5" />}    accent />
-        <KPICard label="Publicados"    value={publicados}       sub={`de ${arquivo.length} concluídos`} icon={<CheckCircle className="w-5 h-5" />} />
-        <KPICard label="Créditos IA"   value={saldo}            sub="Disponíveis"                icon={<Zap className="w-5 h-5" />}      />
-      </div>
+      <KPIBar items={[
+        { label: 'Processos',     value: processos.length, sub: 'total criados'                        },
+        { label: 'Em Elaboração', value: emAndamento,      sub: 'em andamento', accent: emAndamento > 0 },
+        { label: 'Publicados',    value: publicados,       sub: `de ${arquivo.length} concluídos`       },
+        { label: 'Créditos IA',   value: saldo,            sub: 'disponíveis'                          },
+      ]} />
 
       <ListCard
         title="Processos Licitatórios"
@@ -692,17 +785,7 @@ async function DashboardAdmin({
       </ListCard>
 
       {saldo < 10 && <SaldoBaixoAlert saldo={saldo} />}
-
-      {/* Footer editorial */}
-      <div
-        className="pt-4 flex items-center justify-between"
-        style={{ borderTop: '1px solid var(--hairline)' }}
-      >
-        <Wordmark />
-        <div className="font-mono text-[9.5px]" style={{ color: 'var(--muted)', letterSpacing: '0.12em' }}>
-          Painel atualizado · {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
-        </div>
-      </div>
+      <FooterEditorial />
     </div>
   )
 }
@@ -716,11 +799,11 @@ export default async function DashboardPage() {
 
   const { data: usuarioData } = await supabase
     .from('usuarios')
-    .select('nome_completo, organizacao_id, papel')
+    .select('nome_completo, cargo, organizacao_id, papel')
     .eq('id', user.id)
     .maybeSingle()
 
-  const usuario      = usuarioData as { nome_completo: string; organizacao_id: string; papel: PapelUsuario } | null
+  const usuario       = usuarioData as { nome_completo: string; cargo: string | null; organizacao_id: string; papel: PapelUsuario } | null
   const organizacaoId = usuario?.organizacao_id
   if (!organizacaoId) return null
 
@@ -733,13 +816,14 @@ export default async function DashboardPage() {
 
   const org   = orgRes.data as { nome: string; municipio: string; estado: string } | null
   const saldo = (creditosRes.data as any)?.saldo ?? 0
+  const cargo = usuario?.cargo ?? null
 
-  const nomeUsuario   = usuario?.nome_completo || user.email || 'Gestor'
-  const primeiroNome  = nomeUsuario.split(' ')[0]
-  const hora          = new Date().getHours()
-  const saudacao      = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
+  const nomeUsuario  = usuario?.nome_completo || user.email || 'Gestor'
+  const primeiroNome = nomeUsuario.split(' ')[0]
+  const hora         = new Date().getHours()
+  const saudacao     = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
 
-  const props = { org, saldo, primeiroNome, saudacao, organizacaoId }
+  const props = { org, saldo, primeiroNome, saudacao, organizacaoId, cargo }
 
   if (papel === 'requisitante')          return <DashboardRequisitante userId={user.id} {...props} />
   if (papel === 'procurador')            return <DashboardProcurador {...props} />
