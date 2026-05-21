@@ -17,6 +17,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { Notificacao } from '@/lib/actions/notificacoes'
+import { TickerStrip } from '@/components/layout/ticker-strip'
+import { TICKER_CATEGORIAS_DEFAULT, type TickerCategoriaId, type TickerEvento } from '@/lib/ticker/categorias'
 
 interface AppHeaderProps {
   orgNome: string
@@ -29,6 +31,8 @@ interface AppHeaderProps {
   papel?: string | null
   isAdminPlataforma?: boolean
   brasaoUrl?: string | null
+  eventosTicker?: TickerEvento[]
+  tickerCategorias?: Record<TickerCategoriaId, boolean>
 }
 
 const TABS = [
@@ -51,6 +55,8 @@ export function AppHeader({
   papel = null,
   isAdminPlataforma = false,
   brasaoUrl = null,
+  eventosTicker = [],
+  tickerCategorias = TICKER_CATEGORIAS_DEFAULT,
 }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -255,6 +261,12 @@ export function AppHeader({
           })}
         </div>
       )}
+
+      {/* Faixa de informacoes (ticker) */}
+      <TickerStrip
+        eventos={eventosTicker}
+        categoriasAtivas={tickerCategorias}
+      />
     </header>
   )
 }
