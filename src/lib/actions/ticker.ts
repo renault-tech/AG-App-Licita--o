@@ -125,7 +125,7 @@ export async function salvarPreferenciasTicker(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Nao autenticado' }
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('ticker_preferencias')
     .upsert({ usuario_id: user.id, categorias, atualizado_em: new Date().toISOString() })
   return error ? { success: false, error: error.message } : { success: true }
