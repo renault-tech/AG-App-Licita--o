@@ -10,6 +10,7 @@ import type { PapelUsuario } from '@/types/database'
 import { KPICard } from '@/components/licita/kpi-card'
 import { StatusPill } from '@/components/licita/status-pill'
 import type { StatusProcesso } from '@/components/licita/status-pill'
+import { EditorialKicker, HeadlineSerif, Wordmark } from '@/components/licita/editorial'
 
 const MODALIDADE_LABEL: Record<string, string> = {
   pregao_eletronico:   'Pregão Eletrônico',
@@ -40,23 +41,33 @@ function SectionHeader({
 }: {
   supTitle: string; title: string; subtitle?: string; action?: React.ReactNode
 }) {
+  const hoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')
   return (
-    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--accent)' }}>
-          {supTitle}
-        </p>
-        <h1
-          className="text-3xl font-bold leading-tight"
-          style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}
+    <div>
+      {/* Masthead editorial */}
+      <div
+        className="flex items-center justify-between pb-3.5 mb-6"
+        style={{ borderBottom: '2px solid var(--rule)' }}
+      >
+        <EditorialKicker kicker={supTitle} date={hoje} />
+        <div
+          className="font-mono text-[10px] font-semibold uppercase hidden sm:block"
+          style={{ color: 'var(--muted)', letterSpacing: '0.14em' }}
         >
-          {title}
-        </h1>
-        {subtitle && (
-          <p className="text-[15px] mt-1.5" style={{ color: 'var(--muted)' }}>{subtitle}</p>
-        )}
+          Lei 14.133/21
+        </div>
       </div>
-      {action}
+
+      {/* Hero titular */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+        <div>
+          {subtitle && (
+            <div className="l-meta mb-3" style={{ color: 'var(--muted)' }}>{subtitle}</div>
+          )}
+          <HeadlineSerif size="lg" as="h1">{title}</HeadlineSerif>
+        </div>
+        {action}
+      </div>
     </div>
   )
 }
@@ -255,6 +266,17 @@ async function DashboardRequisitante({
       </ListCard>
 
       {saldo < 10 && <SaldoBaixoAlert saldo={saldo} />}
+
+      {/* Footer editorial */}
+      <div
+        className="pt-4 flex items-center justify-between"
+        style={{ borderTop: '1px solid var(--hairline)' }}
+      >
+        <Wordmark />
+        <div className="font-mono text-[9.5px]" style={{ color: 'var(--muted)', letterSpacing: '0.12em' }}>
+          Painel atualizado · {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
+        </div>
+      </div>
     </div>
   )
 }
@@ -349,6 +371,17 @@ async function DashboardSetorLicitacao({
       )}
 
       {saldo < 10 && <SaldoBaixoAlert saldo={saldo} />}
+
+      {/* Footer editorial */}
+      <div
+        className="pt-4 flex items-center justify-between"
+        style={{ borderTop: '1px solid var(--hairline)' }}
+      >
+        <Wordmark />
+        <div className="font-mono text-[9.5px]" style={{ color: 'var(--muted)', letterSpacing: '0.12em' }}>
+          Painel atualizado · {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
+        </div>
+      </div>
     </div>
   )
 }
@@ -469,6 +502,17 @@ async function DashboardProcurador({
           </div>
         </ListCard>
       )}
+
+      {/* Footer editorial */}
+      <div
+        className="pt-4 flex items-center justify-between"
+        style={{ borderTop: '1px solid var(--hairline)' }}
+      >
+        <Wordmark />
+        <div className="font-mono text-[9.5px]" style={{ color: 'var(--muted)', letterSpacing: '0.12em' }}>
+          Painel atualizado · {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
+        </div>
+      </div>
     </div>
   )
 }
@@ -570,6 +614,17 @@ async function DashboardAutoridadeCompetente({
           </div>
         </ListCard>
       )}
+
+      {/* Footer editorial */}
+      <div
+        className="pt-4 flex items-center justify-between"
+        style={{ borderTop: '1px solid var(--hairline)' }}
+      >
+        <Wordmark />
+        <div className="font-mono text-[9.5px]" style={{ color: 'var(--muted)', letterSpacing: '0.12em' }}>
+          Painel atualizado · {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
+        </div>
+      </div>
     </div>
   )
 }
@@ -637,6 +692,17 @@ async function DashboardAdmin({
       </ListCard>
 
       {saldo < 10 && <SaldoBaixoAlert saldo={saldo} />}
+
+      {/* Footer editorial */}
+      <div
+        className="pt-4 flex items-center justify-between"
+        style={{ borderTop: '1px solid var(--hairline)' }}
+      >
+        <Wordmark />
+        <div className="font-mono text-[9.5px]" style={{ color: 'var(--muted)', letterSpacing: '0.12em' }}>
+          Painel atualizado · {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
+        </div>
+      </div>
     </div>
   )
 }
