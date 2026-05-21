@@ -7,8 +7,8 @@ import {
 } from 'lucide-react'
 import BotaoCompra from './botao-compra'
 import { PACOTES_CREDITOS } from '@/lib/creditos-config'
-import { StepPageHeader } from '@/components/licita/step-page-header'
 import { KPICard } from '@/components/licita/kpi-card'
+import { EditorialKicker, HeadlineSerif, Wordmark } from '@/components/licita/editorial'
 
 type Transacao = {
   id: string
@@ -86,10 +86,25 @@ export default async function CreditosPage({
 
   return (
     <div className="space-y-6">
-      <StepPageHeader
-        title="Créditos de IA"
-        subtitle="Gerencie seu saldo e acompanhe o consumo de recursos de inteligência artificial."
-      />
+      {/* Masthead */}
+      <div
+        className="flex items-center justify-between pb-3.5 mb-6"
+        style={{ borderBottom: '2px solid var(--rule)' }}
+      >
+        <EditorialKicker
+          kicker="Inteligência Artificial · Créditos"
+          edition="Ciclo mensal"
+          date={new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
+        />
+        <span className="font-mono text-[10px]" style={{ color: 'var(--muted)', letterSpacing: '0.16em' }}>
+          {new Date().getFullYear()}
+        </span>
+      </div>
+
+      <HeadlineSerif size="md" as="h1" style={{ marginBottom: 24 }}>
+        Saldo e consumo de<br />
+        <em style={{ fontStyle: 'italic', color: 'var(--muted)' }}>inteligência artificial.</em>
+      </HeadlineSerif>
 
       {/* Feedback pós-pagamento */}
       {params.sucesso && (
@@ -314,6 +329,13 @@ export default async function CreditosPage({
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="pt-4 flex items-center justify-between" style={{ borderTop: '1px solid var(--hairline)' }}>
+        <Wordmark />
+        <div className="font-mono text-[9.5px]" style={{ color: 'var(--muted)', letterSpacing: '0.12em' }}>
+          Créditos debitados em tempo real · Lei 14.133/21
         </div>
       </div>
     </div>
