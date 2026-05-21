@@ -1,0 +1,264 @@
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+import type { CanalChat, CanalComNaoLidos, MensagemChat } from '@/types/chat'
+
+export async function buscarCanaisComNaoLidos(): Promise<CanalComNaoLidos[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data: usr } = await supabase
+    .from('usuarios')
+    .select('organizacao_id')
+    .eq('id', user.id)
+    .single()
+  if (!usr) return []
+  const orgId = (usr as any).organizacao_id
+
+  const { data: canais } = await (supabase as any)
+    .from('canais_chat')
+    .select('*')
+    .eq('organizacao_id', orgId)
+    .order('tipo', { ascending: true })
+    .order('nome', { ascending: true })
+
+  if (!canais?.length) return []
+
+  const { data: leituras } = await (supabase as any)
+    .from('leituras_chat')
+    .select('canal_id, ultima_leitura')
+    .eq('usuario_id', user.id)
+    .in('canal_id', (canais as CanalChat[]).map(c => c.id))
+
+  const leiturasMap: Record<string, string> = {}
+  for (const l of (leituras ?? []) as any[]) {
+    leiturasMap[l.canal_id] = l.ultima_leitura
+  }
+
+  const resultado: CanalComNaoLidos[] = []
+  for (const canal of canais as CanalChat[]) {
+    const ultimaLeitura = leiturasMap[canal.id]
+    const query = (supabase as any)
+      .from('mensagens_chat')
+      .select('*', { count: 'exact', head: true })
+      .eq('canal_id', canal.id)
+      .neq('autor_id', user.id)
+
+    const { count } = ultimaLeitura
+      ? await query.gt('criado_em', ultimaLeitura)
+      : await query
+
+    resultado.push({ ...canal, nao_lidos: count ?? 0 })
+  }
+
+  return resultado
+}
+
+export async function buscarMensagens(canalId: string): Promise<MensagemChat[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data } = await (supabase as any)
+    .from('mensagens_chat')
+    .select(`
+      *,
+      autor:usuarios(nome_completo, papel)
+    `)
+    .eq('canal_id', canalId)
+    .order('criado_em', { ascending: true })
+    .limit(100)
+
+  return (data ?? []) as MensagemChat[]
+}
+
+export async function enviarMensagem(
+  canalId: string,
+  conteudo: string,
+  respondendoA?: string,
+): Promise<{ success: boolean; error?: string }> {
+  const texto = conteudo.trim()
+  if (!texto || texto.length > 4000) {
+    return { success: false, error: 'Mensagem invalida' }
+  }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Nao autenticado' }
+
+  const { error } = await (supabase as any)
+    .from('mensagens_chat')
+    .insert({
+      canal_id: canalId,
+      autor_id: user.id,
+      conteudo: texto,
+      respondendo_a: respondendoA ?? null,
+    })
+
+  if (error) return { success: false, error: error.message }
+  revalidatePath(`/chat/${canalId}`)
+  return { success: true }
+}
+
+export async function marcarCanalComoLido(canalId: string): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  await (supabase as any)
+    .from('leituras_chat')
+    .upsert({
+      usuario_id: user.id,
+      canal_id: canalId,
+      ultima_leitura: new Date().toISOString(),
+    })
+}
+
+export async function garantirCanalProcesso(
+  processoId: string,
+  nomeProcesso: string,
+): Promise<string | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: usr } = await supabase
+    .from('usuarios')
+    .select('organizacao_id')
+    .eq('id', user.id)
+    .single()
+  if (!usr) return null
+  const orgId = (usr as any).organizacao_id
+
+  const { data: existente } = await (supabase as any)
+    .from('canais_chat')
+    .select('id')
+    .eq('tipo', 'processo')
+    .eq('referencia_id', processoId)
+    .maybeSingle()
+
+  if (existente) return (existente as any).id
+
+  const { data: novo, error } = await (supabase as any)
+    .from('canais_chat')
+    .insert({ organizacao_id: orgId, tipo: 'processo', referencia_id: processoId, nome: nomeProcesso })
+    .select('id')
+    .single()
+
+  return error ? null : (novo as any).id
+}
+
+export async function garantirCanalPlataforma(): Promise<string | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: usr } = await supabase
+    .from('usuarios')
+    .select('organizacao_id')
+    .eq('id', user.id)
+    .single()
+  if (!usr) return null
+  const orgId = (usr as any).organizacao_id
+
+  const { data: existente } = await (supabase as any)
+    .from('canais_chat')
+    .select('id')
+    .eq('tipo', 'plataforma')
+    .eq('organizacao_id', orgId)
+    .maybeSingle()
+
+  if (existente) return (existente as any).id
+
+  const { data: novo, error } = await (supabase as any)
+    .from('canais_chat')
+    .insert({ organizacao_id: orgId, tipo: 'plataforma', referencia_id: null, nome: 'Geral' })
+    .select('id')
+    .single()
+
+  return error ? null : (novo as any).id
+}
+
+export async function garantirCanalSetor(
+  secretariaId: string,
+  nomeSetor: string,
+): Promise<string | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: usr } = await supabase
+    .from('usuarios')
+    .select('organizacao_id')
+    .eq('id', user.id)
+    .single()
+  if (!usr) return null
+  const orgId = (usr as any).organizacao_id
+
+  const { data: existente } = await (supabase as any)
+    .from('canais_chat')
+    .select('id')
+    .eq('tipo', 'setor')
+    .eq('referencia_id', secretariaId)
+    .maybeSingle()
+
+  if (existente) return (existente as any).id
+
+  const { data: novo, error } = await (supabase as any)
+    .from('canais_chat')
+    .insert({ organizacao_id: orgId, tipo: 'setor', referencia_id: secretariaId, nome: nomeSetor })
+    .select('id')
+    .single()
+
+  return error ? null : (novo as any).id
+}
+
+export async function contarNaoLidosTotal(): Promise<number> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return 0
+
+  const { data: usr } = await supabase
+    .from('usuarios')
+    .select('organizacao_id')
+    .eq('id', user.id)
+    .single()
+  if (!usr) return 0
+  const orgId = (usr as any).organizacao_id
+
+  const { data: canais } = await (supabase as any)
+    .from('canais_chat')
+    .select('id')
+    .eq('organizacao_id', orgId)
+
+  if (!canais?.length) return 0
+  const ids = (canais as any[]).map(c => c.id)
+
+  const { data: leituras } = await (supabase as any)
+    .from('leituras_chat')
+    .select('canal_id, ultima_leitura')
+    .eq('usuario_id', user.id)
+    .in('canal_id', ids)
+
+  const leiturasMap: Record<string, string> = {}
+  for (const l of (leituras ?? []) as any[]) {
+    leiturasMap[l.canal_id] = l.ultima_leitura
+  }
+
+  let total = 0
+  for (const canalId of ids) {
+    const ultimaLeitura = leiturasMap[canalId]
+    const q = (supabase as any)
+      .from('mensagens_chat')
+      .select('*', { count: 'exact', head: true })
+      .eq('canal_id', canalId)
+      .neq('autor_id', user.id)
+
+    const { count } = ultimaLeitura ? await q.gt('criado_em', ultimaLeitura) : await q
+    total += count ?? 0
+  }
+
+  return total
+}

@@ -6,6 +6,7 @@ import { obterNotificacoes } from '@/lib/actions/notificacoes'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { seedClausulasPadrao } from '@/lib/actions/clausulas'
 import { buscarEventosTicker, lerPreferenciasTicker } from '@/lib/actions/ticker'
+import { contarNaoLidosTotal } from '@/lib/actions/chat'
 import type { TickerEvento, TickerCategoriaId } from '@/lib/ticker/categorias'
 import type { PapelUsuario } from '@/types/database'
 
@@ -18,7 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Seed silencioso: so insere clausulas_padrao se tabela estiver vazia
   seedClausulasPadrao().catch(() => {})
 
-  const [usuarioComOrgRes, creditosRes, { notificacoes, naoLidas }, papelAtual, eventosTicker, tickerCategorias] = await Promise.all([
+  const [usuarioComOrgRes, creditosRes, { notificacoes, naoLidas }, papelAtual, eventosTicker, tickerCategorias, naoLidosChat] = await Promise.all([
     supabase
       .from('usuarios')
       .select('nome_completo, cargo, organizacoes(nome, cnpj, brasao_url)')
@@ -29,6 +30,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     obterPapelUsuario(),
     buscarEventosTicker(),
     lerPreferenciasTicker(),
+    contarNaoLidosTotal(),
   ])
 
   const row = usuarioComOrgRes.data as {
@@ -54,6 +56,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         brasaoUrl={org?.brasao_url ?? null}
         eventosTicker={eventosTicker}
         tickerCategorias={tickerCategorias}
+        naoLidosChat={naoLidosChat}
       />
       <main 
         className="flex-1 max-w-[1400px] mx-auto w-full px-6 md:px-8 lg:px-12 py-10 pb-32"

@@ -5,7 +5,7 @@ import { headers } from 'next/headers'
 import {
   ArrowLeft, FileText, Calculator, ClipboardList, ShieldAlert,
   ScrollText, BookOpen, Gavel, CheckCircle2, ClipboardCheck,
-  ShieldCheck, Globe, Scale, Mail,
+  ShieldCheck, Globe, Scale, Mail, MessageSquare, Bot,
 } from 'lucide-react'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import {
@@ -67,7 +67,11 @@ export default async function ProcessoLayout({
   // Detecta etapa ativa pelo pathname
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') ?? ''
-  const etapaAtiva = ETAPAS.find(e => pathname.includes(`/${e.slug}`))?.slug ?? 'dfd'
+  const etapaAtiva = pathname.includes('/chat')
+    ? 'chat'
+    : pathname.includes('/assistente')
+    ? 'assistente'
+    : ETAPAS.find(e => pathname.includes(`/${e.slug}`))?.slug ?? 'dfd'
 
   // Papeis com acesso restrito sao redirecionados para a tab designada
   if (papel && ACESSO_RESTRITO_PROCESSO.includes(papel)) {
@@ -170,6 +174,36 @@ export default async function ProcessoLayout({
                 Valor estimado: R$ {(processo.valor_estimado as number).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             )}
+          </div>
+
+          {/* Botoes Chat e Assistente IA */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Link
+              href={`/processos/${id}/chat`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--r-md)] text-xs font-medium border transition-colors"
+              style={{
+                background: etapaAtiva === 'chat' ? 'var(--primaryWash)' : 'transparent',
+                color: etapaAtiva === 'chat' ? 'var(--primary)' : 'var(--inkSoft)',
+                borderColor: 'var(--hairline)',
+              }}
+              title="Chat do processo"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Chat</span>
+            </Link>
+            <Link
+              href={`/processos/${id}/assistente`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--r-md)] text-xs font-medium border transition-colors"
+              style={{
+                background: etapaAtiva === 'assistente' ? 'var(--accentWash)' : 'transparent',
+                color: etapaAtiva === 'assistente' ? 'var(--accent)' : 'var(--inkSoft)',
+                borderColor: 'var(--hairline)',
+              }}
+              title="Assistente IA"
+            >
+              <Bot className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">IA</span>
+            </Link>
           </div>
         </div>
 
