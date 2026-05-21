@@ -1,13 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { FileText, PlusCircle, ArrowRight, Clock, CheckCircle, Gavel, Filter } from 'lucide-react'
+import { FileText, PlusCircle, ArrowRight, Gavel } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import BotaoExcluirProcesso from './botao-excluir-processo'
-import { KPICard } from '@/components/licita/kpi-card'
 import { StatusPill } from '@/components/licita/status-pill'
 import type { StatusProcesso } from '@/components/licita/status-pill'
+import { EditorialKicker, HeadlineSerif } from '@/components/licita/editorial'
 
 const MODALIDADE_LABEL: Record<string, string> = {
   pregao_eletronico:   'Pregão Eletrônico',
@@ -59,36 +59,57 @@ export default async function ProcessosPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--accent)' }}>
-            Processos Licitatórios
-          </p>
-          <h1 className="text-3xl font-bold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
-            Todos os Processos
-          </h1>
-          <p className="text-[15px] mt-1.5" style={{ color: 'var(--muted)' }}>
-            {totais.total} processo{totais.total !== 1 ? 's' : ''} encontrado{totais.total !== 1 ? 's' : ''}
-          </p>
+      {/* Masthead editorial */}
+      <div>
+        <div
+          className="flex items-center justify-between pb-3.5 mb-6"
+          style={{ borderBottom: '2px solid var(--rule)' }}
+        >
+          <EditorialKicker
+            kicker="Processos Licitatórios"
+            date={new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
+          />
+          <Link href="/processos/novo">
+            <Button
+              className="text-white h-9 px-5 text-sm font-semibold gap-2 rounded-[var(--r-md)]"
+              style={{ background: 'var(--primary)' }}
+            >
+              <PlusCircle className="w-4 h-4" />
+              Novo processo
+            </Button>
+          </Link>
         </div>
-        <Link href="/processos/novo">
-          <Button
-            className="text-white h-10 px-5 text-sm font-semibold gap-2 rounded-[var(--r-md)]"
-            style={{ background: 'var(--primary)' }}
-          >
-            <PlusCircle className="w-4 h-4" />
-            Novo Processo
-          </Button>
-        </Link>
+
+        <HeadlineSerif size="md" as="h1">
+          Processos em elaboração.
+        </HeadlineSerif>
+        <p className="mt-2 text-[15px]" style={{ color: 'var(--inkSoft)', fontFamily: 'var(--font-heading)' }}>
+          {totais.total} processo{totais.total !== 1 ? 's' : ''} · {totais.emRevisao} em revisão
+        </p>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-        <KPICard label="Total"     value={totais.total}     sub="Processos"    icon={<FileText className="w-5 h-5" />} />
-        <KPICard label="Rascunhos" value={totais.rascunho}  sub="Em edição"    icon={<Clock className="w-5 h-5" />}    />
-        <KPICard label="Em Revisão" value={totais.emRevisao} sub="Aguardando"  icon={<Filter className="w-5 h-5" />}   accent />
-        <KPICard label="Concluídos" value={totais.concluidos} sub="Publicados" icon={<CheckCircle className="w-5 h-5" />} />
+      {/* KPI rail */}
+      <div
+        className="grid grid-cols-4 overflow-hidden"
+        style={{ border: '1px solid var(--hairline)', borderRadius: 'var(--r-lg)', background: 'var(--surface)' }}
+      >
+        {[
+          { label: 'Total', valor: totais.total, sub: 'processos' },
+          { label: 'Rascunho', valor: totais.rascunho, sub: 'em elaboração' },
+          { label: 'Em revisão', valor: totais.emRevisao, sub: 'aguardando análise' },
+          { label: 'Concluídos', valor: totais.concluidos, sub: 'publicados/assinados' },
+        ].map((k, i, arr) => (
+          <div key={k.label} className="px-5 pt-4 pb-3.5" style={{ borderRight: i < arr.length - 1 ? '1px solid var(--hairline)' : 'none' }}>
+            <div className="l-meta mb-2" style={{ color: 'var(--muted)' }}>{k.label}</div>
+            <div
+              className="l-h l-tnum"
+              style={{ fontFamily: 'var(--font-heading)', fontSize: 40, lineHeight: 0.94, letterSpacing: '-0.03em', color: 'var(--ink)', fontWeight: 500 }}
+            >
+              {k.valor}
+            </div>
+            <div className="text-[11px] mt-2" style={{ color: 'var(--inkSoft)' }}>{k.sub}</div>
+          </div>
+        ))}
       </div>
 
       {/* Lista */}
