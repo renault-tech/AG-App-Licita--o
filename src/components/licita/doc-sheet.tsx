@@ -1,63 +1,119 @@
-import type { ReactNode } from 'react'
-import { StatusPill, type StatusProcesso } from './status-pill'
+'use client'
 
-interface DocSheetProps {
-  titulo: string
-  subtitulo?: string
-  status?: StatusProcesso
-  meta?: Array<{ label: string; value: string }>
-  acoes?: ReactNode
-  children: ReactNode
-  className?: string
-}
+import type { ReactNode } from 'react'
+
+export type DocSecao = { titulo: string; corpo: string }
 
 export function DocSheet({
+  kicker,
   titulo,
-  subtitulo,
-  status,
-  meta = [],
-  acoes,
-  children,
+  meta,
+  secoes,
+  actions,
+  footer,
+  dropCap = false,
   className = '',
-}: DocSheetProps) {
+}: {
+  kicker?: string
+  titulo: string
+  meta?: string
+  secoes: DocSecao[]
+  actions?: ReactNode
+  footer?: ReactNode
+  dropCap?: boolean
+  className?: string
+}) {
   return (
-    <article
-      className={`flex flex-col gap-0 rounded-[var(--r-lg)] border border-hairline bg-surface shadow-sm overflow-hidden ${className}`}
+    <div
+      className={`flex flex-col rounded-[var(--r-lg)] border border-hairline bg-surface ${className}`}
+      style={{
+        padding: '28px 38px 24px',
+        boxShadow:
+          '0 1px 0 rgba(15, 20, 24, 0.02), 0 12px 32px -16px rgba(15, 20, 24, 0.08)',
+      }}
     >
       {/* Cabecalho */}
-      <header className="flex flex-col gap-2 border-b border-hairline bg-surfaceAlt px-6 py-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h2
-              className="truncate text-lg font-semibold leading-snug tracking-[-0.01em] text-ink"
-              style={{ fontFamily: 'var(--font-heading)' }}
-            >
-              {titulo}
-            </h2>
-            {subtitulo && (
-              <p className="mt-0.5 text-sm text-muted">{subtitulo}</p>
-            )}
+      <div
+        className="flex items-start justify-between gap-5 pb-4 mb-5"
+        style={{ borderBottom: '0.5px solid var(--hairlineSoft)' }}
+      >
+        <div className="flex-1 min-w-0">
+          {kicker && (
+            <div className="flex items-center gap-2 mb-2">
+              <span
+                className="text-[9.5px] font-bold uppercase"
+                style={{ color: 'var(--accent)', letterSpacing: '0.2em' }}
+              >
+                {kicker}
+              </span>
+              <span className="h-px w-4" style={{ background: 'var(--accentSoft)' }} />
+              <span
+                className="font-mono text-[9.5px]"
+                style={{ color: 'var(--muted)', letterSpacing: '0.06em' }}
+              >
+                Documento institucional
+              </span>
+            </div>
+          )}
+          <div
+            className="l-h"
+            style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: 26, lineHeight: 1.12, letterSpacing: '-0.018em',
+              color: 'var(--ink)', fontWeight: 500, textWrap: 'balance',
+            }}
+          >
+            {titulo}
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            {status && <StatusPill status={status} size="sm" />}
-            {acoes && <div className="flex items-center gap-2">{acoes}</div>}
-          </div>
+          {meta && (
+            <div className="flex items-center gap-2 mt-2.5 text-[11px]">
+              <span className="l-meta" style={{ letterSpacing: '0.16em', color: 'var(--muted)' }}>
+                Por
+              </span>
+              <span style={{ color: 'var(--inkSoft)', fontWeight: 500 }}>{meta}</span>
+            </div>
+          )}
         </div>
+        {actions && <div className="flex gap-1.5 shrink-0">{actions}</div>}
+      </div>
 
-        {meta.length > 0 && (
-          <dl className="flex flex-wrap gap-x-6 gap-y-1">
-            {meta.map(({ label, value }) => (
-              <div key={label} className="flex items-center gap-1.5">
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-mutedSoft">{label}</dt>
-                <dd className="text-[12px] font-medium text-inkSoft">{value}</dd>
+      {/* Secoes */}
+      <div className="flex-1">
+        {secoes.map((s, i) => (
+          <div key={i} className="mb-[18px]">
+            <div className="flex items-baseline gap-2.5 mb-2">
+              <span
+                className="font-mono text-[10px] font-bold"
+                style={{ color: 'var(--accent)', letterSpacing: '0.06em', lineHeight: 1 }}
+              >
+                § {String(i + 1).padStart(2, '0')}
+              </span>
+              <div
+                className="l-h"
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 14, fontWeight: 600,
+                  color: 'var(--primary)', letterSpacing: '-0.008em',
+                }}
+              >
+                {s.titulo}
               </div>
-            ))}
-          </dl>
-        )}
-      </header>
+            </div>
+            <p
+              className={dropCap && i === 0 ? 'l-dropcap l-justify' : 'l-justify'}
+              style={{
+                fontFamily: 'var(--font-heading)',
+                fontSize: 14, lineHeight: 1.6,
+                color: 'var(--inkSoft)', margin: 0, fontWeight: 400,
+              }}
+            >
+              {s.corpo}
+            </p>
+          </div>
+        ))}
+      </div>
 
-      {/* Conteudo */}
-      <div className="flex-1 px-6 py-5">{children}</div>
-    </article>
+      {footer}
+    </div>
   )
 }
