@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AppHeader } from '@/components/layout/app-header'
-import { ChatLauncher } from '@/components/layout/chat-launcher'
+import { ChatDrawer } from '@/components/chat/chat-drawer'
 import DemoSwitcher from '@/components/layout/demo-switcher'
 import { DemoBanner } from '@/components/admin/demo-banner'
 import { obterNotificacoes } from '@/lib/actions/notificacoes'
@@ -97,7 +97,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       >
         {children}
       </main>
-      <ChatLauncher naoLidosChat={naoLidosChat} />
+      <ChatDrawer usuarioId={user.id} naoLidosChat={naoLidosChat} />
       {demoSession.ativo && papelAtual && <DemoSwitcher papelAtual={papelAtual as PapelUsuario} />}
     </div>
   )
