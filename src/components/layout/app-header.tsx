@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Bell, Star, Search, LogOut, Settings, Users, Building2, Zap, TrendingUp, ShieldCheck, ChevronDown, Menu, X, RefreshCw } from 'lucide-react'
+import { Bell, Star, Search, LogOut, Settings, Users, Building2, Zap, TrendingUp, ShieldCheck, ChevronDown, Menu, X, RefreshCw, Presentation } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { useTheme, THEMES } from '@/lib/theme/provider'
 import { LogoPrefeitura } from '@/components/licita/logo-prefeitura'
@@ -182,7 +182,8 @@ export function AppHeader({
           podeTracarPerfil ? (
             <DropdownMenu>
               <DropdownMenuTrigger
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--r-pill)] text-[11px] font-semibold shrink-0 transition-opacity hover:opacity-80 outline-none"
+                title="Clique para trocar perfil de visualizacao"
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--r-pill)] text-[11px] font-semibold shrink-0 outline-none cursor-pointer select-none"
                 style={{
                   background: perfilSobreposto
                     ? `${COR_PAPEL[papel as PapelUsuario]}28`
@@ -190,12 +191,15 @@ export function AppHeader({
                   color: COR_PAPEL[papel as PapelUsuario],
                   border: perfilSobreposto
                     ? `1.5px dashed ${COR_PAPEL[papel as PapelUsuario]}80`
-                    : `1px solid ${COR_PAPEL[papel as PapelUsuario]}35`,
+                    : `1.5px solid ${COR_PAPEL[papel as PapelUsuario]}55`,
+                  transition: 'filter 150ms',
                 }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(0.88)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = ''}
               >
                 {perfilSobreposto && <RefreshCw className="w-2.5 h-2.5" />}
                 {LABEL_PAPEL[papel as PapelUsuario]}
-                <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+                <ChevronDown className="w-3 h-3 opacity-75" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52 border-hairline" style={{ boxShadow: '0 12px 32px rgba(0,0,0,0.10)' }}>
                 <div className="px-3 py-2 border-b border-hairline">
@@ -232,6 +236,19 @@ export function AppHeader({
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       Voltar ao meu perfil real
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {isAdminPlataforma && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => router.push('/admin/modo-demo')}
+                      className="gap-2 cursor-pointer text-[13px] py-2 font-medium"
+                      style={{ color: '#EA580C' }}
+                    >
+                      <Presentation className="w-3.5 h-3.5" />
+                      Modo Demo
                     </DropdownMenuItem>
                   </>
                 )}
@@ -306,6 +323,9 @@ export function AppHeader({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push('/admin/painel')} className="gap-2.5 cursor-pointer text-[15px] font-medium py-2.5" style={{ color: 'var(--primary)' }}>
                   <ShieldCheck className="w-4 h-4" /> Administracao da Plataforma
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/admin/modo-demo')} className="gap-2.5 cursor-pointer text-[15px] font-medium py-2.5" style={{ color: '#EA580C' }}>
+                  <Presentation className="w-4 h-4" /> Modo Demo
                 </DropdownMenuItem>
               </>
             )}

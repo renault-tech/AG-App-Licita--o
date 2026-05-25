@@ -2,7 +2,7 @@
 
 import { useTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { trocarPapelDemo } from '@/lib/actions/usuario'
+import { trocarPerfilAtivo } from '@/lib/perfil-session'
 import type { PapelUsuario } from '@/types/database'
 import { ChevronUp, ChevronDown } from 'lucide-react'
 
@@ -112,7 +112,7 @@ export default function DemoSwitcher({ papelAtual }: Props) {
   function handleTrocar(papel: PapelUsuario) {
     if (papel === papelAtual || isPending) return
     startTransition(async () => {
-      await trocarPapelDemo(papel)
+      await trocarPerfilAtivo(papel)
       router.refresh()
     })
   }

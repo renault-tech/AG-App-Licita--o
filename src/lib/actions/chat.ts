@@ -26,11 +26,22 @@ export async function buscarCanaisComNaoLidos(): Promise<CanalComNaoLidos[]> {
 
   if (!canais?.length) return []
 
+  // Deduplica: para tipo 'plataforma', mantém apenas o primeiro por org (evita duplicatas de insert concorrente)
+  const vistosPorTipoRef = new Set<string>()
+  const canaisUnicos = (canais as CanalChat[]).filter(c => {
+    const chave = c.tipo === 'plataforma'
+      ? `plataforma:${c.organizacao_id}`
+      : `${c.tipo}:${c.referencia_id ?? c.id}`
+    if (vistosPorTipoRef.has(chave)) return false
+    vistosPorTipoRef.add(chave)
+    return true
+  })
+
   const { data: leituras } = await (supabase as any)
     .from('leituras_chat')
     .select('canal_id, ultima_leitura')
     .eq('usuario_id', user.id)
-    .in('canal_id', (canais as CanalChat[]).map(c => c.id))
+    .in('canal_id', canaisUnicos.map(c => c.id))
 
   const leiturasMap: Record<string, string> = {}
   for (const l of (leituras ?? []) as any[]) {
@@ -38,7 +49,7 @@ export async function buscarCanaisComNaoLidos(): Promise<CanalComNaoLidos[]> {
   }
 
   const resultado: CanalComNaoLidos[] = []
-  for (const canal of canais as CanalChat[]) {
+  for (const canal of canaisUnicos) {
     const ultimaLeitura = leiturasMap[canal.id]
     const query = (supabase as any)
       .from('mensagens_chat')
@@ -163,13 +174,14 @@ export async function garantirCanalPlataforma(): Promise<string | null> {
   if (!usr) return null
   const orgId = (usr as any).organizacao_id
 
-  const { data: existente } = await (supabase as any)
+  const { data: existentes } = await (supabase as any)
     .from('canais_chat')
     .select('id')
     .eq('tipo', 'plataforma')
     .eq('organizacao_id', orgId)
-    .maybeSingle()
+    .limit(1)
 
+  const existente = existentes?.[0] ?? null
   if (existente) return (existente as any).id
 
   const { data: novo, error } = await (supabase as any)

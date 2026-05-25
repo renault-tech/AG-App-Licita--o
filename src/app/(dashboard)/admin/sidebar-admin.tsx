@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, BookOpen, Bot, Building2, Users,
-  HelpCircle, Settings2, Coins, BarChart2,
+  HelpCircle, Settings2, Coins, BarChart2, Presentation,
 } from 'lucide-react'
 
 const NAV = [
@@ -52,9 +52,15 @@ const NAV = [
   },
   {
     href: '/admin/configuracoes-plataforma',
-    label: 'Configurações',
+    label: 'Configuracoes',
     icon: Settings2,
-    tooltip: 'Parâmetros globais da plataforma: prazos de alerta para pareceres e outras configurações.',
+    tooltip: 'Parametros globais da plataforma: prazos de alerta para pareceres e outras configuracoes.',
+  },
+  {
+    href: '/admin/modo-demo',
+    label: 'Modo Demo',
+    icon: Presentation,
+    tooltip: 'Entre em ambiente isolado para demonstrar a plataforma a potenciais clientes simulando qualquer perfil.',
   },
 ]
 
