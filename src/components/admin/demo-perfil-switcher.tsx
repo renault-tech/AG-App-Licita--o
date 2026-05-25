@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { LABEL_PAPEL, ICONE_PAPEL, COR_PAPEL, ORDEM_FLUXO } from '@/lib/permissions'
 import type { PapelUsuario } from '@/types/database'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { Button } from '@/components/ui/button'
 import { Users } from 'lucide-react'
 
 const TODOS_PERFIS: PapelUsuario[] = [
@@ -36,14 +35,8 @@ export function DemoPerfilSwitcher({ papelAtual, onTrocar }: DemoPerfilSwitcherP
   return (
     <Sheet open={aberto} onOpenChange={setAberto}>
       <SheetTrigger
-        render={
-          <Button
-            size="sm"
-            variant="outline"
-            className="fixed bottom-20 right-4 z-50 gap-2 shadow-lg"
-            aria-label="Trocar perfil no modo demo"
-          />
-        }
+        className="fixed bottom-20 right-4 z-50 flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-full text-sm font-semibold shadow-lg hover:bg-gray-50 transition-colors"
+        aria-label="Trocar perfil no modo demo"
       >
         <Users className="w-4 h-4" />
         Trocar perfil

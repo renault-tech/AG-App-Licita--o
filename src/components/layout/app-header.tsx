@@ -36,13 +36,11 @@ interface AppHeaderProps {
   usuarioId?: string
   eventosTicker?: TickerEvento[]
   tickerCategorias?: Record<TickerCategoriaId, boolean>
-  naoLidosChat?: number
 }
 
 const TABS = [
   { href: '/dashboard',     label: 'Painel',       match: (p: string) => p === '/dashboard' },
   { href: '/processos',     label: 'Processos',    match: (p: string) => p.startsWith('/processos') },
-  { href: '/chat',          label: 'Chat',         match: (p: string) => p.startsWith('/chat') },
   { href: '/creditos',      label: 'Creditos',     match: (p: string) => p.startsWith('/creditos') },
   { href: '/configuracoes', label: 'Configuracoes', match: (p: string) => p.startsWith('/configuracoes') || p.startsWith('/admin') },
 ]
@@ -63,7 +61,6 @@ export function AppHeader({
   usuarioId,
   eventosTicker = [],
   tickerCategorias = TICKER_CATEGORIAS_DEFAULT,
-  naoLidosChat = 0,
 }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -266,14 +263,6 @@ export function AppHeader({
                 }
               >
                 {tab.label}
-                {tab.href === '/chat' && naoLidosChat > 0 && (
-                  <span
-                    className="absolute -top-0.5 -right-0.5 text-[9px] font-bold px-1 py-px rounded-full min-w-[14px] text-center"
-                    style={{ background: 'var(--danger)', color: '#fff', lineHeight: '1.2' }}
-                  >
-                    {naoLidosChat > 99 ? '99+' : naoLidosChat}
-                  </span>
-                )}
               </Link>
             )
           })}
