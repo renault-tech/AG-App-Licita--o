@@ -4,13 +4,14 @@ import { AppHeader } from '@/components/layout/app-header'
 import { ChatLauncher } from '@/components/layout/chat-launcher'
 import DemoSwitcher from '@/components/layout/demo-switcher'
 import { DemoBanner } from '@/components/admin/demo-banner'
-import { DemoPerfilSwitcher } from '@/components/admin/demo-perfil-switcher'
 import { obterNotificacoes } from '@/lib/actions/notificacoes'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { seedClausulasPadrao } from '@/lib/actions/clausulas'
 import { buscarEventosTicker, lerPreferenciasTicker } from '@/lib/actions/ticker'
 import { contarNaoLidosTotal } from '@/lib/actions/chat'
-import { getDemoSession, sairModoDemo, trocarPapelDemo } from '@/lib/demo-session'
+import { obterConfiguracoes } from '@/lib/actions/configuracoes-plataforma'
+import { getDemoSession, sairModoDemo } from '@/lib/demo-session'
+import { obterPerfilAtivo } from '@/lib/perfil-session'
 import type { PapelUsuario } from '@/types/database'
 import type { ThemeName } from '@/lib/theme/provider'
 import { OrgThemeApplicator } from '@/components/licita/org-theme-applicator'
@@ -26,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const demoSession = await getDemoSession()
 
-  const [usuarioComOrgRes, creditosRes, { notificacoes, naoLidas }, papelAtual, eventosTicker, tickerCategorias, naoLidosChat] = await Promise.all([
+  const [usuarioComOrgRes, creditosRes, { notificacoes, naoLidas }, papelReal, eventosTicker, tickerCategorias, naoLidosChat, perfilAtivoCookie, configs] = await Promise.all([
     supabase
       .from('usuarios')
       .select('id, nome_completo, cargo, organizacao_id, organizacoes(nome, cnpj, brasao_url, tema_padrao)')
@@ -38,7 +39,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
     buscarEventosTicker(),
     lerPreferenciasTicker(),
     contarNaoLidosTotal(),
+    obterPerfilAtivo(),
+    obterConfiguracoes(),
   ])
+
+  const adminOrgPodeTrocar = configs['admin_org_pode_trocar_perfil'] === 'true'
+  const podeTracarPerfil =
+    papelReal === 'admin_plataforma' ||
+    (papelReal === 'admin_organizacao' && adminOrgPodeTrocar)
+
+  const papelAtual = (podeTracarPerfil && perfilAtivoCookie) ? perfilAtivoCookie : papelReal
 
   const row = usuarioComOrgRes.data as {
     id?: string
@@ -61,10 +71,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
             papelSimulado={demoSession.papelSimulado}
             onSair={sairModoDemo}
           />
-          <DemoPerfilSwitcher
-            papelAtual={demoSession.papelSimulado}
-            onTrocar={trocarPapelDemo}
-          />
           <div style={{ paddingTop: 44 }} />
         </>
       )}
@@ -77,7 +83,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         notificacoes={notificacoes}
         naoLidas={naoLidas}
         papel={papelAtual}
-        isAdminPlataforma={papelAtual === 'admin_plataforma'}
+        papelReal={papelReal}
+        isAdminPlataforma={papelReal === 'admin_plataforma'}
+        podeTracarPerfil={podeTracarPerfil}
         brasaoUrl={org?.brasao_url ?? null}
         usuarioId={user.id}
         eventosTicker={eventosTicker}

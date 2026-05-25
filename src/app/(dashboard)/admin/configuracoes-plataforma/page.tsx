@@ -12,6 +12,7 @@ export default async function ConfiguracoesPlataformaPage() {
       <ConfiguracoesPlatafoma
         prazoUrgencia={Number(configs['prazo_urgencia_parecer_dias'] ?? 5)}
         prazoAlerta={Number(configs['prazo_alerta_parecer_dias'] ?? 10)}
+        adminOrgPodeTrocarPerfil={configs['admin_org_pode_trocar_perfil'] === 'true'}
       />
     </div>
   )

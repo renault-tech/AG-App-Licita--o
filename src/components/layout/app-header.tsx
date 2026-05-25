@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Bell, Star, Search, LogOut, Settings, Users, Building2, Zap, TrendingUp, ShieldCheck, ChevronDown, Menu, X } from 'lucide-react'
-import { useState } from 'react'
+import { Bell, Star, Search, LogOut, Settings, Users, Building2, Zap, TrendingUp, ShieldCheck, ChevronDown, Menu, X, RefreshCw } from 'lucide-react'
+import { useState, useTransition } from 'react'
 import { useTheme, THEMES } from '@/lib/theme/provider'
 import { LogoPrefeitura } from '@/components/licita/logo-prefeitura'
 import { ThemeSwitcherPanel } from '@/components/licita/theme-switcher'
@@ -17,10 +17,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { Notificacao } from '@/lib/actions/notificacoes'
-import { LABEL_PAPEL, COR_PAPEL } from '@/lib/permissions'
+import { LABEL_PAPEL, COR_PAPEL, ORDEM_FLUXO } from '@/lib/permissions'
 import type { PapelUsuario } from '@/types/database'
 import { TickerStrip } from '@/components/layout/ticker-strip'
 import { TICKER_CATEGORIAS_DEFAULT, type TickerCategoriaId, type TickerEvento } from '@/lib/ticker/categorias'
+import { trocarPerfilAtivo } from '@/lib/perfil-session'
 
 interface AppHeaderProps {
   orgNome: string
@@ -31,7 +32,9 @@ interface AppHeaderProps {
   notificacoes?: Notificacao[]
   naoLidas?: number
   papel?: string | null
+  papelReal?: string | null
   isAdminPlataforma?: boolean
+  podeTracarPerfil?: boolean
   brasaoUrl?: string | null
   usuarioId?: string
   eventosTicker?: TickerEvento[]
@@ -47,6 +50,12 @@ const TABS = [
 
 const TABS_PROC = { href: '/procuradoria', label: 'Procuradoria', match: (p: string) => p.startsWith('/procuradoria') }
 
+const TODOS_PAPEIS: PapelUsuario[] = [
+  ...ORDEM_FLUXO,
+  'admin_organizacao',
+  'admin_plataforma',
+]
+
 export function AppHeader({
   orgNome,
   orgCnpj,
@@ -56,7 +65,9 @@ export function AppHeader({
   notificacoes = [],
   naoLidas = 0,
   papel = null,
+  papelReal = null,
   isAdminPlataforma = false,
+  podeTracarPerfil = false,
   brasaoUrl = null,
   usuarioId,
   eventosTicker = [],
@@ -68,6 +79,14 @@ export function AppHeader({
   const t = THEMES[theme]
   const [themePanelOpen, setThemePanelOpen] = useState(false)
   const [menuMobile, setMenuMobile] = useState(false)
+  const [, startTransition] = useTransition()
+
+  const perfilSobreposto = podeTracarPerfil && papel !== papelReal && papelReal !== null
+
+  async function handleTrocarPerfil(novoPapel: PapelUsuario | null) {
+    await trocarPerfilAtivo(novoPapel)
+    startTransition(() => { router.refresh() })
+  }
 
   const iniciais = nomeUsuario
     ? nomeUsuario.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
@@ -158,18 +177,78 @@ export function AppHeader({
           <ThemeSwitcherPanel open={themePanelOpen} onClose={() => setThemePanelOpen(false)} />
         </div>
 
-        {/* Pill de papel ativo */}
+        {/* Pill de papel ativo — vira dropdown quando podeTracarPerfil */}
         {papel && LABEL_PAPEL[papel as PapelUsuario] && (
-          <div
-            className="hidden sm:flex items-center px-2.5 py-1 rounded-[var(--r-pill)] text-[11px] font-semibold shrink-0"
-            style={{
-              background: `${COR_PAPEL[papel as PapelUsuario]}18`,
-              color: COR_PAPEL[papel as PapelUsuario],
-              border: `1px solid ${COR_PAPEL[papel as PapelUsuario]}35`,
-            }}
-          >
-            {LABEL_PAPEL[papel as PapelUsuario]}
-          </div>
+          podeTracarPerfil ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--r-pill)] text-[11px] font-semibold shrink-0 transition-opacity hover:opacity-80 outline-none"
+                style={{
+                  background: perfilSobreposto
+                    ? `${COR_PAPEL[papel as PapelUsuario]}28`
+                    : `${COR_PAPEL[papel as PapelUsuario]}18`,
+                  color: COR_PAPEL[papel as PapelUsuario],
+                  border: perfilSobreposto
+                    ? `1.5px dashed ${COR_PAPEL[papel as PapelUsuario]}80`
+                    : `1px solid ${COR_PAPEL[papel as PapelUsuario]}35`,
+                }}
+              >
+                {perfilSobreposto && <RefreshCw className="w-2.5 h-2.5" />}
+                {LABEL_PAPEL[papel as PapelUsuario]}
+                <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52 border-hairline" style={{ boxShadow: '0 12px 32px rgba(0,0,0,0.10)' }}>
+                <div className="px-3 py-2 border-b border-hairline">
+                  <p className="text-[10px] text-muted font-semibold uppercase tracking-wider">Visualizar como</p>
+                </div>
+                {TODOS_PAPEIS.map((p) => {
+                  const ativo = papel === p
+                  return (
+                    <DropdownMenuItem
+                      key={p}
+                      onClick={() => handleTrocarPerfil(ativo ? null : p)}
+                      className="gap-2 cursor-pointer text-[13px] py-2"
+                      style={ativo ? { color: COR_PAPEL[p], fontWeight: 600 } : undefined}
+                    >
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ background: COR_PAPEL[p] }}
+                      />
+                      {LABEL_PAPEL[p]}
+                      {ativo && (
+                        <span className="ml-auto text-[10px] opacity-60">
+                          {p === papelReal ? 'seu perfil' : 'ativo'}
+                        </span>
+                      )}
+                    </DropdownMenuItem>
+                  )
+                })}
+                {perfilSobreposto && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => handleTrocarPerfil(null)}
+                      className="gap-2 cursor-pointer text-[13px] py-2 text-muted"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      Voltar ao meu perfil real
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div
+              className="hidden sm:flex items-center px-2.5 py-1 rounded-[var(--r-pill)] text-[11px] font-semibold shrink-0"
+              style={{
+                background: `${COR_PAPEL[papel as PapelUsuario]}18`,
+                color: COR_PAPEL[papel as PapelUsuario],
+                border: `1px solid ${COR_PAPEL[papel as PapelUsuario]}35`,
+              }}
+            >
+              {LABEL_PAPEL[papel as PapelUsuario]}
+            </div>
+          )
         )}
 
         {/* Avatar + dropdown */}
