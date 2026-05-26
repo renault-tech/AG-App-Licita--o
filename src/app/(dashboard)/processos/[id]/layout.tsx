@@ -8,6 +8,8 @@ import {
   ShieldCheck, Globe, Scale, Mail, MessageSquare, Bot,
 } from 'lucide-react'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
+import { obterStatusEtapas } from '@/lib/actions/processo'
+import type { EtapaStatus, StatusEtapa } from '@/lib/actions/processo'
 import {
   ACESSO_RESTRITO_PROCESSO,
   getTabDesignada,
@@ -55,20 +57,19 @@ export default async function ProcessoLayout({
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: processo } = await (supabase
-    .from('processos_licitatorios') as any)
-    .select('id, objeto, modalidade, status, numero_processo, valor_estimado, fase_atual, organizacao_id')
-    .eq('id', id)
-    .maybeSingle()
+  const [{ data: processo }, { data: historicoRaw }, etapasStatus] = await Promise.all([
+    (supabase.from('processos_licitatorios') as any)
+      .select('id, objeto, modalidade, status, numero_processo, valor_estimado, fase_atual, organizacao_id')
+      .eq('id', id)
+      .maybeSingle(),
+    (supabase.from('tramitacao_historico') as any)
+      .select('id, processo_id, organizacao_id, usuario_id, nome_usuario, de_papel, para_papel, tipo, motivo, pendencias, created_at')
+      .eq('processo_id', id)
+      .order('created_at', { ascending: true }),
+    obterStatusEtapas(id),
+  ])
 
   if (!processo) return notFound()
-
-  // Busca historico de tramitacao para alimentar a timeline
-  const { data: historicoRaw } = await (supabase
-    .from('tramitacao_historico') as any)
-    .select('id, processo_id, organizacao_id, usuario_id, nome_usuario, de_papel, para_papel, tipo, motivo, pendencias, created_at')
-    .eq('processo_id', id)
-    .order('created_at', { ascending: true })
 
   const historico = (historicoRaw ?? []) as TramitacaoHistoricoRow[]
   const faseAtual = (processo.fase_atual ?? 'requisitante') as FaseProcesso
@@ -114,7 +115,6 @@ export default async function ProcessoLayout({
   }
 
   const etapasVisiveis = ETAPAS.filter(e => tabsPermitidas.includes(e.slug))
-  const etapaAtivaIndex = etapasVisiveis.findIndex(e => e.slug === etapaAtiva)
 
   const modalidade = MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade
   const acessoRestrito = papel ? ACESSO_RESTRITO_PROCESSO.includes(papel) : false
@@ -245,32 +245,45 @@ export default async function ProcessoLayout({
               <nav className="hidden md:flex items-center" aria-label="Etapas do processo">
                 {etapasVisiveis.map((etapa, i) => {
                   const Icon = etapa.icon
-                  const isAtiva     = etapa.slug === etapaAtiva
-                  const isConcluida = i < etapaAtivaIndex
+                  const isAtiva  = etapa.slug === etapaAtiva
+                  const dbStatus = (etapasStatus.find((e: EtapaStatus) => e.slug === etapa.slug)?.status ?? 'nao_iniciado') as StatusEtapa
+                  const updated  = etapasStatus.find((e: EtapaStatus) => e.slug === etapa.slug)?.updated_at
 
-                  const circleStyle = isAtiva
-                    ? { backgroundColor: 'var(--primary)', borderColor: 'var(--primary)', color: '#fff' }
-                    : isConcluida
-                    ? { backgroundColor: 'var(--successWash)', borderColor: 'var(--success)', color: 'var(--success)' }
-                    : { backgroundColor: 'var(--surface)', borderColor: 'var(--hairline)', color: 'var(--muted)' }
+                  const tooltipText = updated
+                    ? `Ultima edicao: ${new Date(updated).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+                    : dbStatus === 'nao_iniciado' ? 'Nao iniciado' : etapa.label
 
-                  const labelColor = isAtiva
-                    ? 'var(--primary)'
-                    : isConcluida
-                    ? 'var(--success)'
-                    : 'var(--muted)'
+                  const circleStyle: React.CSSProperties =
+                    isAtiva                                              ? { backgroundColor: 'var(--primary)',     borderColor: 'var(--primary)',    color: '#fff'           }
+                    : dbStatus === 'assinado'                            ? { backgroundColor: 'var(--successWash)', borderColor: 'var(--success)',    color: 'var(--success)' }
+                    : dbStatus === 'devolvido'                           ? { backgroundColor: '#fef3c7',            borderColor: '#f59e0b',           color: '#b45309'        }
+                    : dbStatus === 'rascunho' || dbStatus === 'em_revisao' ? { backgroundColor: 'var(--primaryWash)', borderColor: 'var(--primary)',    color: 'var(--primary)' }
+                    :                                                       { backgroundColor: 'var(--surface)',     borderColor: 'var(--hairline)',   color: 'var(--muted)'   }
+
+                  const labelColor =
+                    isAtiva                                              ? 'var(--primary)'
+                    : dbStatus === 'assinado'                            ? 'var(--success)'
+                    : dbStatus === 'devolvido'                           ? '#b45309'
+                    : dbStatus === 'rascunho' || dbStatus === 'em_revisao' ? 'var(--primary)'
+                    :                                                       'var(--muted)'
+
+                  const connectorColor =
+                    dbStatus === 'assinado'                              ? 'var(--success)'
+                    : dbStatus === 'rascunho' || dbStatus === 'em_revisao' ? 'var(--primary)'
+                    :                                                       'var(--hairline)'
 
                   return (
                     <div key={etapa.slug} className="flex items-center flex-1 min-w-0">
                       <Link
                         href={`/processos/${id}/${etapa.slug}`}
                         className="flex flex-col items-center gap-1 px-2 py-1 rounded-[var(--r-md)] transition-all flex-1 min-w-0"
+                        title={tooltipText}
                       >
                         <div
                           className="w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all"
                           style={circleStyle}
                         >
-                          {isConcluida ? (
+                          {dbStatus === 'assinado' && !isAtiva ? (
                             <CheckCircle2 className="w-4 h-4" />
                           ) : (
                             <Icon className="w-3.5 h-3.5" />
@@ -286,7 +299,7 @@ export default async function ProcessoLayout({
                       {i < etapasVisiveis.length - 1 && (
                         <div
                           className="h-0.5 flex-1 mx-1 rounded-full transition-all"
-                          style={{ backgroundColor: isConcluida ? 'var(--success)' : 'var(--hairline)' }}
+                          style={{ backgroundColor: connectorColor }}
                         />
                       )}
                     </div>
@@ -296,15 +309,15 @@ export default async function ProcessoLayout({
 
               {/* Mobile: tabs scrollaveis */}
               <nav className="md:hidden flex gap-1 overflow-x-auto pb-1 -mx-1 px-1" aria-label="Etapas do processo">
-                {etapasVisiveis.map((etapa, i) => {
-                  const isAtiva     = etapa.slug === etapaAtiva
-                  const isConcluida = i < etapaAtivaIndex
+                {etapasVisiveis.map((etapa) => {
+                  const isAtiva  = etapa.slug === etapaAtiva
+                  const dbStatus = (etapasStatus.find((e: EtapaStatus) => e.slug === etapa.slug)?.status ?? 'nao_iniciado') as StatusEtapa
 
-                  const pillStyle = isAtiva
-                    ? { backgroundColor: 'var(--primary)', color: '#fff', borderColor: 'var(--primary)' }
-                    : isConcluida
-                    ? { backgroundColor: 'var(--successWash)', color: 'var(--success)', borderColor: 'var(--success)' }
-                    : { backgroundColor: 'var(--surface)', color: 'var(--muted)', borderColor: 'var(--hairline)' }
+                  const pillStyle: React.CSSProperties =
+                    isAtiva                                              ? { backgroundColor: 'var(--primary)',     color: '#fff',           borderColor: 'var(--primary)'  }
+                    : dbStatus === 'assinado'                            ? { backgroundColor: 'var(--successWash)', color: 'var(--success)',  borderColor: 'var(--success)'  }
+                    : dbStatus === 'rascunho' || dbStatus === 'em_revisao' ? { backgroundColor: 'var(--primaryWash)', color: 'var(--primary)', borderColor: 'var(--primary)'  }
+                    :                                                       { backgroundColor: 'var(--surface)',     color: 'var(--muted)',    borderColor: 'var(--hairline)' }
 
                   return (
                     <Link
@@ -313,7 +326,7 @@ export default async function ProcessoLayout({
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--r-pill)] text-xs font-medium whitespace-nowrap border transition-all"
                       style={pillStyle}
                     >
-                      {isConcluida && <CheckCircle2 className="w-3 h-3" />}
+                      {dbStatus === 'assinado' && <CheckCircle2 className="w-3 h-3" />}
                       {etapa.label}
                     </Link>
                   )

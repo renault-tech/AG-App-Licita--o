@@ -282,3 +282,63 @@ export async function excluirProcesso(processoId: string): Promise<{ success: bo
 
   return { success: true }
 }
+
+// Tipos de status das etapas para o nav do processo
+export type StatusEtapa = 'nao_iniciado' | 'rascunho' | 'em_revisao' | 'assinado' | 'devolvido'
+export type EtapaStatus = { slug: string; status: StatusEtapa; updated_at: string | null }
+
+const SLUG_TABELA: Array<{ slug: string; tabela: string; temStatus: boolean }> = [
+  { slug: 'dfd',         tabela: 'dfd',             temStatus: true  },
+  { slug: 'cotacao',     tabela: 'cotacoes',         temStatus: false },
+  { slug: 'etp',         tabela: 'etp',              temStatus: true  },
+  { slug: 'tr',          tabela: 'termo_referencia', temStatus: true  },
+  { slug: 'riscos',      tabela: 'mapa_riscos',      temStatus: true  },
+  { slug: 'edital',      tabela: 'edital',           temStatus: true  },
+  { slug: 'declaracao',  tabela: 'declaracoes',      temStatus: true  },
+  { slug: 'oficio',      tabela: 'oficios',          temStatus: true  },
+  { slug: 'parecer',     tabela: 'pareceres',        temStatus: true  },
+  { slug: 'autorizacao', tabela: 'autorizacoes',     temStatus: true  },
+  { slug: 'publicacao',  tabela: 'publicacoes',      temStatus: true  },
+]
+
+export async function obterStatusEtapas(processoId: string): Promise<EtapaStatus[]> {
+  const supabase = await createClient()
+
+  const resultados = await Promise.all(
+    SLUG_TABELA.map(async ({ slug, tabela, temStatus }) => {
+      const { data } = await (supabase as any)
+        .from(tabela)
+        .select(temStatus ? 'status, updated_at' : 'updated_at')
+        .eq('processo_id', processoId)
+        .maybeSingle()
+
+      if (!data) {
+        return { slug, status: 'nao_iniciado' as StatusEtapa, updated_at: null }
+      }
+
+      if (!temStatus) {
+        return { slug, status: 'rascunho' as StatusEtapa, updated_at: data.updated_at ?? null }
+      }
+
+      const s = (data.status ?? 'rascunho') as StatusEtapa
+      return { slug, status: s, updated_at: data.updated_at ?? null }
+    })
+  )
+
+  // revisao: inferir do processo (fase_atual)
+  const { data: processo } = await (supabase as any)
+    .from('processos_licitatorios')
+    .select('fase_atual')
+    .eq('id', processoId)
+    .maybeSingle()
+
+  const faseAtual = processo?.fase_atual as string | null
+  const revisaoStatus: StatusEtapa =
+    faseAtual === 'setor_licitacao' ? 'rascunho'
+    : faseAtual === 'procurador'   ? 'assinado'
+    : 'nao_iniciado'
+
+  resultados.push({ slug: 'revisao', status: revisaoStatus, updated_at: null })
+
+  return resultados
+}
