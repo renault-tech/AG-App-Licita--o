@@ -51,7 +51,7 @@ export const zapsignAdapter: AssinaturaAdapter = {
         {
           name:  s.nomeSignatario,
           email: s.emailSignatario,
-          auth_mode: 'assinaturaTela',          // ou 'tokenSms', 'icpBrasil'
+          auth_mode: s.zapsignAuthMode ?? 'assinaturaTela',
           send_automatic_email: true,
         },
       ],

@@ -6,15 +6,17 @@ import { StepPageHeader } from '@/components/licita/step-page-header'
 import EditorParecer from './editor-parecer'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import BotaoAssinatura from '@/components/assinatura/botao-assinatura'
+import { obterProvedorAssinatura } from '@/lib/actions/assinaturas'
 
 export default async function ParecerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const [parecer, papel, precedentes, resumo] = await Promise.all([
+  const [parecer, papel, precedentes, resumo, provedor] = await Promise.all([
     obterParecer(id),
     obterPapelUsuario(),
     buscarPrecedentes(id),
     obterResumoProcesso(id),
+    obterProvedorAssinatura(),
   ])
 
   if (!parecer) return notFound()
@@ -42,6 +44,7 @@ export default async function ParecerPage({ params }: { params: Promise<{ id: st
                 documentoId={(parecer as any).id}
                 processoId={id}
                 statusAtual={(parecer as any).status ?? 'rascunho'}
+                provedor={provedor}
               />
             )}
             <BotoesExportacao tipo="parecer" processoId={id} nomeDocumento="Parecer" />

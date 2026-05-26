@@ -5,9 +5,11 @@ import { obterDFD, obterParticipacoesComItens, verificarPrazoAdesao } from '@/li
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { getPermissoesOrg, resolverPodeEditar } from '@/lib/cached-permissions'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
+import BotaoAssinatura from '@/components/assinatura/botao-assinatura'
 import EditorDFD from './editor-dfd'
 import PainelAdesao from './painel-adesao'
 import PainelConsolidacao from './painel-consolidacao'
+import { obterProvedorAssinatura } from '@/lib/actions/assinaturas'
 
 export default async function DFDPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: processoId } = await params
@@ -26,7 +28,7 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
   if (!usuarioRaw) return notFound()
 
   // Carrega DFD (cria se nao existir) e flag de cotacao pendente do processo
-  const [dfdInicial, papel, permissoesOrg, processoRaw] = await Promise.all([
+  const [dfdInicial, papel, permissoesOrg, processoRaw, provedor] = await Promise.all([
     obterDFD(processoId),
     obterPapelUsuario(),
     getPermissoesOrg(),
@@ -35,6 +37,7 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
       .select('cotacao_pendente')
       .eq('id', processoId)
       .maybeSingle(),
+    obterProvedorAssinatura(),
   ])
 
   const cotacaoPendente = (processoRaw.data as any)?.cotacao_pendente ?? false
@@ -52,6 +55,7 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
   const papelUsuario = papel ?? 'requisitante'
   const statusAdesao = dfd.status_adesao
   const podeEditar = resolverPodeEditar(permissoesOrg, papel, 'dfd')
+  const podeAssinar = ['requisitante', 'setor_licitacao', 'admin_organizacao', 'admin_plataforma'].includes(papelUsuario)
 
   let participacaoDoUsuario = null
   let ehIniciador = true
@@ -143,7 +147,20 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
         title="Documento de Formalização da Demanda"
         subtitle="Formalize a necessidade de contratação conforme Art. 6º, X da Lei 14.133/21."
         artigo="Art. 6º, X"
-        actions={<BotoesExportacao tipo="dfd" processoId={processoId} nomeDocumento="DFD" />}
+        actions={
+          <>
+            {podeAssinar && (
+              <BotaoAssinatura
+                tabelaOrigem="dfd"
+                documentoId={dfd.id}
+                processoId={processoId}
+                statusAtual={(dfd as any).status ?? 'rascunho'}
+                provedor={provedor}
+              />
+            )}
+            <BotoesExportacao tipo="dfd" processoId={processoId} nomeDocumento="DFD" />
+          </>
+        }
       />
       <EditorDFD
         dfd={dfd}

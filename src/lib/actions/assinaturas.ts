@@ -44,7 +44,7 @@ export async function assinarDocumento(
     .eq('id', usuario.organizacao_id)
     .maybeSingle()
 
-  const assinaturaConfig = (orgRaw as any)?.assinatura_config as { provider?: string } | null
+  const assinaturaConfig = (orgRaw as any)?.assinatura_config as { provider?: string; zapsign_auth_mode?: string } | null
   const provedorEscolhido = (assinaturaConfig?.provider ?? 'interno') as ProvedorAssinatura
 
   const adapter = getAssinaturaAdapter(provedorEscolhido)
@@ -57,22 +57,25 @@ export async function assinarDocumento(
     organizacaoId: usuario.organizacao_id,
     nomeSignatario: usuario.nome_completo ?? user.email ?? 'Usuário',
     emailSignatario: user.email ?? '',
+    zapsignAuthMode: (assinaturaConfig?.zapsign_auth_mode ?? 'assinaturaTela') as import('@/lib/assinatura/types').ZapSignAuthMode,
   })
 
   if (!resultado.sucesso) {
     return { success: false, error: resultado.erro }
   }
 
-  // Atualiza status do documento
+  // ZapSign confirma assinatura via webhook — documento fica pendente ate o callback
+  const assinaturaStatus = provedorEscolhido === 'zapsign' ? 'pendente' : 'concluido'
+  const docStatus        = provedorEscolhido === 'zapsign' ? 'em_revisao' : 'assinado'
+
   const { error: updateError } = await (supabase.from(tabelaOrigem) as any)
-    .update({ status: 'assinado', updated_at: new Date().toISOString() })
+    .update({ status: docStatus, updated_at: new Date().toISOString() })
     .eq('id', documentoId)
 
   if (updateError) {
     return { success: false, error: 'Falha ao atualizar status do documento.' }
   }
 
-  // Registra assinatura
   await (supabase.from('assinaturas') as any).insert({
     tabela_origem:        tabelaOrigem,
     documento_id:         documentoId,
@@ -81,7 +84,7 @@ export async function assinarDocumento(
     provedor:             resultado.provedor,
     hash_documento:       resultado.hashDocumento,
     timestamp_assinatura: resultado.timestampAssinatura,
-    status:               'concluido',
+    status:               assinaturaStatus,
     referencia_externa:   resultado.referencia_externa ?? null,
     url_assinatura:       resultado.urlAssinatura ?? null,
   })
@@ -89,6 +92,30 @@ export async function assinarDocumento(
   const slug = SLUG_POR_TABELA[tabelaOrigem] ?? tabelaOrigem
   revalidatePath(`/processos/${processoId}/${slug}`)
   return { success: true, data: { urlAssinatura: resultado.urlAssinatura } }
+}
+
+export async function obterProvedorAssinatura(): Promise<ProvedorAssinatura> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return 'interno'
+
+  const { data: usuarioRaw } = await supabase
+    .from('usuarios')
+    .select('organizacao_id')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const orgId = (usuarioRaw as { organizacao_id: string } | null)?.organizacao_id
+  if (!orgId) return 'interno'
+
+  const { data: orgRaw } = await (supabase as any)
+    .from('organizacoes')
+    .select('assinatura_config')
+    .eq('id', orgId)
+    .maybeSingle()
+
+  const config = (orgRaw as any)?.assinatura_config as { provider?: string } | null
+  return (config?.provider ?? 'interno') as ProvedorAssinatura
 }
 
 export async function salvarConfigAssinatura(provedor: string): Promise<ActionResult> {

@@ -4,7 +4,9 @@ import { obterOficio } from '@/lib/actions/oficio'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { StepPageHeader } from '@/components/licita/step-page-header'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
+import BotaoAssinatura from '@/components/assinatura/botao-assinatura'
 import EditorOficio from './editor-oficio'
+import { obterProvedorAssinatura } from '@/lib/actions/assinaturas'
 
 export default async function OficioPage({
   params,
@@ -17,10 +19,12 @@ export default async function OficioPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const papel = await obterPapelUsuario()
-  const readonly = papel === 'procurador' || papel === 'gestor_publico'
+  const [papel, oficio, provedor] = await Promise.all([
+    obterPapelUsuario(),
+    obterOficio(id),
+    obterProvedorAssinatura(),
+  ])
 
-  const oficio = await obterOficio(id)
   if (!oficio) return notFound()
 
   const { data: processo } = await (supabase as any)
@@ -30,16 +34,29 @@ export default async function OficioPage({
     .maybeSingle()
 
   const modalidade = (processo as { modalidade: string } | null)?.modalidade ?? 'dispensa'
+  const readonly = papel === 'procurador' || papel === 'gestor_publico'
+  const podeAssinar = ['setor_licitacao', 'admin_organizacao', 'admin_plataforma'].includes(papel ?? '')
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <StepPageHeader
-          title="Ofício de Abertura"
-          subtitle="Comunica formalmente à Procuradoria a abertura do processo para emissão do Parecer Jurídico."
-        />
-        <BotoesExportacao tipo="oficio" processoId={id} nomeDocumento="OFICIO" />
-      </div>
+      <StepPageHeader
+        title="Ofício de Abertura"
+        subtitle="Comunica formalmente à Procuradoria a abertura do processo para emissão do Parecer Jurídico."
+        actions={
+          <>
+            {podeAssinar && (
+              <BotaoAssinatura
+                tabelaOrigem="oficios"
+                documentoId={(oficio as any).id}
+                processoId={id}
+                statusAtual={(oficio as any).status ?? 'rascunho'}
+                provedor={provedor}
+              />
+            )}
+            <BotoesExportacao tipo="oficio" processoId={id} nomeDocumento="OFICIO" />
+          </>
+        }
+      />
       <EditorOficio
         oficio={oficio}
         processoId={id}

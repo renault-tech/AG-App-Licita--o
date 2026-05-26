@@ -1,5 +1,12 @@
 export type ProvedorAssinatura = 'interno' | 'clicksign' | 'zapsign' | 'govbr' | 'docusign'
 
+export type ZapSignAuthMode = 'assinaturaTela' | 'icpBrasil' | 'tokenSms'
+
+export interface ConfigAssinatura {
+  provider: ProvedorAssinatura
+  zapsign_auth_mode?: ZapSignAuthMode
+}
+
 export interface SolicitacaoAssinatura {
   documentoId: string
   tabelaOrigem: string
@@ -9,6 +16,7 @@ export interface SolicitacaoAssinatura {
   nomeSignatario: string
   emailSignatario: string
   conteudoHash?: string
+  zapsignAuthMode?: ZapSignAuthMode
 }
 
 export interface ResultadoAssinatura {
