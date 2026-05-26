@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { Loader2, Save } from 'lucide-react'
+import { Loader2, Save, Check, Palette } from 'lucide-react'
 import { schemaOrganizacao, type OrganizacaoInput } from '@/lib/validacao/organizacao'
 import { atualizarOrganizacao } from '@/lib/actions/organizacao'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useState } from 'react'
-import type { ThemeName } from '@/lib/theme/provider'
+import { THEMES, type ThemeName } from '@/lib/theme/provider'
 import { LogoUploadField }     from '@/components/licita/logo-upload-field'
 import { HexColorPickerField } from '@/components/licita/hex-color-picker-field'
 
@@ -20,6 +20,8 @@ const ESTADOS = [
   'AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT',
   'PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO',
 ]
+
+type SeleçaoTema = ThemeName | 'personalizada'
 
 interface Props {
   organizacao: {
@@ -38,31 +40,48 @@ interface Props {
 
 export default function FormOrganizacao({ organizacao }: Props) {
   const [salvando, setSalvando] = useState(false)
-  const temaEscolhido = ((organizacao.tema_padrao as ThemeName) ?? 'petroleo')
-  const [corPrimaria, setCorPrimaria] = useState<string>(organizacao.cor_primaria ?? '#112239')
-  const [brasaoUrl,   setBrasaoUrl]   = useState<string>(organizacao.brasao_url ?? '')
+
+  // Selecao de tema: predefinido ou personalizado
+  const [selecao, setSelecao] = useState<SeleçaoTema>(
+    organizacao.cor_primaria ? 'personalizada' : ((organizacao.tema_padrao as ThemeName) ?? 'petroleo')
+  )
+  const [corPersonalizada, setCorPersonalizada] = useState<string>(
+    organizacao.cor_primaria ?? '#112239'
+  )
+  const [brasaoUrl, setBrasaoUrl] = useState<string>(organizacao.brasao_url ?? '')
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<OrganizacaoInput>({
     resolver: zodResolver(schemaOrganizacao),
     defaultValues: {
-      nome: organizacao.nome,
-      cnpj: organizacao.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5'),
-      municipio: organizacao.municipio,
-      estado: organizacao.estado as OrganizacaoInput['estado'],
+      nome:                    organizacao.nome,
+      cnpj:                    organizacao.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5'),
+      municipio:               organizacao.municipio,
+      estado:                  organizacao.estado as OrganizacaoInput['estado'],
       cabecalho_institucional: organizacao.cabecalho_institucional ?? '',
-      rodape_institucional: organizacao.rodape_institucional ?? '',
-      tema_padrao:  (organizacao.tema_padrao as OrganizacaoInput['tema_padrao']) ?? 'petroleo',
-      cor_primaria: organizacao.cor_primaria ?? '',
-      brasao_url:   organizacao.brasao_url ?? '',
+      rodape_institucional:    organizacao.rodape_institucional ?? '',
+      tema_padrao:             (organizacao.tema_padrao as OrganizacaoInput['tema_padrao']) ?? 'petroleo',
+      cor_primaria:            organizacao.cor_primaria ?? '',
+      brasao_url:              organizacao.brasao_url ?? '',
     },
   })
+
+  function escolherTema(id: ThemeName) {
+    setSelecao(id)
+    setValue('tema_padrao', id)
+    setValue('cor_primaria', '')   // limpa personalizada
+  }
+
+  function escolherPersonalizada() {
+    setSelecao('personalizada')
+    setValue('cor_primaria', corPersonalizada)
+  }
 
   async function onSubmit(data: OrganizacaoInput) {
     setSalvando(true)
     const result = await atualizarOrganizacao({
       ...data,
-      tema_padrao:  temaEscolhido,
-      cor_primaria: corPrimaria,
+      tema_padrao:  selecao !== 'personalizada' ? selecao : (data.tema_padrao ?? 'petroleo'),
+      cor_primaria: selecao === 'personalizada' ? corPersonalizada : '',
       brasao_url:   brasaoUrl,
     })
     if (!result.success) {
@@ -132,21 +151,117 @@ export default function FormOrganizacao({ organizacao }: Props) {
             Identidade Visual
           </h3>
           <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-            Logo e cor exibidas no painel de login e no cabecalho do sistema.
+            Logo e tema de cor exibidos no painel de login e no sistema.
           </p>
         </div>
-        <div className="p-5 space-y-5">
+        <div className="p-5 space-y-6">
+
+          {/* Logo */}
           <LogoUploadField
             label="Logo / Brasao"
             currentUrl={brasaoUrl || null}
             orgId={organizacao.id}
             onUpload={url => { setBrasaoUrl(url); setValue('brasao_url', url) }}
           />
-          <HexColorPickerField
-            label="Cor primaria"
-            value={corPrimaria}
-            onChange={v => { setCorPrimaria(v); setValue('cor_primaria', v) }}
-          />
+
+          {/* Tema de cor */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium" style={{ color: 'var(--ink)' }}>Tema de cor</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+
+              {/* Temas predefinidos */}
+              {(Object.entries(THEMES) as [ThemeName, typeof THEMES.petroleo][]).map(([id, t]) => {
+                const ativo = selecao === id
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => escolherTema(id)}
+                    className="relative flex flex-col items-start gap-2 p-3 rounded-[var(--r-md)] text-left transition-all"
+                    style={ativo
+                      ? { background: 'var(--primaryWash)', border: '1.5px solid var(--primary)' }
+                      : { background: 'var(--surface)', border: '1px solid var(--hairline)' }
+                    }
+                  >
+                    <div className="flex gap-1">
+                      {t.swatch.map((c, i) => (
+                        <div
+                          key={i}
+                          className="rounded-full"
+                          style={{ width: 18, height: 18, background: c, border: '1px solid rgba(0,0,0,0.08)' }}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-[12px] font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+                      {t.name}
+                    </p>
+                    <p className="text-[10.5px] leading-snug" style={{ color: 'var(--muted)' }}>
+                      {t.desc}
+                    </p>
+                    {ativo && (
+                      <div
+                        className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center"
+                        style={{ background: 'var(--primary)' }}
+                      >
+                        <Check className="w-2.5 h-2.5 text-white" />
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
+
+              {/* Cor personalizada */}
+              <button
+                type="button"
+                onClick={escolherPersonalizada}
+                className="relative flex flex-col items-start gap-2 p-3 rounded-[var(--r-md)] text-left transition-all"
+                style={selecao === 'personalizada'
+                  ? { background: 'var(--primaryWash)', border: '1.5px solid var(--primary)' }
+                  : { background: 'var(--surface)', border: '1px solid var(--hairline)' }
+                }
+              >
+                <div className="flex gap-1">
+                  {([1, 0.65, 0.2] as const).map((op, i) => (
+                    <div
+                      key={i}
+                      className="rounded-full"
+                      style={{
+                        width: 18, height: 18,
+                        background: corPersonalizada,
+                        opacity: op,
+                        border: '1px solid rgba(0,0,0,0.08)',
+                      }}
+                    />
+                  ))}
+                </div>
+                <p className="text-[12px] font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+                  Cor personalizada
+                </p>
+                <p className="text-[10.5px] leading-snug" style={{ color: 'var(--muted)' }}>
+                  Defina qualquer cor hex
+                </p>
+                <Palette className="absolute top-2.5 right-2.5 w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
+                {selecao === 'personalizada' && (
+                  <div
+                    className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center"
+                    style={{ background: 'var(--primary)' }}
+                  >
+                    <Check className="w-2.5 h-2.5 text-white" />
+                  </div>
+                )}
+              </button>
+            </div>
+
+            {/* Picker aparece só quando personalizada está selecionada */}
+            {selecao === 'personalizada' && (
+              <div className="mt-3">
+                <HexColorPickerField
+                  value={corPersonalizada}
+                  onChange={v => { setCorPersonalizada(v); setValue('cor_primaria', v) }}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
