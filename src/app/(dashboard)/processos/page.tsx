@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { FileText, PlusCircle, ArrowRight, Gavel, X } from 'lucide-react'
+import { FileText, PlusCircle, ArrowRight, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
@@ -8,6 +8,12 @@ import BotaoExcluirProcesso from './botao-excluir-processo'
 import { StatusPill } from '@/components/licita/status-pill'
 import type { StatusProcesso } from '@/components/licita/status-pill'
 import { EditorialKicker, HeadlineSerif } from '@/components/licita/editorial'
+import BuscaProcessos from './busca-processos'
+import PaginacaoProcessos from './paginacao-processos'
+import { EmptyState } from '@/components/licita/empty-state'
+import { Suspense } from 'react'
+
+const PAGE_SIZE = 20
 
 const MODALIDADE_LABEL: Record<string, string> = {
   pregao_eletronico:   'Pregão Eletrônico',
@@ -38,10 +44,46 @@ const FILTRO_FASE_LABEL: Record<string, string> = {
   publicacao:      'Publicação',
 }
 
+function aplicarFiltros(
+  baseQuery: any,
+  papel: string | null,
+  userId: string,
+  orgId: string,
+  filtroStatus?: string,
+  filtroFase?: string,
+  qSafe?: string
+) {
+  let q = baseQuery
+
+  if (papel === 'requisitante') {
+    q = q.eq('criado_por', userId)
+  } else {
+    q = q.eq('organizacao_id', orgId)
+  }
+
+  if (filtroStatus === 'em_andamento') {
+    q = q.in('status', ['rascunho', 'em_revisao'])
+  } else if (filtroStatus === 'concluido') {
+    q = q.in('status', ['publicado', 'assinado'])
+  } else if (filtroStatus) {
+    q = q.eq('status', filtroStatus)
+  }
+
+  if (filtroFase) {
+    q = q.eq('fase_atual', filtroFase)
+  }
+
+  if (qSafe) {
+    q = q.or(`objeto.ilike.%${qSafe}%,numero_processo.ilike.%${qSafe}%`)
+  }
+
+  return q
+}
+
 export default async function ProcessosPage({
   searchParams,
 }: {
-  searchParams: { status?: string; fase?: string }
+  searchParams: { status?: string; fase?: string; q?: string; page?: string }
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -60,43 +102,40 @@ export default async function ProcessosPage({
 
   const filtroStatus = searchParams.status
   const filtroFase   = searchParams.fase
+  const q    = searchParams.q?.trim() ?? ''
+  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10))
+  const qSafe = q.replace(/[%_;\\]/g, '')
 
-  let query = supabase
-    .from('processos_licitatorios')
-    .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at')
-    .order('created_at', { ascending: false })
+  const [{ count: totalCount }, { data: processos }] = await Promise.all([
+    aplicarFiltros(
+      (supabase as any).from('processos_licitatorios').select('id', { count: 'exact', head: true }),
+      papel, user.id, organizacaoId, filtroStatus, filtroFase, qSafe
+    ),
+    aplicarFiltros(
+      (supabase as any).from('processos_licitatorios').select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at'),
+      papel, user.id, organizacaoId, filtroStatus, filtroFase, qSafe
+    )
+      .order('created_at', { ascending: false })
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
+  ])
 
-  if (papel === 'requisitante') {
-    query = query.eq('criado_por', user.id)
-  } else {
-    query = query.eq('organizacao_id', organizacaoId)
-  }
-
-  // Filtro por status
-  if (filtroStatus === 'em_andamento') {
-    query = (query as any).in('status', ['rascunho', 'em_revisao'])
-  } else if (filtroStatus === 'concluido') {
-    query = (query as any).in('status', ['publicado', 'assinado'])
-  } else if (filtroStatus) {
-    query = query.eq('status', filtroStatus as any)
-  }
-
-  // Filtro por fase
-  if (filtroFase) {
-    query = query.eq('fase_atual' as any, filtroFase as any)
-  }
-
-  const { data: processos } = await query
   const lista = (processos as any[] | null) ?? []
+  const total = totalCount ?? 0
 
+  // Calcular totais sem filtro para os KPIs (sem filtros de status/fase/q)
+  const { data: todosProcessos } = await aplicarFiltros(
+    (supabase as any).from('processos_licitatorios').select('status'),
+    papel, user.id, organizacaoId
+  )
+  const todos = (todosProcessos as any[] | null) ?? []
   const totais = {
-    total:     lista.length,
-    rascunho:  lista.filter((p: any) => p.status === 'rascunho').length,
-    emRevisao: lista.filter((p: any) => p.status === 'em_revisao').length,
-    concluidos: lista.filter((p: any) => p.status === 'publicado' || p.status === 'assinado').length,
+    total:      todos.length,
+    rascunho:   todos.filter((p: any) => p.status === 'rascunho').length,
+    emRevisao:  todos.filter((p: any) => p.status === 'em_revisao').length,
+    concluidos: todos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado').length,
   }
 
-  const filtroAtivo = filtroStatus || filtroFase
+  const filtroAtivo = filtroStatus || filtroFase || qSafe
   const filtroLabel = filtroStatus
     ? (FILTRO_STATUS_LABEL[filtroStatus] ?? filtroStatus)
     : filtroFase
@@ -179,7 +218,7 @@ export default async function ProcessosPage({
       >
         {/* Card header */}
         <div
-          className="flex flex-row items-center justify-between px-6 py-5 border-b"
+          className="flex flex-row items-center justify-between px-6 py-5 border-b gap-4 flex-wrap"
           style={{ background: 'var(--surfaceAlt)', borderColor: 'var(--hairline)' }}
         >
           <div>
@@ -190,42 +229,35 @@ export default async function ProcessosPage({
               {papel === 'requisitante' ? 'Processos que você criou' : 'Todos os processos da organização'}
             </p>
           </div>
-          <Link href="/processos/novo">
-            <Button variant="outline" size="sm" className="gap-1.5 text-sm h-9" style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}>
-              <PlusCircle className="w-4 h-4" /> Novo
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Suspense>
+              <BuscaProcessos />
+            </Suspense>
+            <Link href="/processos/novo">
+              <Button variant="outline" size="sm" className="gap-1.5 text-sm h-9" style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}>
+                <PlusCircle className="w-4 h-4" /> Novo
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        {/* Conteúdo */}
+        {/* Conteudo */}
         {lista.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5" style={{ background: 'var(--primaryWash)' }}>
-              <Gavel className="w-7 h-7" style={{ color: 'var(--primary)' }} />
-            </div>
-            <h3 className="text-lg font-semibold mb-1.5" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
-              {filtroAtivo ? 'Nenhum processo encontrado com este filtro' : 'Nenhum processo encontrado'}
-            </h3>
-            <p className="text-[15px] max-w-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-              {filtroAtivo
-                ? 'Tente remover o filtro para ver todos os processos.'
-                : 'Clique em "Novo Processo" para iniciar a elaboração do primeiro processo licitatório.'}
-            </p>
-            {filtroAtivo ? (
-              <Link href="/processos" className="mt-6">
-                <Button variant="outline" className="gap-2 text-sm h-10 px-5 rounded-[var(--r-md)]">
-                  <X className="w-4 h-4" /> Remover filtro
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/processos/novo" className="mt-6">
-                <Button className="text-white gap-2 text-sm h-10 px-5 rounded-[var(--r-md)]" style={{ background: 'var(--primary)' }}>
-                  <PlusCircle className="w-4 h-4" />
-                  Criar primeiro processo
-                </Button>
-              </Link>
-            )}
-          </div>
+          !qSafe && !filtroStatus && !filtroFase ? (
+            <EmptyState
+              icon={FileText}
+              titulo="Nenhum processo encontrado"
+              descricao="Crie o primeiro processo licitatorio da sua organizacao."
+              cta={{ label: 'Novo Processo', href: '/processos/novo' }}
+            />
+          ) : (
+            <EmptyState
+              icon={FileText}
+              titulo="Nenhum resultado para esse filtro"
+              descricao="Tente remover os filtros ou alterar o texto da busca."
+              cta={{ label: 'Limpar filtros', href: '/processos' }}
+            />
+          )
         ) : (
           <div>
             {lista.map((p: any) => {
@@ -271,6 +303,16 @@ export default async function ProcessosPage({
                 </div>
               )
             })}
+            <div className="px-6">
+              <PaginacaoProcessos
+                total={total}
+                page={page}
+                pageSize={PAGE_SIZE}
+                q={qSafe || undefined}
+                status={filtroStatus}
+                fase={filtroFase}
+              />
+            </div>
           </div>
         )}
       </div>
