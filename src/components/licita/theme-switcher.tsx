@@ -19,39 +19,62 @@ export function ThemeSwitcherPanel({ open, onClose }: ThemeSwitcherPanelProps) {
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="absolute top-[calc(100%+8px)] right-0 bg-surface border border-hairline rounded-licita p-3 w-80 z-50"
-        style={{ boxShadow: '0 12px 40px rgba(0,0,0,0.12)' }}
+      <div
+        className="absolute top-[calc(100%+8px)] right-0 w-80 z-50 rounded-[var(--r-lg)] p-3"
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--hairline)',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.16)',
+        }}
       >
-        <div className="flex items-center justify-between px-1.5 pb-2.5 border-b border-hairlineSoft mb-2.5">
+        <div
+          className="flex items-center justify-between px-1.5 pb-2.5 mb-2.5"
+          style={{ borderBottom: '1px solid var(--hairlineSoft)' }}
+        >
           <div>
-            <div className="text-[10px] text-[var(--accent)] font-bold tracking-[0.12em] uppercase">
+            <div
+              className="text-[10px] font-bold tracking-[0.12em] uppercase"
+              style={{ color: 'var(--accent)' }}
+            >
               Aparencia da plataforma
             </div>
-            <div className="font-heading text-sm font-semibold text-ink mt-px">
+            <div
+              className="text-sm font-semibold mt-px"
+              style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}
+            >
               Tema institucional
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-[26px] h-[26px] rounded-[var(--r-sm)] flex items-center justify-center text-muted hover:text-ink hover:bg-surfaceSink transition-colors"
+            className="w-[26px] h-[26px] flex items-center justify-center transition-colors rounded-[var(--r-sm)]"
+            style={{ color: 'var(--muted)' }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.background = 'var(--surfaceSink)'
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--ink)'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.background = 'transparent'
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--muted)'
+            }}
             aria-label="Fechar"
           >
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
           {(Object.entries(THEMES) as [ThemeName, typeof THEMES.petroleo][]).map(([id, t]) => {
             const active = id === theme
             return (
               <button
                 key={id}
                 onClick={() => setTheme(id)}
-                className={`flex items-center gap-3 p-2.5 rounded-[var(--r-md)] text-left transition-colors ${
-                  active
-                    ? 'bg-surfaceAlt border border-hairline'
-                    : 'border border-transparent hover:bg-surfaceAlt'
-                }`}
+                className="flex items-center gap-3 p-2.5 rounded-[var(--r-md)] text-left transition-colors"
+                style={active
+                  ? { background: 'var(--surfaceAlt)', border: '1px solid var(--hairline)' }
+                  : { background: 'transparent', border: '1px solid transparent' }
+                }
               >
                 <div className="flex flex-col gap-0.5 shrink-0">
                   {t.swatch.map((c, i) => (
@@ -63,8 +86,15 @@ export function ThemeSwitcherPanel({ open, onClose }: ThemeSwitcherPanelProps) {
                   ))}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-heading text-sm font-semibold text-ink">{t.name}</div>
-                  <div className="text-[11px] text-muted mt-0.5">{t.desc}</div>
+                  <div
+                    className="text-sm font-semibold"
+                    style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}
+                  >
+                    {t.name}
+                  </div>
+                  <div className="text-[11px] mt-0.5" style={{ color: 'var(--muted)' }}>
+                    {t.desc}
+                  </div>
                 </div>
                 {active && (
                   <span
