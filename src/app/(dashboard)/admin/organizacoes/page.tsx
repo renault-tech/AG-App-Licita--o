@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { marcarOrgCataguases } from '@/lib/actions/admin-master'
 import { Building2, Users, CheckCircle2, XCircle, Star, FlaskConical } from 'lucide-react'
+import { EmptyState } from '@/components/licita/empty-state'
 import { revalidatePath } from 'next/cache'
 
 async function handleMarcarCataguases(formData: FormData) {
@@ -63,10 +64,11 @@ export default async function AdminOrganizacoesPage() {
         style={{ background: 'var(--surface)', borderColor: 'var(--hairline)' }}
       >
         {lista.length === 0 ? (
-          <div className="px-5 py-10 text-center">
-            <Building2 className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--hairline)' }} />
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>Nenhuma organizacao cadastrada ainda.</p>
-          </div>
+          <EmptyState
+            icon={Building2}
+            titulo="Nenhuma prefeitura cadastrada"
+            descricao="As prefeituras que se cadastrarem aparecerao aqui aguardando aprovacao."
+          />
         ) : (
           <table className="w-full text-sm">
             <thead>

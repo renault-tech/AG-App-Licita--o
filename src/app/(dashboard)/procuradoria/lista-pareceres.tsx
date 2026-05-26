@@ -2,7 +2,8 @@
 
 import { useMemo } from 'react'
 import Link from 'next/link'
-import { Scale } from 'lucide-react'
+import { Scale, Gavel } from 'lucide-react'
+import { EmptyState } from '@/components/licita/empty-state'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import type { ParecerListItem } from '@/lib/actions/procuradoria'
@@ -239,21 +240,21 @@ export default function ListaPareceres({
         >
           <TabsContent value="pendentes" className="mt-0">
             {pendentes.length === 0
-              ? <p className="text-center text-sm py-10" style={{ color: 'var(--mutedSoft)' }}>Nenhum parecer pendente.</p>
+              ? <EmptyState icon={Gavel} titulo="Nenhum parecer pendente" descricao="Os processos enviados para a Procuradoria aparecerao aqui." />
               : pendentes.map(p => (
                   <ItemParecer key={p.id} item={p} prazoUrgencia={prazoUrgenciaDias} prazoAlerta={prazoAlertaDias} />
                 ))}
           </TabsContent>
           <TabsContent value="em_analise" className="mt-0">
             {emAnalise.length === 0
-              ? <p className="text-center text-sm py-10" style={{ color: 'var(--mutedSoft)' }}>Nenhum parecer em análise.</p>
+              ? <EmptyState icon={Gavel} titulo="Nenhum parecer em analise" descricao="Pareceres em andamento aparecerao aqui." />
               : emAnalise.map(p => (
                   <ItemParecer key={p.id} item={p} prazoUrgencia={prazoUrgenciaDias} prazoAlerta={prazoAlertaDias} />
                 ))}
           </TabsContent>
           <TabsContent value="historico" className="mt-0">
             {historico.length === 0
-              ? <p className="text-center text-sm py-10" style={{ color: 'var(--mutedSoft)' }}>Nenhum parecer emitido ainda.</p>
+              ? <EmptyState icon={Gavel} titulo="Nenhum parecer emitido" descricao="Pareceres ja emitidos aparecerao aqui." />
               : [...historico].reverse().map(p => (
                   <ItemParecer key={p.id} item={p} prazoUrgencia={prazoUrgenciaDias} prazoAlerta={prazoAlertaDias} />
                 ))}

@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Loader2, Save, Plus, Trash2, AlertTriangle, Calculator, ChevronRight, ChevronLeft, TrendingUp } from 'lucide-react'
+import { Loader2, Save, Plus, Trash2, AlertTriangle, Calculator, ChevronRight, ChevronLeft, TrendingUp, BarChart2 } from 'lucide-react'
+import { EmptyState } from '@/components/licita/empty-state'
 import { AlertDialog } from '@/components/ui/alert-dialog'
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card'
@@ -175,9 +176,11 @@ export default function CotacaoForm({ cotacao, fornecedores, processoId }: {
 
         <CardContent className="pt-0 space-y-3">
           {listaFornecedores.length === 0 && (
-            <div className="text-center py-8 text-gray-400 text-sm">
-              Nenhuma proposta adicionada. Clique em "Adicionar" para comecar.
-            </div>
+            <EmptyState
+              icon={BarChart2}
+              titulo="Nenhuma proposta adicionada"
+              descricao="Adicione os fornecedores consultados para calcular o valor estimado."
+            />
           )}
 
           {listaFornecedores.map((f, index) => (
