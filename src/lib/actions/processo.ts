@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { schemaProcessoWizard, type ProcessoWizardInput } from '@/lib/validacao/processo'
+import { registrarAuditoria } from '@/lib/audit/log'
 
 export async function criarProcessoInicial(dados: ProcessoWizardInput) {
   const supabase = await createClient()
@@ -49,6 +50,17 @@ export async function criarProcessoInicial(dados: ProcessoWizardInput) {
   if (procError || !processo) {
     return { success: false, error: procError?.message || 'Erro ao criar processo.' }
   }
+
+  void registrarAuditoria({
+    organizacaoId: organizacao_id,
+    usuarioId:     user.id,
+    nomeUsuario:   (userData as any).nome_completo ?? 'Usuario',
+    papelUsuario:  (userData as any).papel ?? '',
+    categoria:     'processo',
+    acao:          'processo.criado',
+    recursoId:     processo.id,
+    recursoDesc:   input.objeto,
+  })
 
   return { success: true, processoId: processo.id }
 }
@@ -254,12 +266,12 @@ export async function excluirProcesso(processoId: string): Promise<{ success: bo
 
   const { data: userData } = await supabase
     .from('usuarios')
-    .select('organizacao_id, papel')
+    .select('organizacao_id, papel, nome_completo')
     .eq('id', user.id)
     .maybeSingle()
   if (!userData) return { success: false, error: 'Usuario nao encontrado.' }
 
-  const { organizacao_id: orgId, papel } = userData as any
+  const { organizacao_id: orgId, papel, nome_completo: nomeCompleto } = userData as any
 
   // Somente administradores podem excluir processos
   if (!PAPEIS_ADMIN.includes(papel)) {
@@ -268,7 +280,7 @@ export async function excluirProcesso(processoId: string): Promise<{ success: bo
 
   const { data: processo } = await (supabase as any)
     .from('processos_licitatorios')
-    .select('id, status, organizacao_id')
+    .select('id, status, organizacao_id, objeto')
     .eq('id', processoId)
     .eq('organizacao_id', orgId)
     .maybeSingle()
@@ -286,6 +298,17 @@ export async function excluirProcesso(processoId: string): Promise<{ success: bo
     .eq('organizacao_id', orgId)
 
   if (error) return { success: false, error: error.message }
+
+  void registrarAuditoria({
+    organizacaoId: orgId,
+    usuarioId:     user.id,
+    nomeUsuario:   nomeCompleto ?? 'Usuario',
+    papelUsuario:  papel,
+    categoria:     'processo',
+    acao:          'processo.excluido',
+    recursoId:     processoId,
+    recursoDesc:   (processo as any).objeto,
+  })
 
   revalidatePath('/processos')
   return { success: true }
