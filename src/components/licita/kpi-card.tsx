@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import Link from 'next/link'
 
 interface KPICardProps {
   label: string
@@ -8,15 +9,16 @@ interface KPICardProps {
   trend?: { value: number; label?: string }
   accent?: boolean
   className?: string
+  href?: string
 }
 
-export function KPICard({ label, value, sub, icon, trend, accent = false, className = '' }: KPICardProps) {
+export function KPICard({ label, value, sub, icon, trend, accent = false, className = '', href }: KPICardProps) {
   const trendPositive = trend && trend.value >= 0
   const trendColor = trendPositive ? 'var(--success)' : 'var(--danger)'
 
-  return (
+  const inner = (
     <div
-      className={`relative flex flex-col gap-3 rounded-[var(--r-lg)] border border-hairline bg-surface p-5 ${className}`}
+      className={`relative flex flex-col gap-3 rounded-[var(--r-lg)] border border-hairline bg-surface p-5 ${href ? 'transition-shadow hover:shadow-md cursor-pointer' : ''} ${className}`}
       style={accent ? { borderColor: 'var(--primary)', boxShadow: '0 0 0 1px var(--primary)' } : {}}
     >
       {accent && (
@@ -60,4 +62,7 @@ export function KPICard({ label, value, sub, icon, trend, accent = false, classN
       )}
     </div>
   )
+
+  if (href) return <Link href={href} className="block">{inner}</Link>
+  return inner
 }

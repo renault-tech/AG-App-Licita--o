@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { FileText, PlusCircle, ArrowRight, Gavel } from 'lucide-react'
+import { FileText, PlusCircle, ArrowRight, Gavel, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
@@ -20,7 +20,29 @@ const MODALIDADE_LABEL: Record<string, string> = {
   inexigibilidade:     'Inexigibilidade',
 }
 
-export default async function ProcessosPage() {
+const FILTRO_STATUS_LABEL: Record<string, string> = {
+  em_andamento: 'Em Andamento',
+  concluido:    'Concluídos',
+  publicado:    'Publicados',
+  assinado:     'Assinados',
+  rascunho:     'Rascunho',
+  em_revisao:   'Em Revisão',
+}
+
+const FILTRO_FASE_LABEL: Record<string, string> = {
+  requisitante:    'Requisitante',
+  setor_compras:   'Setor de Compras',
+  setor_licitacao: 'Setor de Licitações',
+  procurador:      'Procuradoria',
+  gestor_publico:  'Autoridade Competente',
+  publicacao:      'Publicação',
+}
+
+export default async function ProcessosPage({
+  searchParams,
+}: {
+  searchParams: { status?: string; fase?: string }
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -36,6 +58,9 @@ export default async function ProcessosPage() {
   const organizacaoId = (usuarioData as any)?.organizacao_id
   if (!organizacaoId) redirect('/dashboard')
 
+  const filtroStatus = searchParams.status
+  const filtroFase   = searchParams.fase
+
   let query = supabase
     .from('processos_licitatorios')
     .select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at')
@@ -47,6 +72,20 @@ export default async function ProcessosPage() {
     query = query.eq('organizacao_id', organizacaoId)
   }
 
+  // Filtro por status
+  if (filtroStatus === 'em_andamento') {
+    query = (query as any).in('status', ['rascunho', 'em_revisao'])
+  } else if (filtroStatus === 'concluido') {
+    query = (query as any).in('status', ['publicado', 'assinado'])
+  } else if (filtroStatus) {
+    query = query.eq('status', filtroStatus as any)
+  }
+
+  // Filtro por fase
+  if (filtroFase) {
+    query = query.eq('fase_atual' as any, filtroFase as any)
+  }
+
   const { data: processos } = await query
   const lista = (processos as any[] | null) ?? []
 
@@ -56,6 +95,13 @@ export default async function ProcessosPage() {
     emRevisao: lista.filter((p: any) => p.status === 'em_revisao').length,
     concluidos: lista.filter((p: any) => p.status === 'publicado' || p.status === 'assinado').length,
   }
+
+  const filtroAtivo = filtroStatus || filtroFase
+  const filtroLabel = filtroStatus
+    ? (FILTRO_STATUS_LABEL[filtroStatus] ?? filtroStatus)
+    : filtroFase
+    ? (FILTRO_FASE_LABEL[filtroFase] ?? filtroFase)
+    : null
 
   return (
     <div className="space-y-8">
@@ -83,9 +129,21 @@ export default async function ProcessosPage() {
         <HeadlineSerif size="md" as="h1">
           Processos em elaboração.
         </HeadlineSerif>
-        <p className="mt-2 text-[15px]" style={{ color: 'var(--inkSoft)', fontFamily: 'var(--font-heading)' }}>
-          {totais.total} processo{totais.total !== 1 ? 's' : ''} · {totais.emRevisao} em revisão
-        </p>
+        <div className="mt-2 flex items-center gap-3 flex-wrap">
+          <p className="text-[15px]" style={{ color: 'var(--inkSoft)', fontFamily: 'var(--font-heading)' }}>
+            {totais.total} processo{totais.total !== 1 ? 's' : ''} · {totais.emRevisao} em revisão
+          </p>
+          {filtroAtivo && filtroLabel && (
+            <Link
+              href="/processos"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors hover:opacity-80"
+              style={{ background: 'var(--primaryWash)', color: 'var(--primary)', borderColor: 'var(--primary)' + '40' }}
+            >
+              Filtro: {filtroLabel}
+              <X className="w-3 h-3" />
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* KPI rail */}
@@ -94,21 +152,23 @@ export default async function ProcessosPage() {
         style={{ border: '1px solid var(--hairline)', borderRadius: 'var(--r-lg)', background: 'var(--surface)' }}
       >
         {[
-          { label: 'Total', valor: totais.total, sub: 'processos' },
-          { label: 'Rascunho', valor: totais.rascunho, sub: 'em elaboração' },
-          { label: 'Em revisão', valor: totais.emRevisao, sub: 'aguardando análise' },
-          { label: 'Concluídos', valor: totais.concluidos, sub: 'publicados/assinados' },
+          { label: 'Total', valor: totais.total, sub: 'processos', href: '/processos' },
+          { label: 'Rascunho', valor: totais.rascunho, sub: 'em elaboração', href: '/processos?status=rascunho' },
+          { label: 'Em revisão', valor: totais.emRevisao, sub: 'aguardando análise', href: '/processos?status=em_revisao' },
+          { label: 'Concluídos', valor: totais.concluidos, sub: 'publicados/assinados', href: '/processos?status=concluido' },
         ].map((k, i, arr) => (
-          <div key={k.label} className="px-5 pt-4 pb-3.5" style={{ borderRight: i < arr.length - 1 ? '1px solid var(--hairline)' : 'none' }}>
-            <div className="l-meta mb-2" style={{ color: 'var(--muted)' }}>{k.label}</div>
-            <div
-              className="l-h l-tnum"
-              style={{ fontFamily: 'var(--font-heading)', fontSize: 40, lineHeight: 0.94, letterSpacing: '-0.03em', color: 'var(--ink)', fontWeight: 500 }}
-            >
-              {k.valor}
+          <Link key={k.label} href={k.href} className="block transition-colors hover:bg-[var(--surfaceAlt)]">
+            <div className="px-5 pt-4 pb-3.5" style={{ borderRight: i < arr.length - 1 ? '1px solid var(--hairline)' : 'none' }}>
+              <div className="l-meta mb-2" style={{ color: 'var(--muted)' }}>{k.label}</div>
+              <div
+                className="l-h l-tnum"
+                style={{ fontFamily: 'var(--font-heading)', fontSize: 40, lineHeight: 0.94, letterSpacing: '-0.03em', color: 'var(--ink)', fontWeight: 500 }}
+              >
+                {k.valor}
+              </div>
+              <div className="text-[11px] mt-2" style={{ color: 'var(--inkSoft)' }}>{k.sub}</div>
             </div>
-            <div className="text-[11px] mt-2" style={{ color: 'var(--inkSoft)' }}>{k.sub}</div>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -124,7 +184,7 @@ export default async function ProcessosPage() {
         >
           <div>
             <h2 className="text-lg font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
-              Processos
+              Processos{filtroLabel ? ` · ${filtroLabel}` : ''}
             </h2>
             <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
               {papel === 'requisitante' ? 'Processos que você criou' : 'Todos os processos da organização'}
@@ -144,17 +204,27 @@ export default async function ProcessosPage() {
               <Gavel className="w-7 h-7" style={{ color: 'var(--primary)' }} />
             </div>
             <h3 className="text-lg font-semibold mb-1.5" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
-              Nenhum processo encontrado
+              {filtroAtivo ? 'Nenhum processo encontrado com este filtro' : 'Nenhum processo encontrado'}
             </h3>
             <p className="text-[15px] max-w-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-              Clique em &quot;Novo Processo&quot; para iniciar a elaboração do primeiro processo licitatório.
+              {filtroAtivo
+                ? 'Tente remover o filtro para ver todos os processos.'
+                : 'Clique em "Novo Processo" para iniciar a elaboração do primeiro processo licitatório.'}
             </p>
-            <Link href="/processos/novo" className="mt-6">
-              <Button className="text-white gap-2 text-sm h-10 px-5 rounded-[var(--r-md)]" style={{ background: 'var(--primary)' }}>
-                <PlusCircle className="w-4 h-4" />
-                Criar primeiro processo
-              </Button>
-            </Link>
+            {filtroAtivo ? (
+              <Link href="/processos" className="mt-6">
+                <Button variant="outline" className="gap-2 text-sm h-10 px-5 rounded-[var(--r-md)]">
+                  <X className="w-4 h-4" /> Remover filtro
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/processos/novo" className="mt-6">
+                <Button className="text-white gap-2 text-sm h-10 px-5 rounded-[var(--r-md)]" style={{ background: 'var(--primary)' }}>
+                  <PlusCircle className="w-4 h-4" />
+                  Criar primeiro processo
+                </Button>
+              </Link>
+            )}
           </div>
         ) : (
           <div>

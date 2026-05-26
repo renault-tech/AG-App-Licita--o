@@ -28,4 +28,5 @@ export type TickerEvento = {
   txt: string
   tone: 'accent' | 'success' | 'warn' | 'danger' | 'neutral'
   ts: string
+  href?: string
 }

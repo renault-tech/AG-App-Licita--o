@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import Link from 'next/link'
 import {
   TICKER_CATEGORIAS,
   type TickerCategoriaId,
@@ -87,13 +88,9 @@ export function TickerStrip({
           style={{ animation: `licita-ticker ${dur}s linear infinite`, willChange: 'transform' }}
         >
           {items.map((it, i) => {
-            const tone = TONE_COLORS[it.tone]
-            return (
-              <div
-                key={i}
-                className="inline-flex items-center gap-2.5 h-full px-[18px]"
-                style={{ borderRight: '1px solid rgba(255,255,255,0.08)' }}
-              >
+            const tone    = TONE_COLORS[it.tone]
+            const content = (
+              <>
                 <span className="font-mono text-[12px] font-bold w-3.5 text-center shrink-0" style={{ color: tone, lineHeight: 1 }}>
                   {iconePorCat[it.categoria] ?? '·'}
                 </span>
@@ -106,6 +103,28 @@ export function TickerStrip({
                 <span className="font-mono text-[9px] font-semibold pl-0.5" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>
                   {it.ts}
                 </span>
+              </>
+            )
+
+            const itemClass = 'inline-flex items-center gap-2.5 h-full px-[18px]'
+            const itemStyle = { borderRight: '1px solid rgba(255,255,255,0.08)' }
+
+            if (it.href) {
+              return (
+                <Link
+                  key={i}
+                  href={it.href}
+                  className={`${itemClass} hover:bg-white/5 transition-colors`}
+                  style={itemStyle}
+                >
+                  {content}
+                </Link>
+              )
+            }
+
+            return (
+              <div key={i} className={itemClass} style={itemStyle}>
+                {content}
               </div>
             )
           })}

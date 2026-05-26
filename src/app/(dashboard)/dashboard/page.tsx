@@ -258,9 +258,9 @@ async function DashboardRequisitante({
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-        <KPICard label="Minhas Demandas" value={processos.length} sub="Total criadas"           icon={<FileText className="w-5 h-5" />} />
-        <KPICard label="Em Elaboração"   value={emAndamento}      sub="Em andamento"             icon={<Clock className="w-5 h-5" />}    accent />
-        <KPICard label="Concluídas"      value={concluidos}       sub="Publicadas ou assinadas"  icon={<CheckCircle className="w-5 h-5" />} />
+        <KPICard label="Minhas Demandas" value={processos.length} sub="Total criadas"           icon={<FileText className="w-5 h-5" />} href="/processos" />
+        <KPICard label="Em Elaboração"   value={emAndamento}      sub="Em andamento"             icon={<Clock className="w-5 h-5" />}    accent href="/processos?status=em_andamento" />
+        <KPICard label="Concluídas"      value={concluidos}       sub="Publicadas ou assinadas"  icon={<CheckCircle className="w-5 h-5" />} href="/processos?status=concluido" />
       </div>
 
       <ListCard
@@ -404,10 +404,10 @@ async function DashboardSetorLicitacao({
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-        <KPICard label="Na Minha Fila"   value={fila.length}           sub="Aguardando minha ação"   icon={<Filter className="w-5 h-5" />}    accent />
-        <KPICard label="Em Procuradoria" value={paraProcuradoria.length} sub="Encaminhados para parecer" icon={<Scale className="w-5 h-5" />} />
-        <KPICard label="Publicados"      value={totalPublicados ?? 0}  sub="Processos concluídos"     icon={<CheckCircle className="w-5 h-5" />} />
-        <KPICard label="Valor na Fila"   value={valorFila > 0 ? formatarMoeda(valorFila) : '—'} sub="Soma dos processos ativos" icon={<FileText className="w-5 h-5" />} />
+        <KPICard label="Na Minha Fila"   value={fila.length}           sub="Aguardando minha ação"   icon={<Filter className="w-5 h-5" />}    accent href="/processos?fase=setor_licitacao" />
+        <KPICard label="Em Procuradoria" value={paraProcuradoria.length} sub="Encaminhados para parecer" icon={<Scale className="w-5 h-5" />} href="/processos?fase=procurador" />
+        <KPICard label="Publicados"      value={totalPublicados ?? 0}  sub="Processos concluídos"     icon={<CheckCircle className="w-5 h-5" />} href="/processos?status=publicado" />
+        <KPICard label="Valor na Fila"   value={valorFila > 0 ? formatarMoeda(valorFila) : '—'} sub="Soma dos processos ativos" icon={<FileText className="w-5 h-5" />} href="/processos?fase=setor_licitacao" />
       </div>
 
       <ListCard
@@ -485,9 +485,9 @@ async function DashboardProcurador({
       <SectionHeader supTitle="Procuradoria" title={`${saudacao}, ${primeiroNome}.`} subtitle={orgSub} />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-        <KPICard label="Fila de Pareceres" value={fila.length}          sub="Aguardando análise jurídica" icon={<Scale className="w-5 h-5" />}       accent />
-        <KPICard label="Aprovados"         value={historico.length}     sub="Pareceres favoráveis"        icon={<CheckCircle2 className="w-5 h-5" />} />
-        <KPICard label="Total"             value={pareceresList.length} sub="Processos avaliados"         icon={<Gavel className="w-5 h-5" />}        />
+        <KPICard label="Fila de Pareceres" value={fila.length}          sub="Aguardando análise jurídica" icon={<Scale className="w-5 h-5" />}       accent href="/procuradoria/pareceres-pendentes" />
+        <KPICard label="Aprovados"         value={historico.length}     sub="Pareceres favoráveis"        icon={<CheckCircle2 className="w-5 h-5" />} href="/procuradoria/pareceres-pendentes" />
+        <KPICard label="Total"             value={pareceresList.length} sub="Processos avaliados"         icon={<Gavel className="w-5 h-5" />}        href="/procuradoria/pareceres-pendentes" />
       </div>
 
       <ListCard
@@ -639,9 +639,9 @@ async function DashboardAutoridadeCompetente({
       <SectionHeader supTitle="Autoridade Competente" title={`${saudacao}, ${primeiroNome}.`} subtitle={orgSub} />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-        <KPICard label="Aguardando"  value={pendentes.length}        sub="Processos para autorizar" icon={<Clock className="w-5 h-5" />}      accent />
-        <KPICard label="Autorizados" value={autorizados.length}      sub="Processos autorizados"    icon={<ShieldCheck className="w-5 h-5" />} />
-        <KPICard label="Total"       value={autorizacoesList.length} sub="Processos avaliados"      icon={<FileText className="w-5 h-5" />}    />
+        <KPICard label="Aguardando"  value={pendentes.length}        sub="Processos para autorizar" icon={<Clock className="w-5 h-5" />}      accent href="/processos?fase=gestor_publico" />
+        <KPICard label="Autorizados" value={autorizados.length}      sub="Processos autorizados"    icon={<ShieldCheck className="w-5 h-5" />} href="/processos?status=publicado" />
+        <KPICard label="Total"       value={autorizacoesList.length} sub="Processos avaliados"      icon={<FileText className="w-5 h-5" />}    href="/processos" />
       </div>
 
       <ListCard
@@ -764,10 +764,10 @@ async function DashboardAdmin({
 
       {/* KPIs gerenciais */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-        <KPICard label="Processos Ativos"   value={emAndamento}    sub="Em elaboração ou revisão"   icon={<Clock className="w-5 h-5" />}       accent />
-        <KPICard label="Publicados"         value={publicados}     sub="Processos concluídos"        icon={<CheckCircle className="w-5 h-5" />}       />
-        <KPICard label="Ações de IA (30d)"  value={acoesIA30d ?? 0} sub="Últimos 30 dias"           icon={<Zap className="w-5 h-5" />}               />
-        <KPICard label="Valor em Andamento" value={valorEmAndamento > 0 ? formatarMoeda(valorEmAndamento) : '—'} sub="Soma dos processos ativos" icon={<FileText className="w-5 h-5" />} />
+        <KPICard label="Processos Ativos"   value={emAndamento}    sub="Em elaboração ou revisão"   icon={<Clock className="w-5 h-5" />}       accent href="/processos?status=em_andamento" />
+        <KPICard label="Publicados"         value={publicados}     sub="Processos concluídos"        icon={<CheckCircle className="w-5 h-5" />}        href="/processos?status=publicado" />
+        <KPICard label="Ações de IA (30d)"  value={acoesIA30d ?? 0} sub="Últimos 30 dias"           icon={<Zap className="w-5 h-5" />}                href="/creditos" />
+        <KPICard label="Valor em Andamento" value={valorEmAndamento > 0 ? formatarMoeda(valorEmAndamento) : '—'} sub="Soma dos processos ativos" icon={<FileText className="w-5 h-5" />} href="/processos?status=em_andamento" />
       </div>
 
       {/* Atalhos de configuração */}
@@ -867,9 +867,9 @@ async function DashboardSetorCompras({
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-        <KPICard label="Na Fila"        value={fila.length}     sub="Aguardando pesquisa de precos" icon={<Clock className="w-5 h-5" />}    accent />
-        <KPICard label="Cotacoes Feitas" value={passados.length} sub="Processos encaminhados"        icon={<CheckCircle className="w-5 h-5" />} />
-        <KPICard label="Creditos IA"    value={saldo}           sub="Saldo disponivel"               icon={<Zap className="w-5 h-5" />} />
+        <KPICard label="Na Fila"        value={fila.length}     sub="Aguardando pesquisa de precos" icon={<Clock className="w-5 h-5" />}    accent href="/processos?fase=setor_compras" />
+        <KPICard label="Cotacoes Feitas" value={passados.length} sub="Processos encaminhados"        icon={<CheckCircle className="w-5 h-5" />} href="/processos" />
+        <KPICard label="Creditos IA"    value={saldo}           sub="Saldo disponivel"               icon={<Zap className="w-5 h-5" />} href="/creditos" />
       </div>
 
       {fila.length > 0 && (
@@ -967,9 +967,9 @@ async function DashboardPublicacao({
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-        <KPICard label="Aguardando Publicacao" value={fila.length}           sub="Autorizados, pendentes de publicar" icon={<Send className="w-5 h-5" />}       accent />
-        <KPICard label="Publicados"            value={publicadosList.length} sub="Registros de publicacao"            icon={<Globe className="w-5 h-5" />}       />
-        <KPICard label="Total no PNCP"         value={publicadosList.filter((p: any) => p.pncp_numero).length} sub="Com numero PNCP registrado" icon={<CheckCircle className="w-5 h-5" />} />
+        <KPICard label="Aguardando Publicacao" value={fila.length}           sub="Autorizados, pendentes de publicar" icon={<Send className="w-5 h-5" />}       accent href="/processos?fase=publicacao" />
+        <KPICard label="Publicados"            value={publicadosList.length} sub="Registros de publicacao"            icon={<Globe className="w-5 h-5" />}       href="/processos?status=publicado" />
+        <KPICard label="Total no PNCP"         value={publicadosList.filter((p: any) => p.pncp_numero).length} sub="Com numero PNCP registrado" icon={<CheckCircle className="w-5 h-5" />} href="/processos?status=publicado" />
       </div>
 
       <ListCard
@@ -1083,10 +1083,10 @@ async function DashboardAdminPlataforma({
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-        <KPICard label="Organizacoes"    value={totalOrgs ?? 0}      sub="Prefeituras cadastradas"     icon={<Building2 className="w-5 h-5" />}     />
-        <KPICard label="Processos"       value={totalProcessos ?? 0} sub="Em toda a plataforma"         icon={<FileText className="w-5 h-5" />}      accent />
-        <KPICard label="Usuarios"        value={totalUsuarios ?? 0}  sub="Usuários ativos"              icon={<Users className="w-5 h-5" />}         />
-        <KPICard label="Acoes de IA"     value={acoesIA30d ?? 0}     sub="Nos ultimos 30 dias"          icon={<Zap className="w-5 h-5" />}           />
+        <KPICard label="Organizacoes"    value={totalOrgs ?? 0}      sub="Prefeituras cadastradas"     icon={<Building2 className="w-5 h-5" />}     href="/admin/painel" />
+        <KPICard label="Processos"       value={totalProcessos ?? 0} sub="Em toda a plataforma"         icon={<FileText className="w-5 h-5" />}      accent href="/admin/painel" />
+        <KPICard label="Usuarios"        value={totalUsuarios ?? 0}  sub="Usuários ativos"              icon={<Users className="w-5 h-5" />}         href="/admin/painel" />
+        <KPICard label="Acoes de IA"     value={acoesIA30d ?? 0}     sub="Nos ultimos 30 dias"          icon={<Zap className="w-5 h-5" />}           href="/creditos" />
       </div>
 
       <ListCard

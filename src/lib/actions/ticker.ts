@@ -20,36 +20,39 @@ export async function buscarEventosTicker(): Promise<TickerEvento[]> {
   // 1) Processos atualizados recentemente (movimentacao + etapa)
   const { data: procs } = await supabase
     .from('processos_licitatorios')
-    .select('numero_processo, objeto, status, etapa_atual, updated_at')
+    .select('id, numero_processo, objeto, status, etapa_atual, updated_at')
     .eq('organizacao_id', orgId)
     .gte('updated_at', desde)
     .order('updated_at', { ascending: false })
     .limit(20)
 
   for (const p of (procs ?? []) as any[]) {
-    const num = p.numero_processo ?? '—'
-    const obj = String(p.objeto ?? '').slice(0, 60)
+    const num  = p.numero_processo ?? '—'
+    const obj  = String(p.objeto ?? '').slice(0, 60)
+    const slug = ETAPA_SLUGS[p.etapa_atual as number] ?? 'dfd'
+    const href = p.id ? `/processos/${p.id}/${slug}` : undefined
     if (p.status === 'publicado') {
-      eventos.push({ categoria: 'etapa', num, txt: `Publicado · ${obj}`, tone: 'success', ts: formatTs(p.updated_at) })
+      eventos.push({ categoria: 'etapa', num, txt: `Publicado · ${obj}`, tone: 'success', ts: formatTs(p.updated_at), href })
     } else if (p.status === 'assinado') {
-      eventos.push({ categoria: 'assinatura', num, txt: `Assinado · ${obj}`, tone: 'success', ts: formatTs(p.updated_at) })
+      eventos.push({ categoria: 'assinatura', num, txt: `Assinado · ${obj}`, tone: 'success', ts: formatTs(p.updated_at), href })
     } else {
       const etapaLabel = ETAPA_LABELS[p.etapa_atual as number] ?? `Etapa ${p.etapa_atual}`
-      eventos.push({ categoria: 'movimentacao', num, txt: `${etapaLabel} · ${obj}`, tone: 'accent', ts: formatTs(p.updated_at) })
+      eventos.push({ categoria: 'movimentacao', num, txt: `${etapaLabel} · ${obj}`, tone: 'accent', ts: formatTs(p.updated_at), href })
     }
   }
 
   // 2) Pareceres recentes
   const { data: par } = await (supabase as any)
     .from('pareceres')
-    .select('resultado, created_at, processos_licitatorios(numero_processo)')
+    .select('resultado, created_at, processo_id, processos_licitatorios(numero_processo)')
     .eq('organizacao_id', orgId)
     .gte('created_at', desde)
     .order('created_at', { ascending: false })
     .limit(15)
 
   for (const p of (par ?? []) as any[]) {
-    const num = p.processos_licitatorios?.numero_processo ?? 'PGM'
+    const num  = p.processos_licitatorios?.numero_processo ?? 'PGM'
+    const href = p.processo_id ? `/processos/${p.processo_id}/parecer` : undefined
     eventos.push({
       categoria: 'parecer',
       num,
@@ -61,6 +64,7 @@ export async function buscarEventosTicker(): Promise<TickerEvento[]> {
         : p.resultado === 'devolvido' ? 'danger'
         : 'warn',
       ts: formatTs(p.created_at),
+      href,
     })
   }
 
@@ -86,21 +90,23 @@ export async function buscarEventosTicker(): Promise<TickerEvento[]> {
   // 4) Publicacoes recentes
   const { data: pub } = await (supabase as any)
     .from('publicacoes')
-    .select('pncp_numero, diario_oficial, portal_proprio, data_publicacao, processos_licitatorios(numero_processo, objeto)')
+    .select('processo_id, pncp_numero, diario_oficial, portal_proprio, data_publicacao, processos_licitatorios(numero_processo, objeto)')
     .eq('organizacao_id', orgId)
     .gte('data_publicacao', desde.slice(0, 10))
     .order('data_publicacao', { ascending: false })
     .limit(15)
 
   for (const p of (pub ?? []) as any[]) {
-    const proc = p.processos_licitatorios
+    const proc  = p.processos_licitatorios
     const canal = p.pncp_numero ? 'PNCP' : p.diario_oficial ? 'DOE' : p.portal_proprio ? 'Portal' : 'Publicado'
+    const href  = p.processo_id ? `/processos/${p.processo_id}/publicacao` : undefined
     eventos.push({
       categoria: 'publicacao',
       num: canal,
       txt: `${proc?.numero_processo ?? '—'} · ${String(proc?.objeto ?? '').slice(0, 50)}`,
       tone: 'success',
       ts: p.data_publicacao ? new Date(p.data_publicacao).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }).replace('/', '·') : 'hoje',
+      href,
     })
   }
 
@@ -135,6 +141,12 @@ const ETAPA_LABELS: Record<number, string> = {
   1: 'DFD', 2: 'Cotação', 3: 'ETP', 4: 'TR', 5: 'Riscos',
   6: 'Edital', 7: 'Declaração', 8: 'Ofício', 9: 'Parecer',
   10: 'Autorização', 11: 'Publicação',
+}
+
+const ETAPA_SLUGS: Record<number, string> = {
+  1: 'dfd', 2: 'cotacao', 3: 'etp', 4: 'tr', 5: 'riscos',
+  6: 'edital', 7: 'declaracao', 8: 'oficio', 9: 'parecer',
+  10: 'autorizacao', 11: 'publicacao',
 }
 
 function formatTs(iso: string | Date): string {
