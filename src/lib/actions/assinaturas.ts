@@ -118,10 +118,18 @@ export async function obterProvedorAssinatura(): Promise<ProvedorAssinatura> {
   return (config?.provider ?? 'interno') as ProvedorAssinatura
 }
 
-export async function salvarConfigAssinatura(provedor: string): Promise<ActionResult> {
+export async function salvarConfigAssinatura(
+  provedor: string,
+  zapsignAuthMode?: string,
+): Promise<ActionResult> {
   const provedoresValidos = ['interno', 'clicksign', 'zapsign', 'govbr', 'docusign']
   if (!provedoresValidos.includes(provedor)) {
     return { success: false, error: 'Provedor inválido.' }
+  }
+
+  const authModesValidos = ['assinaturaTela', 'icpBrasil', 'tokenSms']
+  if (zapsignAuthMode && !authModesValidos.includes(zapsignAuthMode)) {
+    return { success: false, error: 'Modo de assinatura inválido.' }
   }
 
   const supabase = await createClient()
@@ -140,8 +148,13 @@ export async function salvarConfigAssinatura(provedor: string): Promise<ActionRe
     return { success: false, error: 'Sem permissão.' }
   }
 
+  const config: Record<string, string> = { provider: provedor }
+  if (provedor === 'zapsign') {
+    config.zapsign_auth_mode = zapsignAuthMode ?? 'icpBrasil'
+  }
+
   const { error } = await (supabase.from('organizacoes') as any)
-    .update({ assinatura_config: { provider: provedor } })
+    .update({ assinatura_config: config })
     .eq('id', usuario.organizacao_id)
 
   if (error) return { success: false, error: 'Erro ao salvar configuração.' }

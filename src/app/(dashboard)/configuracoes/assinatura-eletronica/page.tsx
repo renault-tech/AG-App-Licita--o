@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { PenTool, ShieldCheck, Info } from 'lucide-react'
 import FormConfigAssinatura from './form-config-assinatura'
+import type { ZapSignAuthMode } from '@/lib/assinatura/types'
 
 export default async function AssinaturaEletronicaPage() {
   const supabase = await createClient()
@@ -23,8 +24,9 @@ export default async function AssinaturaEletronicaPage() {
     .eq('id', usuario.organizacao_id)
     .maybeSingle()
 
-  const assinaturaConfig = (orgData as any)?.assinatura_config as { provider?: string } | null
-  const provedorAtual = assinaturaConfig?.provider ?? 'interno'
+  const assinaturaConfig = (orgData as any)?.assinatura_config as { provider?: string; zapsign_auth_mode?: string } | null
+  const provedorAtual   = assinaturaConfig?.provider ?? 'interno'
+  const authModeAtual   = (assinaturaConfig?.zapsign_auth_mode ?? 'icpBrasil') as ZapSignAuthMode
 
   return (
     <div className="space-y-6">
@@ -38,10 +40,20 @@ export default async function AssinaturaEletronicaPage() {
       {/* Status atual */}
       <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-1">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Método ativo</p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <PenTool className="w-4 h-4 text-gray-500" />
-          <p className="text-sm font-medium text-gray-900 capitalize">{provedorAtual}</p>
-          {provedorAtual === 'interno' && (
+          <p className="text-sm font-medium text-gray-900">
+            {provedorAtual === 'interno' && 'Assinatura Interna'}
+            {provedorAtual === 'zapsign' && (
+              authModeAtual === 'icpBrasil'
+                ? 'ZapSign / Certificado digital (ICP-Brasil)'
+                : 'ZapSign / Assinatura na tela'
+            )}
+            {provedorAtual === 'govbr'     && 'Gov.br (ICP-Brasil)'}
+            {provedorAtual === 'clicksign' && 'Clicksign'}
+            {provedorAtual === 'docusign'  && 'DocuSign'}
+          </p>
+          {(provedorAtual === 'interno' || provedorAtual === 'zapsign') && (
             <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
               <ShieldCheck className="w-3 h-3" /> Operacional
             </span>
@@ -66,7 +78,7 @@ export default async function AssinaturaEletronicaPage() {
       {/* Seletor de provedor */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-gray-700">Provedor de assinatura</h3>
-        <FormConfigAssinatura provedorAtual={provedorAtual} />
+        <FormConfigAssinatura provedorAtual={provedorAtual} authModeAtual={authModeAtual} />
       </div>
 
       {/* Referencia legal */}
