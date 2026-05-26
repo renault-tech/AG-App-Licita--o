@@ -23,7 +23,7 @@ export async function uploadOrgLogoRegistro(
   const supabase = await createServiceClient()
 
   // Segurança: org deve estar inativa (recém-criada, não aprovada ainda)
-  const { data: org } = await supabase
+  const { data: org } = await (supabase as any)
     .from('organizacoes')
     .select('id')
     .eq('id', orgId)
@@ -48,7 +48,7 @@ export async function uploadOrgLogoRegistro(
 
   const { data: { publicUrl } } = supabase.storage.from('org-logos').getPublicUrl(path)
 
-  await supabase
+  await (supabase as any)
     .from('organizacoes')
     .update({ brasao_url: publicUrl })
     .eq('id', orgId)

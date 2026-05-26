@@ -46,7 +46,8 @@ function LoginForm() {
     carregarOrgs()
   }, [])
 
-  async function handleOrgSelect(id: string) {
+  async function handleOrgSelect(id: string | null) {
+    if (!id) return
     setOrgId(id)
     await setBrandingByOrgId(id)
   }
