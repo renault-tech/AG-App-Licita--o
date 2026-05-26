@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { executarIAComCreditos } from '@/lib/ai/wrapper'
+import { registrarAuditoria } from '@/lib/audit/log'
 import type { StatusParecer, ProcessoLicitatorioRow, TermoReferenciaRow } from '@/types/database'
 
 export async function obterParecer(processoId: string) {
@@ -47,6 +48,15 @@ export async function obterParecer(processoId: string) {
 
 export async function salvarParecer(parecerId: string, conteudo: string, status: StatusParecer) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Nao autenticado.' }
+
+  const { data: usuarioData } = await supabase
+    .from('usuarios')
+    .select('id, nome_completo, papel, organizacao_id')
+    .eq('id', user.id)
+    .maybeSingle()
+
   const supabaseAny = supabase as any
 
   const { error } = await supabaseAny
@@ -55,6 +65,24 @@ export async function salvarParecer(parecerId: string, conteudo: string, status:
     .eq('id', parecerId)
 
   if (error) return { success: false, error: error.message as string }
+
+  if (usuarioData) {
+    const u = usuarioData as any
+    const acaoFinal = status === 'aprovado'
+      ? 'parecer.aprovado'
+      : status === 'devolvido'
+      ? 'parecer.devolvido'
+      : 'parecer.editado'
+    void registrarAuditoria({
+      organizacaoId: u.organizacao_id,
+      usuarioId:     user.id,
+      nomeUsuario:   u.nome_completo,
+      papelUsuario:  u.papel,
+      categoria:     'documento',
+      acao:          acaoFinal,
+      recursoId:     parecerId,
+    })
+  }
 
   revalidatePath('/dashboard')
   return { success: true }

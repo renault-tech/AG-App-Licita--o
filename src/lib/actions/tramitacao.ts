@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { registrarAuditoria } from '@/lib/audit/log'
 
 // Tabelas de documento que participam do ciclo de tramitacao
 type TabelaDocumento = 'dfd' | 'etp' | 'termo_referencia' | 'mapa_riscos' | 'edital'
@@ -102,6 +103,17 @@ export async function enviarParaRevisao(
     await (supabase as any).from('notificacoes').insert(notificacoes)
   }
 
+  void registrarAuditoria({
+    organizacaoId: usuario.organizacao_id,
+    usuarioId:     usuario.id,
+    nomeUsuario:   usuario.nome_completo,
+    papelUsuario:  usuario.papel,
+    categoria:     'processo',
+    acao:          'processo.tramitado',
+    recursoId:     processoId,
+    detalhes:      { tabela, documentoId, tipo: 'envio_revisao' },
+  })
+
   revalidatePath(`/processos/${processoId}`)
   return { success: true }
 }
@@ -138,6 +150,17 @@ export async function aprovarDocumento(
   if (error) return { success: false, error: error.message }
 
   await gravarVersao(supabase, tabela, documentoId, usuario.organizacao_id, usuario.id, doc, `Aprovado por ${usuario.nome_completo}`)
+
+  void registrarAuditoria({
+    organizacaoId: usuario.organizacao_id,
+    usuarioId:     usuario.id,
+    nomeUsuario:   usuario.nome_completo,
+    papelUsuario:  usuario.papel,
+    categoria:     'processo',
+    acao:          'processo.tramitado',
+    recursoId:     processoId,
+    detalhes:      { tabela, documentoId, tipo: 'aprovacao' },
+  })
 
   revalidatePath(`/processos/${processoId}`)
   return { success: true }
