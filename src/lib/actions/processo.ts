@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
 import { schemaProcessoWizard, type ProcessoWizardInput } from '@/lib/validacao/processo'
 
 export async function criarProcessoInicial(dados: ProcessoWizardInput) {
@@ -244,6 +245,8 @@ export async function criarProcessoComDocumentos(
   }
 }
 
+const PAPEIS_ADMIN = ['admin_organizacao', 'admin_plataforma'] as const
+
 export async function excluirProcesso(processoId: string): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -251,14 +254,18 @@ export async function excluirProcesso(processoId: string): Promise<{ success: bo
 
   const { data: userData } = await supabase
     .from('usuarios')
-    .select('organizacao_id')
+    .select('organizacao_id, papel')
     .eq('id', user.id)
     .maybeSingle()
   if (!userData) return { success: false, error: 'Usuario nao encontrado.' }
 
-  const orgId = (userData as any).organizacao_id
+  const { organizacao_id: orgId, papel } = userData as any
 
-  // Confirmar que o processo pertence a organizacao do usuario
+  // Somente administradores podem excluir processos
+  if (!PAPEIS_ADMIN.includes(papel)) {
+    return { success: false, error: 'Apenas administradores podem excluir processos.' }
+  }
+
   const { data: processo } = await (supabase as any)
     .from('processos_licitatorios')
     .select('id, status, organizacao_id')
@@ -280,6 +287,7 @@ export async function excluirProcesso(processoId: string): Promise<{ success: bo
 
   if (error) return { success: false, error: error.message }
 
+  revalidatePath('/processos')
   return { success: true }
 }
 

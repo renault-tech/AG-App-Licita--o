@@ -299,7 +299,9 @@ export default async function ProcessosPage({
                       <ArrowRight className="w-4 h-4" style={{ color: 'var(--mutedSoft)' }} />
                     </div>
                   </Link>
-                  <BotaoExcluirProcesso processoId={p.id} objeto={p.objeto} />
+                  {['admin_organizacao', 'admin_plataforma'].includes(papel ?? '') && (
+                    <BotaoExcluirProcesso processoId={p.id} objeto={p.objeto} />
+                  )}
                 </div>
               )
             })}
