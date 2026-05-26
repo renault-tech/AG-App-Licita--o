@@ -8,6 +8,7 @@ import {
   ShieldCheck, Globe, Scale, Mail, MessageSquare, Bot,
 } from 'lucide-react'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
+import { registrarAuditoria } from '@/lib/audit/log'
 import { obterStatusEtapas } from '@/lib/actions/processo'
 import type { EtapaStatus, StatusEtapa } from '@/lib/actions/processo'
 import {
@@ -70,6 +71,30 @@ export default async function ProcessoLayout({
   ])
 
   if (!processo) return notFound()
+
+  // Registrar acesso ao processo — fire-and-forget, nao bloqueia renderizacao
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+  if (authUser) {
+    supabase
+      .from('usuarios')
+      .select('nome_completo, papel, organizacao_id')
+      .eq('id', authUser.id)
+      .maybeSingle()
+      .then(({ data: ua }) => {
+        if (ua) {
+          void registrarAuditoria({
+            organizacaoId: (ua as any).organizacao_id,
+            usuarioId:     authUser.id,
+            nomeUsuario:   (ua as any).nome_completo ?? 'Usuario',
+            papelUsuario:  (ua as any).papel ?? '',
+            categoria:     'processo',
+            acao:          'processo.acessado',
+            recursoId:     id,
+            recursoDesc:   (processo as any).objeto ?? '',
+          })
+        }
+      })
+  }
 
   const historico = (historicoRaw ?? []) as TramitacaoHistoricoRow[]
   const faseAtual = (processo.fase_atual ?? 'requisitante') as FaseProcesso
