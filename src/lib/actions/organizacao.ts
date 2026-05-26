@@ -4,6 +4,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { schemaOrganizacao, type OrganizacaoInput } from '@/lib/validacao/organizacao'
 import { schemaConviteUsuario, schemaAlterarPapel, type ConviteUsuarioInput } from '@/lib/validacao/usuario'
 import { revalidatePath } from 'next/cache'
+import { registrarAuditoria } from '@/lib/audit/log'
 
 type ActionResult<T = undefined> =
   | { success: true; data?: T }
@@ -41,6 +42,15 @@ export async function atualizarOrganizacao(input: OrganizacaoInput): Promise<Act
     .eq('id', usuario.organizacao_id)
 
   if (error) return { success: false, error: 'Erro ao salvar. Tente novamente.' }
+
+  void registrarAuditoria({
+    organizacaoId: usuario.organizacao_id,
+    usuarioId:     usuario.id,
+    nomeUsuario:   usuario.nome_completo ?? 'Admin',
+    papelUsuario:  usuario.papel,
+    categoria:     'organizacao',
+    acao:          'organizacao.atualizada',
+  })
 
   revalidatePath('/configuracoes/organizacao')
   return { success: true }
@@ -97,6 +107,17 @@ export async function convidarUsuario(input: ConviteUsuarioInput): Promise<Actio
     options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/login` },
   })
 
+  void registrarAuditoria({
+    organizacaoId: usuario.organizacao_id,
+    usuarioId:     usuario.id,
+    nomeUsuario:   usuario.nome_completo ?? 'Admin',
+    papelUsuario:  usuario.papel,
+    categoria:     'usuario',
+    acao:          'usuario.convidado',
+    recursoDesc:   parsed.data.email,
+    detalhes:      { papel_convidado: parsed.data.papel },
+  })
+
   revalidatePath('/configuracoes/usuarios')
   return { success: true }
 }
@@ -123,6 +144,17 @@ export async function alterarPapelUsuario(input: { usuario_id: string; papel: st
 
   if (error) return { success: false, error: 'Erro ao alterar papel.' }
 
+  void registrarAuditoria({
+    organizacaoId: usuario.organizacao_id,
+    usuarioId:     usuario.id,
+    nomeUsuario:   usuario.nome_completo ?? 'Admin',
+    papelUsuario:  usuario.papel,
+    categoria:     'usuario',
+    acao:          'usuario.papel_alterado',
+    recursoId:     parsed.data.usuario_id,
+    detalhes:      { novo_papel: parsed.data.papel },
+  })
+
   revalidatePath('/configuracoes/usuarios')
   return { success: true }
 }
@@ -143,6 +175,16 @@ export async function desativarUsuario(usuarioId: string): Promise<ActionResult>
     .eq('organizacao_id', usuario.organizacao_id)
 
   if (error) return { success: false, error: 'Erro ao desativar usuario.' }
+
+  void registrarAuditoria({
+    organizacaoId: usuario.organizacao_id,
+    usuarioId:     usuario.id,
+    nomeUsuario:   usuario.nome_completo ?? 'Admin',
+    papelUsuario:  usuario.papel,
+    categoria:     'usuario',
+    acao:          'usuario.suspenso',
+    recursoId:     usuarioId,
+  })
 
   revalidatePath('/configuracoes/usuarios')
   return { success: true }
