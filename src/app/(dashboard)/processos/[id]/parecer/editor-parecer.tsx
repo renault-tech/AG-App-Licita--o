@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
 import {
   Loader2, Wand2, CheckCircle, AlertCircle, XCircle,
@@ -19,6 +19,8 @@ import {
   gerarMinutaIA,
   analisarComIA,
 } from '@/lib/actions/procuradoria'
+import { useAutoSave } from '@/hooks/use-auto-save'
+import { AutoSaveIndicator } from '@/components/licita/auto-save-indicator'
 import ResumoProcesso from './resumo-processo'
 import PainelDocumentos from './painel-documentos'
 import ModalPrecedente from './modal-precedente'
@@ -33,13 +35,6 @@ const VEREDITO_CONFIG: Record<Veredito, { label: string; icon: React.ElementType
   contrario:             { label: 'Parecer contrário',    icon: XCircle,     classes: 'text-red-600',   bg: 'bg-red-50 border-red-200' },
 }
 
-function useDebounce(fn: (...args: any[]) => any, delay: number) {
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  return useCallback((...args: any[]) => {
-    if (timer.current) clearTimeout(timer.current)
-    timer.current = setTimeout(() => fn(...args), delay)
-  }, [fn, delay])
-}
 
 export default function EditorParecer({
   parecer,
@@ -64,19 +59,19 @@ export default function EditorParecer({
   const [analiseLoading, setAnaliseLoading] = useState(false)
   const [geradoPorIA, setGeradoPorIA]       = useState(false)
   const [precedenteSelecionado, setPrecedenteSelecionado] = useState<PrecedenteComScore | null>(null)
-  const [statusSalvo, setStatusSalvo] = useState<'salvo' | 'salvando' | 'idle'>('idle')
 
-  const autoSalvar = useDebounce(async (texto: string) => {
-    setStatusSalvo('salvando')
-    await salvarConteudo(parecer.id, texto)
-    setStatusSalvo('salvo')
-    setTimeout(() => setStatusSalvo('idle'), 3000)
-  }, 2000)
+  const autoSalvarConteudo = useCallback(async () => {
+    await salvarConteudo(parecer.id, conteudo)
+  }, [parecer.id, conteudo])
+
+  const { status: autoSaveStatus, lastSavedAt, retrySave } = useAutoSave(
+    [conteudo],
+    autoSalvarConteudo,
+    2000,
+  )
 
   function handleConteudoChange(texto: string) {
     setConteudo(texto)
-    setStatusSalvo('salvando')
-    autoSalvar(texto)
   }
 
   async function handleSelecionarVeredito(v: Veredito) {
@@ -250,9 +245,11 @@ export default function EditorParecer({
             />
             <p className="text-[11px] text-gray-400 flex items-center gap-1.5">
               {conteudo.length} caracteres
-              {statusSalvo === 'salvando' && <span className="text-gray-400">— salvando...</span>}
-              {statusSalvo === 'salvo' && <span className="text-green-600">— salvo</span>}
-              {statusSalvo === 'idle' && <span>— salvo automaticamente</span>}
+              <AutoSaveIndicator
+                status={autoSaveStatus}
+                lastSavedAt={lastSavedAt}
+                onRetry={retrySave}
+              />
             </p>
           </div>
 

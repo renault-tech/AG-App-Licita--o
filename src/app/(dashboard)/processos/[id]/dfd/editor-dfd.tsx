@@ -19,6 +19,8 @@ import {
   salvarItensDFD,
   gerarJustificativaIA,
 } from '@/lib/actions/dfd'
+import { useAutoSave } from '@/hooks/use-auto-save'
+import { AutoSaveIndicator } from '@/components/licita/auto-save-indicator'
 import BotaoTramitacao from '@/components/documentos/botao-tramitacao'
 import ModalEncaminharAdesao from './modal-encaminhar-adesao'
 import { BotaoMelhorarCampo } from '@/components/ai/botao-melhorar-campo'
@@ -333,6 +335,21 @@ export default function EditorDFD({
 
   const [salvando, setSalvando] = useState(false)
   const [gerandoJust, setGerandoJust] = useState(false)
+
+  const autoSalvarCampos = useCallback(async () => {
+    if (readonly) return
+    await atualizarDFD(dfd.id, {
+      objeto,
+      justificativa_necessidade: justificativa,
+      fiscal_contrato: fiscal,
+      dotacao_orcamentaria: dotacao,
+    })
+  }, [dfd.id, objeto, justificativa, fiscal, dotacao, readonly])
+
+  const { status: autoSaveStatus, lastSavedAt, retrySave } = useAutoSave(
+    [objeto, justificativa, fiscal, dotacao],
+    autoSalvarCampos,
+  )
   const [modalEncaminhar, setModalEncaminhar] = useState(false)
   const [justEditadaIA, setJustEditadaIA] = useState(false)
 
@@ -565,6 +582,13 @@ export default function EditorDFD({
           </div>
 
           <div className="flex items-center gap-2">
+            {!readonly && (
+              <AutoSaveIndicator
+                status={autoSaveStatus}
+                lastSavedAt={lastSavedAt}
+                onRetry={retrySave}
+              />
+            )}
             <Button
               onClick={handleSalvar}
               disabled={salvando || readonly}

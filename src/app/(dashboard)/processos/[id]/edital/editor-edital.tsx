@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
 import { Loader2, Save, Wand2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { atualizarEdital, revisarEditalComIA } from '@/lib/actions/edital'
+import { useAutoSave } from '@/hooks/use-auto-save'
+import { AutoSaveIndicator } from '@/components/licita/auto-save-indicator'
 import BotaoTramitacao from '@/components/documentos/botao-tramitacao'
 import { ModalidadeLicitacao, PapelUsuario } from '@/types/database'
 import Link from 'next/link'
@@ -22,6 +24,16 @@ export default function EditorEdital({ edital, processoId, papelUsuario, podeEdi
   const [salvando, setSalvando]         = useState(false)
   const [iaLoadingId, setIaLoadingId]   = useState<string | null>(null)
   const [iaEditados, setIaEditados]     = useState<Set<string>>(new Set())
+
+  const autoSalvarEdital = useCallback(async () => {
+    if (!podeEditar || edital.status === 'assinado') return
+    await atualizarEdital(edital.id, secoes)
+  }, [edital.id, edital.status, secoes, podeEditar])
+
+  const { status: autoSaveStatus, lastSavedAt, retrySave } = useAutoSave(
+    [secoes],
+    autoSalvarEdital,
+  )
 
   function atualiza(id: string, campo: 'titulo' | 'texto', valor: string) {
     setSecoes(prev => prev.map(s => s.id === id ? { ...s, [campo]: valor } : s))
@@ -128,6 +140,13 @@ export default function EditorEdital({ edital, processoId, papelUsuario, podeEdi
           />
         </div>
         <div className="flex items-center gap-2">
+          {podeEditar && edital.status !== 'assinado' && (
+            <AutoSaveIndicator
+              status={autoSaveStatus}
+              lastSavedAt={lastSavedAt}
+              onRetry={retrySave}
+            />
+          )}
           <Button onClick={handleSalvar} disabled={salvando || !podeEditar} className="bg-blue-700 hover:bg-blue-800 text-white gap-2 h-9 text-sm">
             {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><Save className="w-4 h-4" /> Salvar Edital</>}
           </Button>

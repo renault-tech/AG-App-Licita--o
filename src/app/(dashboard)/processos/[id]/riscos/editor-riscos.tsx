@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
 import { Loader2, Save, Plus, Trash2, Wand2, ShieldAlert, ChevronLeft, ChevronRight } from 'lucide-react'
 import { AlertDialog } from '@/components/ui/alert-dialog'
@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { atualizarMapaRiscos, sugerirRiscosIA } from '@/lib/actions/riscos'
+import { useAutoSave } from '@/hooks/use-auto-save'
+import { AutoSaveIndicator } from '@/components/licita/auto-save-indicator'
 import BotaoTramitacao from '@/components/documentos/botao-tramitacao'
 import Link from 'next/link'
 import type { PapelUsuario } from '@/types/database'
@@ -46,6 +48,16 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEdita
   const [salvando, setSalvando]   = useState(false)
   const [iaLoading, setIaLoading] = useState(false)
   const [confirmarRemocao, setConfirmarRemocao] = useState<string | null>(null)
+
+  const autoSalvarRiscos = useCallback(async () => {
+    if (!podeEditar || mapa.status === 'assinado') return
+    await atualizarMapaRiscos(mapa.id, riscos)
+  }, [mapa.id, mapa.status, riscos, podeEditar])
+
+  const { status: autoSaveStatus, lastSavedAt, retrySave } = useAutoSave(
+    [riscos],
+    autoSalvarRiscos,
+  )
 
   const objeto = mapa.processos_licitatorios?.objeto || 'objeto indefinido'
 
@@ -220,6 +232,13 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEdita
           />
         </div>
         <div className="flex items-center gap-2">
+          {podeEditar && mapa.status !== 'assinado' && (
+            <AutoSaveIndicator
+              status={autoSaveStatus}
+              lastSavedAt={lastSavedAt}
+              onRetry={retrySave}
+            />
+          )}
           <Button onClick={handleSalvar} disabled={salvando || !podeEditar} className="bg-blue-700 hover:bg-blue-800 text-white gap-2 h-9 text-sm">
             {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><Save className="w-4 h-4" /> Salvar Riscos</>}
           </Button>

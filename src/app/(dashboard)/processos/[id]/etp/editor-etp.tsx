@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
 import { Loader2, Save, Wand2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { atualizarETP, aprimorarETPComIA } from '@/lib/actions/etp'
+import { useAutoSave } from '@/hooks/use-auto-save'
+import { AutoSaveIndicator } from '@/components/licita/auto-save-indicator'
 import BotaoTramitacao from '@/components/documentos/botao-tramitacao'
 import Link from 'next/link'
 import type { PapelUsuario } from '@/types/database'
@@ -49,6 +51,16 @@ export default function EditorETP({ etp, processoId, papelUsuario, podeEditar = 
   const [salvando, setSalvando]   = useState(false)
   const [iaLoading, setIaLoading] = useState<string | null>(null)
   const [iaEditado, setIaEditado] = useState<Set<string>>(new Set())
+
+  const autoSalvarETP = useCallback(async () => {
+    if (!podeEditar || etp.status === 'assinado') return
+    await atualizarETP(etp.id, formData)
+  }, [etp.id, etp.status, formData, podeEditar])
+
+  const { status: autoSaveStatus, lastSavedAt, retrySave } = useAutoSave(
+    [formData],
+    autoSalvarETP,
+  )
 
   async function handleSalvar() {
     setSalvando(true)
@@ -137,6 +149,13 @@ export default function EditorETP({ etp, processoId, papelUsuario, podeEditar = 
           />
         </div>
         <div className="flex items-center gap-2">
+          {podeEditar && etp.status !== 'assinado' && (
+            <AutoSaveIndicator
+              status={autoSaveStatus}
+              lastSavedAt={lastSavedAt}
+              onRetry={retrySave}
+            />
+          )}
           <Button onClick={handleSalvar} disabled={salvando || !podeEditar} className="bg-blue-700 hover:bg-blue-800 text-white gap-2 h-9 text-sm">
             {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><Save className="w-4 h-4" /> Salvar ETP</>}
           </Button>
