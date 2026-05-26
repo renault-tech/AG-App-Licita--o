@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { Loader2, Save, Check } from 'lucide-react'
+import { Loader2, Save } from 'lucide-react'
 import { schemaOrganizacao, type OrganizacaoInput } from '@/lib/validacao/organizacao'
 import { atualizarOrganizacao } from '@/lib/actions/organizacao'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +12,9 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useState } from 'react'
-import { THEMES, type ThemeName } from '@/lib/theme/provider'
+import type { ThemeName } from '@/lib/theme/provider'
+import { LogoUploadField }     from '@/components/licita/logo-upload-field'
+import { HexColorPickerField } from '@/components/licita/hex-color-picker-field'
 
 const ESTADOS = [
   'AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT',
@@ -21,21 +23,24 @@ const ESTADOS = [
 
 interface Props {
   organizacao: {
-    nome: string
-    cnpj: string
-    municipio: string
-    estado: string
+    id:                      string
+    nome:                    string
+    cnpj:                    string
+    municipio:               string
+    estado:                  string
     cabecalho_institucional: string | null
-    rodape_institucional: string | null
-    tema_padrao?: string | null
+    rodape_institucional:    string | null
+    tema_padrao?:            string | null
+    cor_primaria?:           string | null
+    brasao_url?:             string | null
   }
 }
 
 export default function FormOrganizacao({ organizacao }: Props) {
   const [salvando, setSalvando] = useState(false)
-  const [temaEscolhido, setTemaEscolhido] = useState<ThemeName>(
-    (organizacao.tema_padrao as ThemeName) ?? 'petroleo'
-  )
+  const temaEscolhido = ((organizacao.tema_padrao as ThemeName) ?? 'petroleo')
+  const [corPrimaria, setCorPrimaria] = useState<string>(organizacao.cor_primaria ?? '#112239')
+  const [brasaoUrl,   setBrasaoUrl]   = useState<string>(organizacao.brasao_url ?? '')
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<OrganizacaoInput>({
     resolver: zodResolver(schemaOrganizacao),
@@ -46,13 +51,20 @@ export default function FormOrganizacao({ organizacao }: Props) {
       estado: organizacao.estado as OrganizacaoInput['estado'],
       cabecalho_institucional: organizacao.cabecalho_institucional ?? '',
       rodape_institucional: organizacao.rodape_institucional ?? '',
-      tema_padrao: (organizacao.tema_padrao as OrganizacaoInput['tema_padrao']) ?? 'petroleo',
+      tema_padrao:  (organizacao.tema_padrao as OrganizacaoInput['tema_padrao']) ?? 'petroleo',
+      cor_primaria: organizacao.cor_primaria ?? '',
+      brasao_url:   organizacao.brasao_url ?? '',
     },
   })
 
   async function onSubmit(data: OrganizacaoInput) {
     setSalvando(true)
-    const result = await atualizarOrganizacao({ ...data, tema_padrao: temaEscolhido })
+    const result = await atualizarOrganizacao({
+      ...data,
+      tema_padrao:  temaEscolhido,
+      cor_primaria: corPrimaria,
+      brasao_url:   brasaoUrl,
+    })
     if (!result.success) {
       toast.error(result.error)
     } else {
@@ -107,7 +119,7 @@ export default function FormOrganizacao({ organizacao }: Props) {
         </CardContent>
       </Card>
 
-      {/* Aparencia: tema padrao da organizacao */}
+      {/* Identidade visual */}
       <div
         className="rounded-[var(--r-lg)] border overflow-hidden"
         style={{ background: 'var(--surface)', borderColor: 'var(--hairline)' }}
@@ -117,60 +129,24 @@ export default function FormOrganizacao({ organizacao }: Props) {
           style={{ background: 'var(--surfaceAlt)', borderColor: 'var(--hairline)' }}
         >
           <h3 className="text-sm font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
-            Aparencia da plataforma
+            Identidade Visual
           </h3>
           <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-            Tema visual padrao para todos os usuarios desta organizacao. Cada usuario pode alterar individualmente.
+            Logo e cor exibidas no painel de login e no cabecalho do sistema.
           </p>
         </div>
-        <div className="p-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-            {(Object.entries(THEMES) as [ThemeName, typeof THEMES.petroleo][]).map(([id, t]) => {
-              const ativo = id === temaEscolhido
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => {
-                    setTemaEscolhido(id)
-                    setValue('tema_padrao', id)
-                  }}
-                  className="relative flex flex-col items-start gap-2.5 p-3 rounded-[var(--r-md)] text-left transition-all"
-                  style={ativo
-                    ? { background: 'var(--primaryWash)', border: '1.5px solid var(--primary)' }
-                    : { background: 'var(--surface)', border: '1px solid var(--hairline)' }
-                  }
-                >
-                  {/* Swatches de cor */}
-                  <div className="flex gap-1">
-                    {t.swatch.map((c, i) => (
-                      <div
-                        key={i}
-                        className="rounded-full"
-                        style={{ width: 20, height: 20, background: c, border: '1px solid rgba(0,0,0,0.08)' }}
-                      />
-                    ))}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
-                      {t.name}
-                    </p>
-                    <p className="text-[10.5px] mt-0.5 leading-snug" style={{ color: 'var(--muted)' }}>
-                      {t.desc}
-                    </p>
-                  </div>
-                  {ativo && (
-                    <div
-                      className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center"
-                      style={{ background: 'var(--primary)' }}
-                    >
-                      <Check className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  )}
-                </button>
-              )
-            })}
-          </div>
+        <div className="p-5 space-y-5">
+          <LogoUploadField
+            label="Logo / Brasao"
+            currentUrl={brasaoUrl || null}
+            orgId={organizacao.id}
+            onUpload={url => { setBrasaoUrl(url); setValue('brasao_url', url) }}
+          />
+          <HexColorPickerField
+            label="Cor primaria"
+            value={corPrimaria}
+            onChange={v => { setCorPrimaria(v); setValue('cor_primaria', v) }}
+          />
         </div>
       </div>
 

@@ -148,7 +148,7 @@ export default function CadastroPage() {
             <Label>Secretaria</Label>
             <Select
               disabled={!organizacaoId || !branding.secretarias.length}
-              onValueChange={v => setSecretariaId(v ?? '')}
+              onValueChange={(v: string | null) => setSecretariaId(v !== null ? v : '')}
             >
               <SelectTrigger>
                 <SelectValue placeholder={

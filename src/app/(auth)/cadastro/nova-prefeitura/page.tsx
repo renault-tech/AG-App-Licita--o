@@ -374,7 +374,7 @@ export default function NovaPrefeituraPage() {
 
               <div className="space-y-2">
                 <Label>Secretaria</Label>
-                <Select onValueChange={setSecretariaNome}>
+                <Select onValueChange={(v: string | null) => { if (v) setSecretariaNome(v) }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione sua secretaria..." />
                   </SelectTrigger>

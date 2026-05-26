@@ -35,6 +35,8 @@ export const schemaOrganizacao = z.object({
   cabecalho_institucional: z.string().max(500).optional(),
   rodape_institucional: z.string().max(500).optional(),
   tema_padrao: z.enum(TEMAS_VALIDOS).optional(),
+  brasao_url:   z.string().url().optional().or(z.literal('')),
+  cor_primaria: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().or(z.literal('')),
 })
 
 export type OrganizacaoInput = z.infer<typeof schemaOrganizacao>
