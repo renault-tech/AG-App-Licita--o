@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { executarIAComCreditos } from '@/lib/ai/wrapper'
+import { registrarAuditoria } from '@/lib/audit/log'
 import type { ProcessoLicitatorioRow, ETPRow } from '@/types/database'
 
 export async function obterETP(processoId: string) {
@@ -46,6 +47,15 @@ export async function obterETP(processoId: string) {
 
 export async function atualizarETP(etpId: string, dados: Partial<ETPRow>) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false as const, error: 'Nao autenticado.' }
+
+  const { data: usuarioData } = await supabase
+    .from('usuarios')
+    .select('id, nome_completo, papel, organizacao_id')
+    .eq('id', user.id)
+    .maybeSingle()
+
   const supabaseAny = supabase as any
 
   const { error } = await supabaseAny
@@ -54,6 +64,19 @@ export async function atualizarETP(etpId: string, dados: Partial<ETPRow>) {
     .eq('id', etpId)
 
   if (error) return { success: false as const, error: error.message as string }
+
+  if (usuarioData) {
+    const u = usuarioData as any
+    void registrarAuditoria({
+      organizacaoId: u.organizacao_id,
+      usuarioId:     user.id,
+      nomeUsuario:   u.nome_completo,
+      papelUsuario:  u.papel,
+      categoria:     'documento',
+      acao:          'etp.editado',
+      recursoId:     etpId,
+    })
+  }
 
   revalidatePath('/dashboard')
   return { success: true as const }

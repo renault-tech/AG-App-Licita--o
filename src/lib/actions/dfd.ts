@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { executarIAComCreditos } from '@/lib/ai/wrapper'
+import { registrarAuditoria } from '@/lib/audit/log'
 import type {
   DFDRow,
   DFDItemRow,
@@ -192,6 +193,17 @@ export async function atualizarDFD(
     .eq('id', dfdId)
 
   if (error) return { success: false, error: error.message }
+
+  const { usuario } = ctx
+  void registrarAuditoria({
+    organizacaoId: usuario.organizacao_id,
+    usuarioId:     usuario.id,
+    nomeUsuario:   usuario.nome_completo,
+    papelUsuario:  usuario.papel,
+    categoria:     'documento',
+    acao:          'dfd.editado',
+    recursoId:     dfdId,
+  })
 
   revalidatePath('/dashboard')
   return { success: true }
