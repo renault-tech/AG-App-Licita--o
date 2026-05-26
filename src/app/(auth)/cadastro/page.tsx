@@ -122,7 +122,7 @@ export default function CadastroPage() {
             <div className="space-y-2">
               <Label>Prefeitura</Label>
               <Select onOpenChange={open => { if (open) carregarOrganizacoes() }} onValueChange={v => setOrganizacaoId(typeof v === 'string' ? v : '')}>
-                <SelectTrigger>
+                <SelectTrigger aria-busy={carregandoOrgs}>
                   <SelectValue placeholder={carregandoOrgs ? 'Carregando...' : 'Selecione sua prefeitura'} />
                 </SelectTrigger>
                 <SelectContent>

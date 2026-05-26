@@ -68,7 +68,7 @@ export default function SidebarAdmin() {
   const pathname = usePathname()
 
   return (
-    <nav className="w-52 shrink-0">
+    <nav className="w-52 shrink-0" aria-label="Menu de administracao da plataforma">
       <ul className="space-y-0.5">
         {NAV.map(({ href, label, icon: Icon, tooltip }) => {
           const ativa = pathname === href || pathname.startsWith(href + '/')

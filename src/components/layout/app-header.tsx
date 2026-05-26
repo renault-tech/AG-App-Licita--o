@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Bell, Star, Search, LogOut, Settings, Users, Building2, Zap, TrendingUp, ShieldCheck, ChevronDown, Menu, X, RefreshCw, Presentation } from 'lucide-react'
+import { Bell, Star, Search, LogOut, Settings, Users, Building2, Zap, TrendingUp, ShieldCheck, ChevronDown, Menu, X, RefreshCw, Presentation, Loader2 } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { useTheme, THEMES } from '@/lib/theme/provider'
 import { LogoPrefeitura } from '@/components/licita/logo-prefeitura'
@@ -79,11 +79,13 @@ export function AppHeader({
   const t = THEMES[theme]
   const [themePanelOpen, setThemePanelOpen] = useState(false)
   const [menuMobile, setMenuMobile] = useState(false)
+  const [trocandoPapel, setTrocandoPapel] = useState(false)
   const [, startTransition] = useTransition()
 
   const perfilSobreposto = podeTracarPerfil && papel !== papelReal && papelReal !== null
 
   async function handleTrocarPerfil(novoPapel: PapelUsuario | null) {
+    setTrocandoPapel(true)
     await trocarPerfilAtivo(novoPapel)
     startTransition(() => { router.refresh() })
   }
@@ -197,7 +199,10 @@ export function AppHeader({
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(0.88)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = ''}
               >
-                {perfilSobreposto && <RefreshCw className="w-2.5 h-2.5" />}
+                {trocandoPapel
+                  ? <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                  : perfilSobreposto && <RefreshCw className="w-2.5 h-2.5" />
+                }
                 {LABEL_PAPEL[papel as PapelUsuario]}
                 <ChevronDown className="w-3 h-3 opacity-75" />
               </DropdownMenuTrigger>

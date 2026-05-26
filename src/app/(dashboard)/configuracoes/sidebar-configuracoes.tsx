@@ -32,7 +32,7 @@ export default function SidebarConfiguracoes({ brasaoUrl, orgNome, papel }: Side
   const NAV = isAdmin ? NAV_ADMIN : NAV_USUARIO
 
   return (
-    <nav className="w-52 shrink-0">
+    <nav className="w-52 shrink-0" aria-label="Menu de configuracoes">
       {/* Logo da prefeitura no topo da sidebar */}
       {brasaoUrl && (
         <div className="flex items-center gap-2.5 px-3 py-2.5 mb-2" style={{ borderBottom: '1px solid var(--hairline)' }}>

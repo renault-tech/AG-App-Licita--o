@@ -18,6 +18,8 @@ function LoginForm() {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [carregando, setCarregando] = useState(false)
+  const [emailNaoConfirmado, setEmailNaoConfirmado] = useState(false)
+  const [reenvioOk, setReenvioOk] = useState(false)
   const [termoPrefeitura, setTermoPrefeitura] = useState('')
   const [municipios, setMunicipios] = useState<MunicipioSimplificado[]>([])
   const [municipioSelecionado, setMunicipioSelecionado] = useState<MunicipioSimplificado | null>(null)
@@ -54,7 +56,7 @@ function LoginForm() {
     const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
     if (error) {
       if (error.message.includes('Email not confirmed')) {
-        toast.error('Por favor, confirme seu e-mail antes de entrar.')
+        setEmailNaoConfirmado(true)
       } else {
         toast.error('Credenciais invalidas. Verifique e-mail e senha.')
       }
@@ -160,6 +162,31 @@ function LoginForm() {
               : <><LogIn className="w-4 h-4 mr-2" /> Entrar</>
             }
           </Button>
+          {emailNaoConfirmado && (
+            <div className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800 space-y-2">
+              <p>E-mail ainda nao confirmado. Verifique sua caixa de entrada.</p>
+              {reenvioOk ? (
+                <p className="text-green-700 font-medium">Link reenviado com sucesso.</p>
+              ) : (
+                <button
+                  type="button"
+                  className="font-semibold underline hover:no-underline"
+                  onClick={async () => {
+                    const supabase = createClient()
+                    await supabase.auth.resend({ type: 'signup', email })
+                    setReenvioOk(true)
+                  }}
+                >
+                  Reenviar e-mail de confirmacao
+                </button>
+              )}
+            </div>
+          )}
+          <p className="text-sm text-center text-muted-foreground">
+            <Link href="/recuperar-senha" className="hover:underline">
+              Esqueci minha senha
+            </Link>
+          </p>
           <p className="text-sm text-center text-muted-foreground">
             Ainda sem acesso?{' '}
             <Link href="/cadastro" className="font-semibold hover:underline">

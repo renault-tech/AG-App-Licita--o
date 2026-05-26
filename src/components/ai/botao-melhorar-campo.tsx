@@ -11,6 +11,7 @@ interface BotaoMelhorarCampoProps {
   contexto: Omit<ContextoCampo, 'textoAtual'>
   onTextMelhorado: (novoTexto: string) => void
   className?: string
+  secaoLabel?: string
 }
 
 export function BotaoMelhorarCampo({
@@ -18,6 +19,7 @@ export function BotaoMelhorarCampo({
   contexto,
   onTextMelhorado,
   className = '',
+  secaoLabel,
 }: BotaoMelhorarCampoProps) {
   const [melhorando, setMelhorando] = useState(false)
   const [textoAnterior, setTextoAnterior] = useState<string | null>(null)
@@ -77,7 +79,7 @@ export function BotaoMelhorarCampo({
   }
 
   return (
-    <div className={`flex gap-1.5 items-center ${className}`}>
+    <div className={`flex gap-1.5 items-center ${className}`} aria-busy={melhorando}>
       <Button
         type="button"
         size="sm"
@@ -86,7 +88,7 @@ export function BotaoMelhorarCampo({
         disabled={melhorando}
         className="h-7 px-2 gap-1.5 text-xs"
         style={{ borderColor: 'var(--primary)', color: 'var(--primary)' }}
-        aria-label="Melhorar texto com IA"
+        aria-label={secaoLabel ? `Melhorar "${secaoLabel}" com IA` : 'Melhorar texto com IA'}
       >
         {melhorando
           ? <Loader2 className="w-3 h-3 animate-spin" />

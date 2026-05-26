@@ -8,6 +8,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme()
 
   return (
+    <div aria-live="polite" aria-atomic="false" className="contents">
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
@@ -43,6 +44,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       {...props}
     />
+    </div>
   )
 }
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { AlertDialog } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
 import {
   Loader2, Save, Wand2, Plus, Trash2, Share2, ChevronRight,
@@ -130,6 +131,8 @@ function TabelaItens({
   onChange: (itens: ItemLocal[]) => void
   readonly: boolean
 }) {
+  const [confirmarRemocao, setConfirmarRemocao] = useState<number | null>(null)
+
   function addItem() {
     onChange([
       ...itens,
@@ -225,7 +228,7 @@ function TabelaItens({
                     <td className="px-2 py-2">
                       <button
                         type="button"
-                        onClick={() => removeItem(idx)}
+                        onClick={() => setConfirmarRemocao(idx)}
                         className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -238,6 +241,14 @@ function TabelaItens({
           </table>
         </div>
       )}
+      <AlertDialog
+        open={confirmarRemocao !== null}
+        onOpenChange={open => { if (!open) setConfirmarRemocao(null) }}
+        titulo="Remover item"
+        descricao="Esta acao nao pode ser desfeita. O item sera removido do Anexo Unico."
+        labelConfirmar="Remover"
+        onConfirmar={() => { if (confirmarRemocao !== null) removeItem(confirmarRemocao) }}
+      />
     </div>
   )
 }

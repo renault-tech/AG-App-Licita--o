@@ -100,7 +100,7 @@ export default function SinoNotificacoes({ notificacoes, naoLidas, usuarioId }: 
         )}
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-80 p-0" sideOffset={8}>
+      <DropdownMenuContent align="end" className="w-80 p-0" sideOffset={8} aria-label="Painel de notificacoes">
         {/* Cabecalho */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
           <span className="text-sm font-semibold text-gray-900">Notificacoes</span>

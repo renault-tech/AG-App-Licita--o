@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Loader2, Save, Plus, Trash2, Wand2, ShieldAlert, ChevronLeft, ChevronRight } from 'lucide-react'
+import { AlertDialog } from '@/components/ui/alert-dialog'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -44,6 +45,7 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEdita
   const [riscos, setRiscos] = useState<any[]>(Array.isArray(mapa.riscos) ? mapa.riscos : [])
   const [salvando, setSalvando]   = useState(false)
   const [iaLoading, setIaLoading] = useState(false)
+  const [confirmarRemocao, setConfirmarRemocao] = useState<string | null>(null)
 
   const objeto = mapa.processos_licitatorios?.objeto || 'objeto indefinido'
 
@@ -85,6 +87,7 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEdita
   }
 
   return (
+    <>
     <Card className="border-gray-200 shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-4">
         <div>
@@ -141,7 +144,7 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEdita
                   variant="ghost"
                   size="sm"
                   className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50"
-                  onClick={() => removeRisco(risco.id)}
+                  onClick={() => setConfirmarRemocao(risco.id)}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -228,5 +231,14 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEdita
         </div>
       </CardFooter>
     </Card>
+    <AlertDialog
+      open={confirmarRemocao !== null}
+      onOpenChange={open => { if (!open) setConfirmarRemocao(null) }}
+      titulo="Remover risco"
+      descricao="Esta acao nao pode ser desfeita. O risco sera removido da matriz."
+      labelConfirmar="Remover"
+      onConfirmar={() => { if (confirmarRemocao) removeRisco(confirmarRemocao) }}
+    />
+    </>
   )
 }

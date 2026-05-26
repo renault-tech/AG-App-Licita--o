@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Loader2, Save, Plus, Trash2, AlertTriangle, Calculator, ChevronRight, ChevronLeft, TrendingUp } from 'lucide-react'
+import { AlertDialog } from '@/components/ui/alert-dialog'
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -41,6 +42,7 @@ export default function CotacaoForm({ cotacao, fornecedores, processoId }: {
     valor_estimado: cotacao.valor_estimado || 0,
     tem_outlier:    cotacao.tem_outlier    || false,
   })
+  const [confirmarRemocao, setConfirmarRemocao] = useState<number | null>(null)
 
   function addFornecedor() {
     setListaFornecedores(prev => [
@@ -79,6 +81,7 @@ export default function CotacaoForm({ cotacao, fornecedores, processoId }: {
   const valoresValidos = listaFornecedores.filter(f => f.valor_proposto > 0).map(f => f.valor_proposto)
 
   return (
+    <>
     <div className="space-y-4">
 
       {/* Alerta de outlier */}
@@ -187,7 +190,14 @@ export default function CotacaoForm({ cotacao, fornecedores, processoId }: {
                   variant="ghost"
                   size="sm"
                   className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50"
-                  onClick={() => removeFornecedor(index)}
+                  onClick={() => {
+                    const f = listaFornecedores[index]
+                    if (f.nome_fornecedor || f.valor_proposto) {
+                      setConfirmarRemocao(index)
+                    } else {
+                      removeFornecedor(index)
+                    }
+                  }}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -260,5 +270,14 @@ export default function CotacaoForm({ cotacao, fornecedores, processoId }: {
         </CardFooter>
       </Card>
     </div>
+    <AlertDialog
+      open={confirmarRemocao !== null}
+      onOpenChange={open => { if (!open) setConfirmarRemocao(null) }}
+      titulo="Remover proposta"
+      descricao="Esta proposta tem dados preenchidos. Deseja realmente remove-la?"
+      labelConfirmar="Remover"
+      onConfirmar={() => { if (confirmarRemocao !== null) removeFornecedor(confirmarRemocao) }}
+    />
+    </>
   )
 }

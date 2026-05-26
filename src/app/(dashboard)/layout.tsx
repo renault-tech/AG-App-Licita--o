@@ -64,6 +64,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-primary focus:text-primary-foreground focus:font-medium focus:shadow-lg"
+      >
+        Ir para o conteudo principal
+      </a>
       <OrgThemeApplicator temaOrg={temaPadraoOrg} />
       {demoSession.ativo && demoSession.papelSimulado && (
         <>
@@ -92,6 +98,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         tickerCategorias={tickerCategorias}
       />
       <main
+        id="main-content"
         className="flex-1 max-w-[1400px] mx-auto w-full px-6 md:px-8 lg:px-12 py-10 pb-32"
         style={{ zoom: 'var(--zoom-level, 1)' }}
       >

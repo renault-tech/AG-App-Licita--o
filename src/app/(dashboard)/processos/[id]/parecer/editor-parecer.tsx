@@ -64,13 +64,18 @@ export default function EditorParecer({
   const [analiseLoading, setAnaliseLoading] = useState(false)
   const [geradoPorIA, setGeradoPorIA]       = useState(false)
   const [precedenteSelecionado, setPrecedenteSelecionado] = useState<PrecedenteComScore | null>(null)
+  const [statusSalvo, setStatusSalvo] = useState<'salvo' | 'salvando' | 'idle'>('idle')
 
   const autoSalvar = useDebounce(async (texto: string) => {
+    setStatusSalvo('salvando')
     await salvarConteudo(parecer.id, texto)
+    setStatusSalvo('salvo')
+    setTimeout(() => setStatusSalvo('idle'), 3000)
   }, 2000)
 
   function handleConteudoChange(texto: string) {
     setConteudo(texto)
+    setStatusSalvo('salvando')
     autoSalvar(texto)
   }
 
@@ -243,7 +248,12 @@ export default function EditorParecer({
               onChange={e => handleConteudoChange(e.target.value)}
               className="font-mono text-sm text-gray-800 leading-relaxed resize-y"
             />
-            <p className="text-[11px] text-gray-400">{conteudo.length} caracteres — salvo automaticamente</p>
+            <p className="text-[11px] text-gray-400 flex items-center gap-1.5">
+              {conteudo.length} caracteres
+              {statusSalvo === 'salvando' && <span className="text-gray-400">— salvando...</span>}
+              {statusSalvo === 'salvo' && <span className="text-green-600">— salvo</span>}
+              {statusSalvo === 'idle' && <span>— salvo automaticamente</span>}
+            </p>
           </div>
 
           {analiseIA && (
