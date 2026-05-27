@@ -25,7 +25,15 @@
       "Bash(git commit -m ' *)",
       "Bash(node \"C:/Users/danre/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/brainstorming/scripts/server.cjs\" --project-dir \"d:/Documentos/Projetos IA/Licita AI/AG-App-Licita--o\")",
       "Bash(git pull *)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "mcp__903ea701-e33a-4e3d-a685-ad369731f7d8__list_projects",
+      "Bash(git commit *)",
+      "Bash(git fetch *)",
+      "mcp__903ea701-e33a-4e3d-a685-ad369731f7d8__apply_migration",
+      "Bash(C:\\\\Users\\\\danre\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.1.0\\\\scripts\\\\start-server.sh --project-dir \"D:\\\\Documentos\\\\Projetos IA\\\\Licita AI\\\\AG-App-Licita--o\")",
+      "mcp__903ea701-e33a-4e3d-a685-ad369731f7d8__execute_sql",
+      "Bash(npx shadcn@latest add popover --yes)",
+      "Bash(supabase --version)"
     ]
   }
 }

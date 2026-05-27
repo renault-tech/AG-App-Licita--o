@@ -99,7 +99,7 @@ export async function PendenciasCard({ userId, orgId, faseAtual }: PendenciasCar
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate" style={{ color: 'var(--ink)' }}>
-                    {p.numero_processo ? `${p.numero_processo} — ` : ''}{p.objeto}
+                    {p.numero_processo ? `${p.numero_processo}: ` : ''}{p.objeto}
                   </p>
                 </div>
                 <span

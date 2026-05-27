@@ -55,7 +55,7 @@ export function ProcessoRowDashboard({
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[14px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-          {numero_processo ? `${numero_processo} — ` : ''}{objeto}
+          {numero_processo ? `${numero_processo}: ` : ''}{objeto}
         </p>
         <div className="flex items-center gap-2 mt-0.5">
           <span className="text-xs" style={{ color: 'var(--muted)' }}>

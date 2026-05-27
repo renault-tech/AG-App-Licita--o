@@ -120,7 +120,7 @@ export default async function AdminPrefeituraPage({
             style={{ borderColor: 'var(--hairline)' }}
           >
             <p className="text-sm font-medium truncate" style={{ color: 'var(--ink)' }}>
-              {p.numero_processo ? `${p.numero_processo} — ` : ''}{p.objeto}
+              {p.numero_processo ? `${p.numero_processo}: ` : ''}{p.objeto}
             </p>
           </Link>
         ))}

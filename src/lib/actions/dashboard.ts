@@ -74,33 +74,3 @@ export async function buscarPreferenciaDashboard(
   return (data as { config_value: Record<string, unknown> }).config_value ?? defaultValue
 }
 
-export async function buscarProcessosGlobal(
-  termo: string,
-  orgId: string,
-  papel: string,
-  userId: string
-): Promise<{ id: string; numero_processo: string | null; objeto: string; modalidade: string; status: string }[]> {
-  if (!termo || termo.trim().length === 0) return []
-
-  const termoSafe = termo.replace(/[%_;\\]/g, '')
-  if (!termoSafe) return []
-
-  const supabase = await createClient()
-
-  let query = (supabase as any)
-    .from('processos_licitatorios')
-    .select('id, numero_processo, objeto, modalidade, status')
-    .or(`numero_processo.ilike.%${termoSafe}%,objeto.ilike.%${termoSafe}%`)
-    .limit(8)
-
-  if (papel === 'requisitante') {
-    query = query.eq('criado_por', userId)
-  } else {
-    query = query.eq('organizacao_id', orgId)
-  }
-
-  const { data, error } = await query
-  if (error || !data) return []
-
-  return data as { id: string; numero_processo: string | null; objeto: string; modalidade: string; status: string }[]
-}
