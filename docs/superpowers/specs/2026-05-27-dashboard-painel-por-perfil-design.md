@@ -214,13 +214,14 @@ supabase/migrations/
 6. `FooterEditorial`
 
 ### Admin Master — Visão Prefeitura Específica
-**Rota:** `/admin/prefeituras/[orgId]` ou painel inline com breadcrumb
+**Rota:** `/admin/prefeituras/[orgId]`
 
 **Layout:**
 1. Breadcrumb: "Plataforma > Prefeituras > [Nome da Prefeitura]" com link de volta
-2. Herda **todo** o layout do Admin Organização com os dados daquela prefeitura
-3. Adiciona: histórico completo de créditos (compras + consumo), log de auditoria, botão "Conceder créditos"
-4. Admin Master pode ver e fazer tudo que qualquer outro papel pode — quando navegar para um processo específico, vê todos os documentos e ações disponíveis para aquele processo
+2. `FaseTimeline` — funil horizontal com contagem de todos os processos daquela prefeitura por fase, clicável para `/processos?organizacao_id=<orgId>&fase=<fase>`
+3. Herda **todo** o layout do Admin Organização com os dados daquela prefeitura
+4. Adiciona: histórico completo de créditos (compras + consumo), log de auditoria, botão "Conceder créditos"
+5. Admin Master pode ver e fazer tudo que qualquer outro papel pode — quando navegar para um processo específico, vê todos os documentos e ações disponíveis para aquele processo
 
 ---
 
