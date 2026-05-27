@@ -51,11 +51,12 @@ function aplicarFiltros(
   orgId: string,
   filtroStatus?: string,
   filtroFase?: string,
-  qSafe?: string
+  qSafe?: string,
+  filtroCriadoPor?: string
 ) {
   let q = baseQuery
 
-  if (papel === 'requisitante') {
+  if (papel === 'requisitante' || filtroCriadoPor === 'me') {
     q = q.eq('criado_por', userId)
   } else {
     q = q.eq('organizacao_id', orgId)
@@ -83,7 +84,7 @@ function aplicarFiltros(
 export default async function ProcessosPage({
   searchParams,
 }: {
-  searchParams: { status?: string; fase?: string; q?: string; page?: string }
+  searchParams: { status?: string; fase?: string; q?: string; page?: string; criado_por?: string }
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -100,8 +101,9 @@ export default async function ProcessosPage({
   const organizacaoId = (usuarioData as any)?.organizacao_id
   if (!organizacaoId) redirect('/dashboard')
 
-  const filtroStatus = searchParams.status
-  const filtroFase   = searchParams.fase
+  const filtroStatus   = searchParams.status
+  const filtroFase     = searchParams.fase
+  const filtroCriadoPor = searchParams.criado_por
   const q    = searchParams.q?.trim() ?? ''
   const page = Math.max(1, parseInt(searchParams.page ?? '1', 10))
   const qSafe = q.replace(/[%_;\\]/g, '')
@@ -109,11 +111,11 @@ export default async function ProcessosPage({
   const [{ count: totalCount }, { data: processos }] = await Promise.all([
     aplicarFiltros(
       (supabase as any).from('processos_licitatorios').select('id', { count: 'exact', head: true }),
-      papel, user.id, organizacaoId, filtroStatus, filtroFase, qSafe
+      papel, user.id, organizacaoId, filtroStatus, filtroFase, qSafe, filtroCriadoPor
     ),
     aplicarFiltros(
       (supabase as any).from('processos_licitatorios').select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at'),
-      papel, user.id, organizacaoId, filtroStatus, filtroFase, qSafe
+      papel, user.id, organizacaoId, filtroStatus, filtroFase, qSafe, filtroCriadoPor
     )
       .order('created_at', { ascending: false })
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
@@ -135,11 +137,13 @@ export default async function ProcessosPage({
     concluidos: todos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado').length,
   }
 
-  const filtroAtivo = filtroStatus || filtroFase || qSafe
+  const filtroAtivo = filtroStatus || filtroFase || qSafe || filtroCriadoPor
   const filtroLabel = filtroStatus
     ? (FILTRO_STATUS_LABEL[filtroStatus] ?? filtroStatus)
     : filtroFase
     ? (FILTRO_FASE_LABEL[filtroFase] ?? filtroFase)
+    : filtroCriadoPor === 'me'
+    ? 'Meus processos'
     : null
 
   return (
@@ -313,6 +317,7 @@ export default async function ProcessosPage({
                 q={qSafe || undefined}
                 status={filtroStatus}
                 fase={filtroFase}
+                criadoPor={filtroCriadoPor}
               />
             </div>
           </div>

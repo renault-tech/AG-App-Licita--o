@@ -2,24 +2,26 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface PaginacaoProcessosProps {
-  total:    number
-  page:     number
-  pageSize: number
-  q?:       string
-  status?:  string
-  fase?:    string
+  total:       number
+  page:        number
+  pageSize:    number
+  q?:          string
+  status?:     string
+  fase?:       string
+  criadoPor?:  string
 }
 
-function buildHref(page: number, q?: string, status?: string, fase?: string) {
+function buildHref(page: number, q?: string, status?: string, fase?: string, criadoPor?: string) {
   const params = new URLSearchParams()
   params.set('page', String(page))
-  if (q)      params.set('q', q)
-  if (status) params.set('status', status)
-  if (fase)   params.set('fase', fase)
+  if (q)         params.set('q', q)
+  if (status)    params.set('status', status)
+  if (fase)      params.set('fase', fase)
+  if (criadoPor) params.set('criado_por', criadoPor)
   return `/processos?${params.toString()}`
 }
 
-export default function PaginacaoProcessos({ total, page, pageSize, q, status, fase }: PaginacaoProcessosProps) {
+export default function PaginacaoProcessos({ total, page, pageSize, q, status, fase, criadoPor }: PaginacaoProcessosProps) {
   if (total <= pageSize) return null
 
   const totalPages = Math.ceil(total / pageSize)
@@ -37,7 +39,7 @@ export default function PaginacaoProcessos({ total, page, pageSize, q, status, f
       <div className="flex items-center gap-1">
         {page > 1 ? (
           <Link
-            href={buildHref(page - 1, q, status, fase)}
+            href={buildHref(page - 1, q, status, fase, criadoPor)}
             className="flex items-center justify-center w-7 h-7 rounded border transition-colors"
             style={{ borderColor: 'var(--hairline)', color: 'var(--inkSoft)' }}
             aria-label="Pagina anterior"
@@ -60,7 +62,7 @@ export default function PaginacaoProcessos({ total, page, pageSize, q, status, f
 
         {page < totalPages ? (
           <Link
-            href={buildHref(page + 1, q, status, fase)}
+            href={buildHref(page + 1, q, status, fase, criadoPor)}
             className="flex items-center justify-center w-7 h-7 rounded border transition-colors"
             style={{ borderColor: 'var(--hairline)', color: 'var(--inkSoft)' }}
             aria-label="Proxima pagina"
