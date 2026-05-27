@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Bell, Star, Search, LogOut, Settings, Users, Building2, Zap, TrendingUp, ShieldCheck, ChevronDown, Menu, X, RefreshCw, Presentation, Loader2 } from 'lucide-react'
+import { Bell, Star, LogOut, Settings, Users, Building2, Zap, TrendingUp, ShieldCheck, ChevronDown, Menu, X, RefreshCw, Presentation, Loader2 } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { useTheme, THEMES } from '@/lib/theme/provider'
 import { LogoPrefeitura } from '@/components/licita/logo-prefeitura'
@@ -20,6 +20,7 @@ import type { Notificacao } from '@/lib/actions/notificacoes'
 import { LABEL_PAPEL, COR_PAPEL, ORDEM_FLUXO } from '@/lib/permissions'
 import type { PapelUsuario } from '@/types/database'
 import { TickerStrip } from '@/components/layout/ticker-strip'
+import { BuscaGlobal } from '@/components/dashboard/busca-global'
 import { TICKER_CATEGORIAS_DEFAULT, type TickerCategoriaId, type TickerEvento } from '@/lib/ticker/categorias'
 import { trocarPerfilAtivo } from '@/lib/perfil-session'
 
@@ -139,14 +140,8 @@ export function AppHeader({
           )}
         </div>
 
-        {/* Busca — desktop */}
-        <div className="hidden lg:flex items-center gap-2 bg-surfaceAlt border border-hairline px-3 py-1.5 rounded-[var(--r-md)] w-56 text-muted cursor-pointer hover:border-hairline/80 transition-colors">
-          <Search className="w-3.5 h-3.5 shrink-0" />
-          <span className="text-xs flex-1">Buscar processo, edital...</span>
-          <span className="text-[10px] text-mutedSoft px-1.5 py-0.5 rounded border border-hairline bg-surface">
-            ⌘K
-          </span>
-        </div>
+        {/* Busca global */}
+        <BuscaGlobal />
 
         {/* Creditos */}
         {saldoCreditos !== null && saldoCreditos !== undefined && (
