@@ -6,7 +6,7 @@ import { CardConfigShell } from '@/components/dashboard/card-config-shell'
 import { FooterEditorial, SectionHeader, ListCard } from './shared'
 import { buscarPreferenciaDashboard } from '@/lib/actions/dashboard'
 
-interface Props { userId: string; orgId: string; orgNome: string; cargo: string | null }
+interface Props { userId: string; orgId: string; orgNome: string; cargo: string | null; nome?: string | null }
 
 const FASE_KEYS = ['requisitante', 'setor_compras', 'setor_licitacao', 'procurador', 'gestor_publico', 'publicacao']
 const FASE_LABELS: Record<string, string> = {
@@ -18,7 +18,7 @@ const FASE_LABELS: Record<string, string> = {
   publicacao:      'Publicação',
 }
 
-export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo }: Props) {
+export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo, nome }: Props) {
   const supabase = await createClient()
 
   const pref = await buscarPreferenciaDashboard('ia_periodo_dias', { dias: 30 })
@@ -54,7 +54,12 @@ export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo }: Props
 
   return (
     <div className="space-y-8">
-      <SectionHeader supTitle="Admin Organização" title={orgNome} contextLine="Visão gerencial da organização." />
+      <SectionHeader
+        supTitle="Admin Organizacao"
+        title={orgNome}
+        nome={nome}
+        contextLine="Visao gerencial da organizacao."
+      />
 
       <KPIBar items={[
         { label: 'Usuários ativos',  value: ativos },

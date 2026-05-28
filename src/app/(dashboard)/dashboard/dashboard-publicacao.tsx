@@ -6,9 +6,9 @@ import { PendenciasCard } from '@/components/dashboard/pendencias-card'
 import { ProcessoRowDashboard } from '@/components/dashboard/processo-row-dashboard'
 import { FooterEditorial, SectionHeader, ListCard } from './shared'
 
-interface Props { userId: string; orgId: string; cargo: string | null }
+interface Props { userId: string; orgId: string; cargo: string | null; nome?: string | null }
 
-export async function DashboardPublicacao({ userId, orgId, cargo }: Props) {
+export async function DashboardPublicacao({ userId, orgId, cargo, nome }: Props) {
   const supabase = await createClient()
   const inicioSemana = new Date(Date.now() - 7 * 86400000).toISOString()
 
@@ -51,7 +51,12 @@ export async function DashboardPublicacao({ userId, orgId, cargo }: Props) {
 
   return (
     <div className="space-y-8">
-      <SectionHeader supTitle="Setor de Comunicações" title="Publicações pendentes." contextLine={cargo ?? undefined} />
+      <SectionHeader
+        supTitle="Setor de Comunicacoes"
+        title="Publicacoes pendentes."
+        nome={nome}
+        contextLine={aguardando > 0 ? `${aguardando} processo${aguardando > 1 ? 's' : ''} aguardando publicacao.` : 'Nada pendente.'}
+      />
       <FaseTimeline fases={fases} />
       <KPIBar items={[
         { label: 'Aguardando',       value: aguardando },

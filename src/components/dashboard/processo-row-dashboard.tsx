@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, FileText } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { StatusPill } from '@/components/licita/status-pill'
 import type { StatusProcesso } from '@/components/licita/status-pill'
 
@@ -33,10 +33,13 @@ export interface ProcessoRowDashboardProps {
   updated_at: string
   href?: string
   diasParado?: number
+  valor_estimado?: number | null
+  secretaria?: string | null
 }
 
 export function ProcessoRowDashboard({
-  id, objeto, numero_processo, modalidade, status, fase_atual, updated_at, href, diasParado,
+  id, objeto, numero_processo, modalidade, status, fase_atual,
+  updated_at, href, diasParado, valor_estimado, secretaria,
 }: ProcessoRowDashboardProps) {
   const dias = diasParado ?? Math.floor((Date.now() - new Date(updated_at).getTime()) / 86400000)
   const destino = href ?? `/processos/${id}/dfd`
@@ -44,47 +47,65 @@ export function ProcessoRowDashboard({
   return (
     <Link
       href={destino}
-      className="flex items-center gap-4 px-6 py-4 border-b transition-colors hover:bg-[var(--surfaceAlt)] last:border-b-0"
-      style={{ borderColor: 'var(--hairline)' }}
+      className="glass lift rounded-[var(--r-lg)] flex items-center gap-4 px-5 py-4 group"
     >
-      <div
-        className="w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center shrink-0"
-        style={{ background: 'var(--primaryWash)' }}
-      >
-        <FileText className="w-4 h-4" style={{ color: 'var(--primary)' }} />
-      </div>
+      {/* Informacoes do processo */}
       <div className="flex-1 min-w-0">
-        <p className="text-[14px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-          {numero_processo ? `${numero_processo}: ` : ''}{objeto}
-        </p>
-        <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-xs" style={{ color: 'var(--muted)' }}>
+        <div className="flex items-baseline gap-2 min-w-0">
+          {numero_processo && (
+            <span
+              className="text-[10.5px] font-mono shrink-0 tabular-nums"
+              style={{ color: 'var(--muted)' }}
+            >
+              {numero_processo}
+            </span>
+          )}
+          <p className="text-[14px] font-semibold truncate" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+            {objeto}
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+          <span className="text-[11.5px]" style={{ color: 'var(--muted)' }}>
             {MODALIDADE_LABEL[modalidade] ?? modalidade}
           </span>
-          {fase_atual && (
-            <>
-              <span style={{ color: 'var(--hairline)' }}>·</span>
-              <span className="text-xs" style={{ color: 'var(--muted)' }}>
-                {FASE_LABEL[fase_atual] ?? fase_atual}
-              </span>
-            </>
+          {(fase_atual || secretaria) && (
+            <span style={{ color: 'var(--hairline)' }}>·</span>
+          )}
+          {secretaria && (
+            <span className="text-[11.5px]" style={{ color: 'var(--muted)' }}>{secretaria}</span>
+          )}
+          {!secretaria && fase_atual && (
+            <span className="text-[11.5px]" style={{ color: 'var(--muted)' }}>{FASE_LABEL[fase_atual] ?? fase_atual}</span>
           )}
         </div>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
-        {dias > 0 && (
+
+      {/* Valor + badges + status */}
+      <div className="flex items-center gap-3 shrink-0">
+        {valor_estimado != null && valor_estimado > 0 && (
+          <div className="text-right hidden sm:block">
+            <p className="text-[13px] font-semibold l-tnum" style={{ color: 'var(--ink)' }}>
+              {valor_estimado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
+            <p className="text-[10px]" style={{ color: 'var(--muted)' }}>estimado</p>
+          </div>
+        )}
+        {dias > 3 && (
           <span
             className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
             style={{
-              background: dias > 10 ? 'var(--dangerWash)' : dias > 5 ? 'var(--warnWash)' : 'var(--surfaceAlt)',
-              color: dias > 10 ? 'var(--danger)' : dias > 5 ? 'var(--warn)' : 'var(--muted)',
+              background: dias > 10 ? 'var(--dangerWash)' : 'var(--warnWash)',
+              color: dias > 10 ? 'var(--danger)' : 'var(--warn)',
             }}
           >
             {dias}d
           </span>
         )}
         <StatusPill status={status as StatusProcesso} size="sm" />
-        <ArrowRight className="w-3.5 h-3.5" style={{ color: 'var(--mutedSoft)' }} />
+        <ArrowRight
+          className="w-3 h-3 transition-transform group-hover:translate-x-0.5"
+          style={{ color: 'var(--mutedSoft)' }}
+        />
       </div>
     </Link>
   )

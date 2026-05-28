@@ -6,9 +6,9 @@ import { PendenciasCard } from '@/components/dashboard/pendencias-card'
 import { ProcessoRowDashboard } from '@/components/dashboard/processo-row-dashboard'
 import { FooterEditorial, SectionHeader, ListCard } from './shared'
 
-interface Props { userId: string; orgId: string; cargo: string | null }
+interface Props { userId: string; orgId: string; cargo: string | null; nome?: string | null }
 
-export async function DashboardProcurador({ userId, orgId, cargo }: Props) {
+export async function DashboardProcurador({ userId, orgId, cargo, nome }: Props) {
   const supabase = await createClient()
   const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
 
@@ -57,7 +57,12 @@ export async function DashboardProcurador({ userId, orgId, cargo }: Props) {
 
   return (
     <div className="space-y-8">
-      <SectionHeader supTitle="Procuradoria" title="Fila de pareceres." contextLine={cargo ?? undefined} />
+      <SectionHeader
+        supTitle="Procuradoria"
+        title="Fila de pareceres."
+        nome={nome}
+        contextLine={pendentes > 0 ? `${pendentes} parecer${pendentes > 1 ? 'es' : ''} aguardam voce.` : 'Fila vazia.'}
+      />
       <FaseTimeline fases={fases} />
       <KPIBar items={[
         { label: 'Fila de análise', value: fila.length },

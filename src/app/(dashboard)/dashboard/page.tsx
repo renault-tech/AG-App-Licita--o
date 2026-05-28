@@ -19,16 +19,17 @@ export default async function DashboardPage() {
 
   const { data: usuarioData } = await (supabase as any)
     .from('usuarios')
-    .select('papel, organizacao_id, cargo')
+    .select('papel, organizacao_id, cargo, nome_completo')
     .eq('id', user.id)
     .maybeSingle()
 
   if (!usuarioData) redirect('/login')
 
-  const papelReal = (usuarioData as any).papel as PapelUsuario
-  const orgId     = (usuarioData as any).organizacao_id as string
-  const cargo     = (usuarioData as any).cargo as string | null
-  const userId    = user.id
+  const papelReal    = (usuarioData as any).papel as PapelUsuario
+  const orgId        = (usuarioData as any).organizacao_id as string
+  const cargo        = (usuarioData as any).cargo as string | null
+  const nomeCompleto = (usuarioData as any).nome_completo as string | null
+  const userId       = user.id
 
   // Respeita perfil sobreposto (troca de perfil pelo admin)
   const configs           = await obterConfiguracoes()
@@ -48,22 +49,22 @@ export default async function DashboardPage() {
 
   switch (papel) {
     case 'requisitante':
-      return <DashboardRequisitante userId={userId} orgId={orgId} cargo={cargo} />
+      return <DashboardRequisitante userId={userId} orgId={orgId} cargo={cargo} nome={nomeCompleto} />
     case 'setor_compras':
-      return <DashboardCompras userId={userId} orgId={orgId} cargo={cargo} />
+      return <DashboardCompras userId={userId} orgId={orgId} cargo={cargo} nome={nomeCompleto} />
     case 'setor_licitacao':
-      return <DashboardLicitacoes userId={userId} orgId={orgId} cargo={cargo} />
+      return <DashboardLicitacoes userId={userId} orgId={orgId} cargo={cargo} nome={nomeCompleto} />
     case 'procurador':
-      return <DashboardProcurador userId={userId} orgId={orgId} cargo={cargo} />
+      return <DashboardProcurador userId={userId} orgId={orgId} cargo={cargo} nome={nomeCompleto} />
     case 'gestor_publico':
-      return <DashboardGestorPublico userId={userId} orgId={orgId} cargo={cargo} />
+      return <DashboardGestorPublico userId={userId} orgId={orgId} cargo={cargo} nome={nomeCompleto} />
     case 'publicacao':
-      return <DashboardPublicacao userId={userId} orgId={orgId} cargo={cargo} />
+      return <DashboardPublicacao userId={userId} orgId={orgId} cargo={cargo} nome={nomeCompleto} />
     case 'admin_organizacao':
-      return <DashboardAdminOrg userId={userId} orgId={orgId} orgNome={orgNome} cargo={cargo} />
+      return <DashboardAdminOrg userId={userId} orgId={orgId} orgNome={orgNome} cargo={cargo} nome={nomeCompleto} />
     case 'admin_plataforma':
-      return <DashboardAdminMaster userId={userId} />
+      return <DashboardAdminMaster userId={userId} nome={nomeCompleto} />
     default:
-      return <DashboardRequisitante userId={userId} orgId={orgId} cargo={cargo} />
+      return <DashboardRequisitante userId={userId} orgId={orgId} cargo={cargo} nome={nomeCompleto} />
   }
 }

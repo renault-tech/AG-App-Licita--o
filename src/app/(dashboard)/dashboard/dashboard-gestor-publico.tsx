@@ -6,9 +6,9 @@ import { PendenciasCard } from '@/components/dashboard/pendencias-card'
 import { ProcessoRowDashboard } from '@/components/dashboard/processo-row-dashboard'
 import { FooterEditorial, SectionHeader, ListCard } from './shared'
 
-interface Props { userId: string; orgId: string; cargo: string | null }
+interface Props { userId: string; orgId: string; cargo: string | null; nome?: string | null }
 
-export async function DashboardGestorPublico({ userId, orgId, cargo }: Props) {
+export async function DashboardGestorPublico({ userId, orgId, cargo, nome }: Props) {
   const supabase = await createClient()
   const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
 
@@ -51,7 +51,12 @@ export async function DashboardGestorPublico({ userId, orgId, cargo }: Props) {
 
   return (
     <div className="space-y-8">
-      <SectionHeader supTitle="Autoridade Competente" title="Autorizações pendentes." contextLine={cargo ?? undefined} />
+      <SectionHeader
+        supTitle="Autoridade Competente"
+        title="Autorizacoes pendentes."
+        nome={nome}
+        contextLine={aguardando > 0 ? `${aguardando} processo${aguardando > 1 ? 's' : ''} aguardam sua decisao.` : 'Nenhuma autorizacao pendente.'}
+      />
       <FaseTimeline fases={fases} />
       <KPIBar items={[
         { label: 'Aguardando decisão', value: aguardando },

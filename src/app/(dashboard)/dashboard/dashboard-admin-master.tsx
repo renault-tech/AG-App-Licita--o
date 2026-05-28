@@ -6,7 +6,7 @@ import { PrefeiturasList } from '@/components/dashboard/prefeituras-list'
 import { FooterEditorial, SectionHeader } from './shared'
 import { buscarPreferenciaDashboard } from '@/lib/actions/dashboard'
 
-interface Props { userId: string }
+interface Props { userId: string; nome?: string | null }
 
 const FASE_LABELS: Record<string, string> = {
   requisitante:    'Requisitante',
@@ -28,7 +28,7 @@ const MODALIDADE_LABEL: Record<string, string> = {
   inexigibilidade:     'Inexigibilidade',
 }
 
-export async function DashboardAdminMaster({ userId: _userId }: Props) {
+export async function DashboardAdminMaster({ userId: _userId, nome }: Props) {
   const supabase = await createServiceClient()
 
   const pref   = await buscarPreferenciaDashboard('ia_periodo_dias', { dias: 30 })
@@ -134,6 +134,7 @@ export async function DashboardAdminMaster({ userId: _userId }: Props) {
       <SectionHeader
         supTitle="Administracao da Plataforma"
         title="Visao global."
+        nome={nome}
         contextLine={`${orgsList.length} organizacoes · ${totalAtivos} usuarios ativos · ${processosList.length} processos`}
       />
 

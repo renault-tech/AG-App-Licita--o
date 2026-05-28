@@ -11,6 +11,7 @@ interface Props {
   userId: string
   orgId: string
   cargo: string | null
+  nome?: string | null
 }
 
 const FASE_LABELS: Record<string, string> = {
@@ -31,7 +32,7 @@ const FASE_KEYS = [
   'publicacao',
 ]
 
-export async function DashboardCompras({ userId, orgId, cargo }: Props) {
+export async function DashboardCompras({ userId, orgId, cargo, nome }: Props) {
   const supabase = await createClient()
 
   const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
@@ -100,8 +101,9 @@ export async function DashboardCompras({ userId, orgId, cargo }: Props) {
     <div className="space-y-8">
       <SectionHeader
         supTitle="Setor de Compras"
-        title="Fila de cotações."
-        contextLine={cargo ?? undefined}
+        title="Fila de cotacoes."
+        nome={nome}
+        contextLine={naFila > 0 ? `${naFila} processo${naFila > 1 ? 's' : ''} aguardando cotacao.` : 'Fila vazia.'}
       />
 
       <FaseTimeline fases={fases} />

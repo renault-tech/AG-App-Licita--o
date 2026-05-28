@@ -7,7 +7,7 @@ import { PendenciasCard } from '@/components/dashboard/pendencias-card'
 import { ProcessoRowDashboard } from '@/components/dashboard/processo-row-dashboard'
 import { FooterEditorial, SectionHeader, ListCard } from './shared'
 
-interface Props { userId: string; orgId: string; cargo: string | null }
+interface Props { userId: string; orgId: string; cargo: string | null; nome?: string | null }
 
 const FASE_LABELS: Record<string, string> = {
   requisitante: 'Requisitante',
@@ -19,7 +19,7 @@ const FASE_LABELS: Record<string, string> = {
 }
 const FASE_KEYS = ['requisitante', 'setor_compras', 'setor_licitacao', 'procurador', 'gestor_publico', 'publicacao']
 
-export async function DashboardLicitacoes({ userId, orgId, cargo }: Props) {
+export async function DashboardLicitacoes({ userId, orgId, cargo, nome }: Props) {
   const supabase = await createClient()
 
   const [
@@ -73,9 +73,10 @@ export async function DashboardLicitacoes({ userId, orgId, cargo }: Props) {
   return (
     <div className="space-y-8">
       <SectionHeader
-        supTitle="Setor de Licitações"
-        title="Processos em tramitação."
-        contextLine={cargo ?? undefined}
+        supTitle="Setor de Licitacoes"
+        title="Processos em tramitacao."
+        nome={nome}
+        contextLine={`${filaList.length} processo${filaList.length !== 1 ? 's' : ''} na fila · ${procList.length} em procuradoria.`}
       />
 
       <FaseTimeline fases={fases} />
