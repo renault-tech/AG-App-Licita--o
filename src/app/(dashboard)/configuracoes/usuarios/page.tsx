@@ -39,14 +39,14 @@ export default async function GestaoUsuariosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-base font-semibold text-gray-900">Gestao de Usuarios</h2>
-        <p className="text-sm text-gray-500 mt-0.5">Convide colaboradores e gerencie papeis de acesso.</p>
+        <h2 className="text-base font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>Gestao de Usuarios</h2>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>Convide colaboradores e gerencie papeis de acesso.</p>
       </div>
 
       <FormConvite />
 
       <div>
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">
+        <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--ink)' }}>
           Usuarios cadastrados ({usuarios?.length ?? 0})
         </h2>
         <TabelaUsuarios

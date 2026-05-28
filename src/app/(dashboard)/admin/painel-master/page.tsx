@@ -4,9 +4,11 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AtivarOrganizacaoDialog } from '@/components/admin/ativar-organizacao-dialog'
 import { Building2, Users, FileText, FlaskConical } from 'lucide-react'
+import { EditorialKicker, HeadlineSerif } from '@/components/licita/editorial'
+import { KPIBar } from '@/components/dashboard/kpi-bar'
+import { FooterEditorial } from '../../dashboard/shared'
 
 export default async function PainelMasterPage() {
   const supabase = await createClient()
@@ -34,95 +36,101 @@ export default async function PainelMasterPage() {
   const orgsAtivas = orgs.filter(o => o.ativo && !o.is_demo && !o.is_cataguases)
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
-            Painel Admin Master
-          </h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
-            Gestao global da plataforma LicitaIA
-          </p>
+    <div className="space-y-8">
+      {/* Masthead editorial */}
+      <div>
+        <div
+          className="flex items-center justify-between pb-3.5 mb-6"
+          style={{ borderBottom: '2px solid var(--rule)' }}
+        >
+          <EditorialKicker
+            kicker="Administracao da Plataforma"
+            edition="Painel Master"
+            date={new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
+          />
+          <Link href="/admin/modo-demo">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 text-sm h-9"
+              style={{ borderColor: 'var(--warnWash)', color: 'var(--warn)' }}
+            >
+              <FlaskConical className="w-4 h-4" />
+              Modo Demo
+            </Button>
+          </Link>
         </div>
-        <Link href="/admin/modo-demo">
-          <Button
-            variant="outline"
-            className="gap-2"
-            style={{ borderColor: '#FED7AA', color: '#C2410C' }}
-          >
-            <FlaskConical className="w-4 h-4" />
-            Modo Demo
-          </Button>
-        </Link>
+
+        <HeadlineSerif size="md" as="h1">
+          Gestao global da plataforma.
+        </HeadlineSerif>
+        <p className="mt-2 text-[15px]" style={{ color: 'var(--inkSoft)', fontFamily: 'var(--font-heading)', fontStyle: 'italic' }}>
+          Prefeituras, usuarios e processos em tempo real.
+        </p>
       </div>
 
+      {/* KPIs */}
       {metricas && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {[
-            { label: 'Prefeituras', valor: metricas.totalOrgs, sub: `${metricas.orgsAtivas} ativas`, icon: Building2 },
-            { label: 'Usuarios', valor: metricas.totalUsuarios, sub: `${metricas.usuariosAtivos} ativos`, icon: Users },
-            { label: 'Processos', valor: metricas.totalProcessos, sub: null, icon: FileText },
-          ].map(m => (
-            <Card key={m.label} style={{ background: 'var(--surface)', borderColor: 'var(--hairline)' }}>
-              <CardHeader className="pb-2 pt-4 px-4">
-                <div className="flex items-center gap-2">
-                  <m.icon className="w-4 h-4" style={{ color: 'var(--muted)' }} />
-                  <CardTitle className="text-sm font-medium" style={{ color: 'var(--muted)' }}>{m.label}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
-                <div className="text-2xl font-bold" style={{ color: 'var(--ink)' }}>{m.valor}</div>
-                {m.sub && <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{m.sub}</div>}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <KPIBar items={[
+          { label: 'Prefeituras', value: metricas.totalOrgs, sub: `${metricas.orgsAtivas} ativas`, sparkline: 'up', delta: 'ativas', deltaColor: 'blue' },
+          { label: 'Usuarios', value: metricas.totalUsuarios, sub: `${metricas.usuariosAtivos} ativos`, sparkline: 'wave', delta: 'total', deltaColor: 'muted' },
+          { label: 'Processos', value: metricas.totalProcessos, sub: 'licitatorios', sparkline: 'up', delta: 'total', deltaColor: 'blue' },
+        ]} />
       )}
 
+      {/* Pendentes de ativacao */}
       {orgsPendentes.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold" style={{ color: 'var(--ink)' }}>
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <h2 className="text-[15px] font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
               Aguardando ativacao
             </h2>
-            <Badge variant="destructive">{orgsPendentes.length}</Badge>
+            <Badge variant="destructive" className="text-xs">{orgsPendentes.length}</Badge>
           </div>
-          <div
-            className="rounded-[var(--r-lg)] border divide-y"
-            style={{ borderColor: 'var(--hairline)', background: 'var(--surface)' }}
-          >
-            {orgsPendentes.map(org => (
-              <div key={org.id} className="flex items-center justify-between p-4 gap-4">
+          <div className="glass rounded-[var(--r-lg)] overflow-hidden">
+            {orgsPendentes.map((org, i) => (
+              <div
+                key={org.id}
+                className="flex items-center justify-between px-5 py-4"
+                style={{ borderBottom: i < orgsPendentes.length - 1 ? '1px solid var(--hairline)' : undefined }}
+              >
                 <div className="min-w-0">
                   <div className="font-medium text-sm" style={{ color: 'var(--ink)' }}>{org.nome}</div>
                   <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                    {org.municipio}/{org.estado} — CNPJ: {org.cnpj}
+                    {org.municipio}/{org.estado} · CNPJ: {org.cnpj}
                   </div>
                 </div>
                 <AtivarOrganizacaoDialog organizacaoId={org.id} nomeOrg={org.nome} />
               </div>
             ))}
           </div>
-        </section>
+        </div>
       )}
 
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold" style={{ color: 'var(--ink)' }}>
-          Prefeituras ativas ({orgsAtivas.length})
-        </h2>
-        <div
-          className="rounded-[var(--r-lg)] border divide-y"
-          style={{ borderColor: 'var(--hairline)', background: 'var(--surface)' }}
-        >
-          {orgsAtivas.map(org => (
-            <div key={org.id} className="flex items-center justify-between p-4 gap-4">
+      {/* Prefeituras ativas */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-[15px] font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+            Prefeituras ativas
+          </h2>
+          <span className="font-mono text-[9.5px] font-bold uppercase" style={{ color: 'var(--muted)', letterSpacing: '0.14em' }}>
+            {orgsAtivas.length} registros
+          </span>
+        </div>
+        <div className="glass rounded-[var(--r-lg)] overflow-hidden">
+          {orgsAtivas.map((org, i) => (
+            <div
+              key={org.id}
+              className="flex items-center justify-between px-5 py-4"
+              style={{ borderBottom: i < orgsAtivas.length - 1 ? '1px solid var(--hairline)' : undefined }}
+            >
               <div className="min-w-0">
                 <div className="font-medium text-sm" style={{ color: 'var(--ink)' }}>{org.nome}</div>
                 <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
                   {org.municipio}/{org.estado}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <Badge
                   variant="outline"
                   className="text-xs"
@@ -139,12 +147,14 @@ export default async function PainelMasterPage() {
             </div>
           ))}
           {orgsAtivas.length === 0 && (
-            <div className="p-4 text-sm" style={{ color: 'var(--muted)' }}>
+            <div className="px-5 py-8 text-sm text-center" style={{ color: 'var(--muted)' }}>
               Nenhuma prefeitura ativa ainda.
             </div>
           )}
         </div>
-      </section>
+      </div>
+
+      <FooterEditorial />
     </div>
   )
 }

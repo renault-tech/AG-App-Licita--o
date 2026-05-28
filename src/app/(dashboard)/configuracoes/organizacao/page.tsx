@@ -32,8 +32,8 @@ export default async function ConfiguracaoOrganizacaoPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-base font-semibold text-gray-900">Dados da Organizacao</h2>
-        <p className="text-sm text-gray-500 mt-0.5">Dados institucionais exibidos nos documentos gerados pela plataforma.</p>
+        <h2 className="text-base font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>Dados da Organizacao</h2>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>Dados institucionais exibidos nos documentos gerados pela plataforma.</p>
       </div>
       <FormOrganizacao organizacao={org} />
     </div>

@@ -23,8 +23,8 @@ export default async function SecretariasPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-base font-semibold text-gray-900">Secretarias</h2>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <h2 className="text-base font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>Secretarias</h2>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
           Secretarias e orgaos da organizacao. Sao vinculadas aos processos licitatorios como unidades requisitantes.
         </p>
       </div>
