@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import BotaoCompra from './botao-compra'
 import { PACOTES_CREDITOS } from '@/lib/creditos-config'
-import { KPICard } from '@/components/licita/kpi-card'
+import { KPIBar } from '@/components/dashboard/kpi-bar'
 import { EditorialKicker, HeadlineSerif, Wordmark } from '@/components/licita/editorial'
 
 type Transacao = {
@@ -139,36 +139,17 @@ export default async function CreditosPage({
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <KPICard
-          label="Saldo atual"
-          value={saldo}
-          sub="créditos disponíveis"
-          icon={<Zap className="w-5 h-5" />}
-          accent={saldo <= 10}
-        />
-        <KPICard
-          label="Consumo total"
-          value={totalGasto}
-          sub="créditos usados em IA"
-          icon={<TrendingDown className="w-5 h-5" />}
-        />
-        <KPICard
-          label="Ações realizadas"
-          value={acoes.length}
-          sub={`${acoesComSucesso} com sucesso`}
-          icon={<Bot className="w-5 h-5" />}
-        />
-      </div>
+      <KPIBar items={[
+        { label: 'Saldo atual',       value: saldo,        sub: 'creditos disponiveis', sparkline: saldo > 10 ? 'flat' : 'down', delta: saldo > 10 ? 'ok' : 'baixo', deltaColor: saldo > 10 ? 'success' : 'warn', accent: saldo <= 10 },
+        { label: 'Consumo total',     value: totalGasto,   sub: 'creditos usados em IA', sparkline: 'wave', delta: 'acumulado', deltaColor: 'muted' },
+        { label: 'Acoes realizadas',  value: acoes.length, sub: `${acoesComSucesso} com sucesso`, sparkline: 'up', delta: 'total', deltaColor: 'blue' },
+      ]} />
 
       {/* Pacotes de créditos */}
-      <div
-        className="rounded-[var(--r-lg)] border overflow-hidden"
-        style={{ background: 'var(--surface)', borderColor: 'var(--hairline)' }}
-      >
+      <div className="glass rounded-[var(--r-lg)] overflow-hidden">
         <div
           className="px-5 py-4 flex items-center gap-2"
-          style={{ borderBottom: '1px solid var(--hairline)', background: 'var(--surfaceAlt)' }}
+          style={{ borderBottom: '1px solid var(--glass-edge)', background: 'rgba(0,0,0,0.025)' }}
         >
           <Package className="w-4 h-4" style={{ color: 'var(--primary)' }} />
           <h2 className="text-base font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
@@ -225,13 +206,10 @@ export default async function CreditosPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Histórico de transações */}
-        <div
-          className="rounded-[var(--r-lg)] border overflow-hidden"
-          style={{ background: 'var(--surface)', borderColor: 'var(--hairline)' }}
-        >
+        <div className="glass rounded-[var(--r-lg)] overflow-hidden">
           <div
             className="px-5 py-4 flex items-center gap-2"
-            style={{ borderBottom: '1px solid var(--hairline)', background: 'var(--surfaceAlt)' }}
+            style={{ borderBottom: '1px solid var(--glass-edge)', background: 'rgba(0,0,0,0.025)' }}
           >
             <TrendingUp className="w-4 h-4" style={{ color: 'var(--muted)' }} />
             <h3 className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Histórico de créditos</h3>
@@ -280,13 +258,10 @@ export default async function CreditosPage({
         </div>
 
         {/* Histórico de ações de IA */}
-        <div
-          className="rounded-[var(--r-lg)] border overflow-hidden"
-          style={{ background: 'var(--surface)', borderColor: 'var(--hairline)' }}
-        >
+        <div className="glass rounded-[var(--r-lg)] overflow-hidden">
           <div
             className="px-5 py-4 flex items-center gap-2"
-            style={{ borderBottom: '1px solid var(--hairline)', background: 'var(--surfaceAlt)' }}
+            style={{ borderBottom: '1px solid var(--glass-edge)', background: 'rgba(0,0,0,0.025)' }}
           >
             <Bot className="w-4 h-4" style={{ color: 'var(--muted)' }} />
             <h3 className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Uso de IA recente</h3>

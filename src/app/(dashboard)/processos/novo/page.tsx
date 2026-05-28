@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
 
 import EtapaIdentificacao from './etapa-identificacao'
 import EtapaObjeto from './etapa-objeto'
@@ -205,13 +204,16 @@ export default function NovoProcessoPage() {
       <div className="flex items-center gap-3">
         <Link
           href="/dashboard"
-          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+          className="p-1.5 rounded-[var(--r-md)] transition-colors"
+          style={{ color: 'var(--muted)' }}
+          onMouseOver={e => (e.currentTarget.style.background = 'var(--surfaceAlt)')}
+          onMouseOut={e => (e.currentTarget.style.background = 'transparent')}
         >
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
-          <h1 className="text-lg font-bold text-gray-900">Novo Processo Licitatorio</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-lg font-bold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>Novo Processo Licitatorio</h1>
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>
             Preencha os dados e o sistema gera DFD, ETP e TR automaticamente.
           </p>
         </div>
@@ -219,8 +221,10 @@ export default function NovoProcessoPage() {
 
       {/* Banner de rascunho salvo */}
       {rascunhoSalvo && (
-        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
-          <div className="flex items-center gap-2 text-amber-800">
+        <div className="flex items-center justify-between gap-3 px-4 py-3 glass rounded-[var(--r-lg)] text-sm"
+          style={{ border: '1px solid var(--warnWash)' }}
+        >
+          <div className="flex items-center gap-2" style={{ color: 'var(--warn)' }}>
             <RotateCcw className="w-4 h-4 shrink-0" />
             <span>Rascunho salvo encontrado. Deseja continuar de onde parou?</span>
           </div>
@@ -228,14 +232,16 @@ export default function NovoProcessoPage() {
             <button
               type="button"
               onClick={handleDescartarRascunho}
-              className="text-amber-700 hover:text-amber-900 text-xs font-medium underline underline-offset-2"
+              className="text-xs font-medium underline underline-offset-2"
+              style={{ color: 'var(--warn)' }}
             >
               Descartar
             </button>
             <button
               type="button"
               onClick={handleRestaurarRascunho}
-              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-md transition-colors"
+              className="px-3 py-1.5 text-xs font-semibold rounded-[var(--r-md)] transition-opacity hover:opacity-80"
+              style={{ background: 'var(--warn)', color: 'white' }}
             >
               Restaurar rascunho
             </button>
@@ -251,31 +257,38 @@ export default function NovoProcessoPage() {
           return (
             <div key={num} className="flex items-center flex-1">
               <div className="flex flex-col items-center gap-1.5">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all text-xs font-bold ${
+                <div
+                className="w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all text-xs font-bold"
+                style={
                   ativa
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-200'
+                    ? { background: 'var(--primary)', borderColor: 'var(--primary)', color: 'white' }
                     : concluida
-                    ? 'bg-green-50 border-green-400 text-green-600'
-                    : 'bg-white border-gray-200 text-gray-400'
-                }`}>
-                  {concluida ? '✓' : num}
-                </div>
-                <span className={`text-xs font-medium hidden sm:block ${
-                  ativa ? 'text-blue-700' : concluida ? 'text-green-600' : 'text-gray-400'
-                }`}>
-                  {label}
-                </span>
+                    ? { background: 'var(--successWash)', borderColor: 'var(--success)', color: 'var(--success)' }
+                    : { background: 'var(--surface)', borderColor: 'var(--hairline)', color: 'var(--muted)' }
+                }
+              >
+                {concluida ? '✓' : num}
+              </div>
+              <span
+                className="text-xs font-medium hidden sm:block"
+                style={{ color: ativa ? 'var(--primary)' : concluida ? 'var(--success)' : 'var(--muted)' }}
+              >
+                {label}
+              </span>
               </div>
               {i < ETAPAS.length - 1 && (
-                <div className={`flex-1 h-0.5 mx-2 mb-5 rounded-full ${concluida ? 'bg-green-300' : 'bg-gray-200'}`} />
+                <div
+                  className="flex-1 h-0.5 mx-2 mb-5 rounded-full"
+                  style={{ background: concluida ? 'var(--success)' : 'var(--hairline)', opacity: concluida ? 0.6 : 1 }}
+                />
               )}
             </div>
           )
         })}
       </div>
 
-      <Card className="border-gray-200 shadow-sm">
-        <CardContent className="p-6">
+      <div className="glass rounded-[var(--r-lg)] overflow-hidden">
+        <div className="p-6">
           {etapa === 1 && (
             <EtapaIdentificacao
               dados={dados}
@@ -295,13 +308,17 @@ export default function NovoProcessoPage() {
               onIrParaEtapa={setEtapa}
             />
           )}
-        </CardContent>
+        </div>
 
-        <CardFooter className="flex items-center justify-between border-t border-gray-100 bg-gray-50/50 px-6 py-4 rounded-b-xl">
+        <div
+          className="flex items-center justify-between border-t px-6 py-4"
+          style={{ borderColor: 'var(--glass-edge)', background: 'rgba(0,0,0,0.025)' }}
+        >
           <button
             type="button"
             onClick={etapa === 1 ? () => router.push('/dashboard') : () => setEtapa(e => e - 1)}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-[var(--r-md)] border transition-colors hover:opacity-80"
+            style={{ color: 'var(--inkSoft)', borderColor: 'var(--hairline)' }}
           >
             {etapa === 1
               ? <><ArrowLeft className="w-4 h-4" /> Cancelar</>
@@ -313,7 +330,8 @@ export default function NovoProcessoPage() {
             <button
               type="button"
               onClick={handleContinuar}
-              className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-[var(--r-md)] transition-opacity hover:opacity-80"
+              style={{ background: 'var(--primary)', color: 'white' }}
             >
               Continuar <ChevronRight className="w-4 h-4" />
             </button>
@@ -323,7 +341,8 @@ export default function NovoProcessoPage() {
               onClick={handleGerar}
               disabled={gerando || !prontoParaGerar}
               title={!prontoParaGerar ? 'Corrija os campos pendentes antes de gerar.' : undefined}
-              className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-[var(--r-md)] transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: 'var(--primary)', color: 'white' }}
             >
               {gerando
                 ? <><Loader2 className="w-4 h-4 animate-spin" /> Gerando documentos...</>
@@ -331,8 +350,8 @@ export default function NovoProcessoPage() {
               }
             </button>
           )}
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

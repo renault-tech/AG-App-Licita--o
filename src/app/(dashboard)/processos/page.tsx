@@ -190,10 +190,7 @@ export default async function ProcessosPage({
       </div>
 
       {/* KPI rail */}
-      <div
-        className="grid grid-cols-4 overflow-hidden"
-        style={{ border: '1px solid var(--hairline)', borderRadius: 'var(--r-lg)', background: 'var(--surface)' }}
-      >
+      <div className="glass grid grid-cols-4 overflow-hidden rounded-[var(--r-lg)]">
         {[
           { label: 'Total', valor: totais.total, sub: 'processos', href: '/processos' },
           { label: 'Rascunho', valor: totais.rascunho, sub: 'em elaboração', href: '/processos?status=rascunho' },
@@ -216,14 +213,11 @@ export default async function ProcessosPage({
       </div>
 
       {/* Lista */}
-      <div
-        className="rounded-[var(--r-lg)] border overflow-hidden"
-        style={{ background: 'var(--surface)', borderColor: 'var(--hairline)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
-      >
+      <div className="glass rounded-[var(--r-lg)] overflow-hidden">
         {/* Card header */}
         <div
           className="flex flex-row items-center justify-between px-6 py-5 border-b gap-4 flex-wrap"
-          style={{ background: 'var(--surfaceAlt)', borderColor: 'var(--hairline)' }}
+          style={{ background: 'rgba(0,0,0,0.025)', borderColor: 'var(--glass-edge)' }}
         >
           <div>
             <h2 className="text-lg font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>

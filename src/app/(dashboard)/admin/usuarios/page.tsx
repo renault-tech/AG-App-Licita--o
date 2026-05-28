@@ -1,16 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
-import { Users, HelpCircle } from 'lucide-react'
-
-function Tooltip({ texto }: { texto: string }) {
-  return (
-    <div className="group relative inline-flex">
-      <HelpCircle className="w-3.5 h-3.5 text-gray-300 hover:text-gray-500 cursor-help" />
-      <span className="pointer-events-none absolute left-5 top-0 z-50 hidden group-hover:block w-56 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl leading-relaxed">
-        {texto}
-      </span>
-    </div>
-  )
-}
+import { Users } from 'lucide-react'
+import { KPIBar } from '@/components/dashboard/kpi-bar'
+import { EditorialKicker, HeadlineSerif } from '@/components/licita/editorial'
+import { FooterEditorial } from '../../dashboard/shared'
 
 const PAPEL_LABEL: Record<string, string> = {
   requisitante:      'Requisitante',
@@ -23,15 +15,15 @@ const PAPEL_LABEL: Record<string, string> = {
   admin_plataforma:  'Admin da Plataforma',
 }
 
-const PAPEL_COR: Record<string, string> = {
-  requisitante:      'text-gray-600 bg-gray-100',
-  setor_compras:     'text-orange-700 bg-orange-50',
-  setor_licitacao:   'text-blue-700 bg-blue-50',
-  procurador:        'text-purple-700 bg-purple-50',
-  gestor_publico:    'text-amber-700 bg-amber-50',
-  publicacao:        'text-cyan-700 bg-cyan-50',
-  admin_organizacao: 'text-teal-700 bg-teal-50',
-  admin_plataforma:  'text-red-700 bg-red-50',
+const PAPEL_COR: Record<string, { bg: string; color: string }> = {
+  requisitante:      { bg: 'var(--surfaceAlt)',  color: 'var(--muted)' },
+  setor_compras:     { bg: 'var(--warnWash)',     color: 'var(--warn)' },
+  setor_licitacao:   { bg: 'var(--primaryWash)',  color: 'var(--primary)' },
+  procurador:        { bg: 'var(--hairline)',      color: 'var(--inkSoft)' },
+  gestor_publico:    { bg: 'var(--warnWash)',      color: 'var(--warn)' },
+  publicacao:        { bg: 'var(--successWash)',   color: 'var(--success)' },
+  admin_organizacao: { bg: 'var(--successWash)',   color: 'var(--success)' },
+  admin_plataforma:  { bg: 'var(--dangerWash)',    color: 'var(--danger)' },
 }
 
 export default async function AdminUsuariosPage() {
@@ -55,90 +47,104 @@ export default async function AdminUsuariosPage() {
   const totalPorPapel: Record<string, number> = {}
   for (const u of lista) totalPorPapel[u.papel] = (totalPorPapel[u.papel] ?? 0) + 1
 
+  const orgsUnicas = new Set(lista.map(u => u.organizacao_id)).size
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
+      {/* Masthead editorial */}
       <div>
-        <div className="flex items-center gap-2">
-          <h2 className="text-base font-semibold text-gray-900">Usuarios</h2>
-          <Tooltip texto="Lista de todos os usuarios cadastrados em todas as organizacoes da plataforma." />
+        <div className="flex items-center justify-between pb-3.5 mb-5" style={{ borderBottom: '2px solid var(--rule)' }}>
+          <EditorialKicker
+            kicker="Administracao da Plataforma"
+            date={new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).replace(/^./, c => c.toUpperCase())}
+          />
+          <div className="font-mono text-[10px] font-semibold uppercase hidden sm:block" style={{ color: 'var(--muted)', letterSpacing: '0.14em' }}>
+            Lei 14.133/21
+          </div>
         </div>
-        <p className="text-sm text-gray-500 mt-0.5">{lista.length} usuario(s) cadastrado(s).</p>
+        <HeadlineSerif size="md" as="h1">Usuarios da plataforma.</HeadlineSerif>
+        <p className="mt-2 text-[15px]" style={{ color: 'var(--inkSoft)', fontFamily: 'var(--font-heading)', fontStyle: 'italic' }}>
+          {lista.length} usuario{lista.length !== 1 ? 's' : ''} em {orgsUnicas} organizacao{orgsUnicas !== 1 ? 'oes' : ''}.
+        </p>
       </div>
+
+      {/* KPIs */}
+      <KPIBar items={[
+        { label: 'Total usuarios',   value: lista.length, sub: 'cadastrados',    sparkline: 'up',   delta: 'total',    deltaColor: 'blue' },
+        { label: 'Organizacoes',     value: orgsUnicas,   sub: 'com usuarios',   sparkline: 'up',   delta: 'total',    deltaColor: 'success' },
+        { label: 'Admins org',       value: totalPorPapel['admin_organizacao'] ?? 0, sub: 'gestores', sparkline: 'flat', delta: 'papel', deltaColor: 'muted' },
+        { label: 'Admins plataforma', value: totalPorPapel['admin_plataforma'] ?? 0, sub: 'superadmins', sparkline: 'flat', delta: 'papel', deltaColor: 'muted' },
+      ]} />
 
       {/* Resumo por papel */}
       <div className="flex flex-wrap gap-2">
-        {Object.entries(totalPorPapel).map(([papel, count]) => (
-          <span
-            key={papel}
-            className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${PAPEL_COR[papel] ?? 'text-gray-600 bg-gray-100'}`}
-          >
-            {PAPEL_LABEL[papel] ?? papel}
-            <span className="font-bold">{count}</span>
-          </span>
-        ))}
+        {Object.entries(totalPorPapel).map(([papel, count]) => {
+          const cor = PAPEL_COR[papel] ?? { bg: 'var(--surfaceAlt)', color: 'var(--muted)' }
+          return (
+            <span
+              key={papel}
+              className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
+              style={{ background: cor.bg, color: cor.color }}
+            >
+              {PAPEL_LABEL[papel] ?? papel}
+              <span className="font-bold">{count}</span>
+            </span>
+          )
+        })}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      {/* Lista */}
+      <div className="glass rounded-[var(--r-lg)] overflow-hidden">
+        <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid var(--glass-edge)', background: 'rgba(0,0,0,0.025)' }}>
+          <Users className="w-4 h-4" style={{ color: 'var(--muted)' }} />
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+            Todos os usuarios
+          </h3>
+        </div>
         {lista.length === 0 ? (
-          <div className="px-5 py-10 text-center">
-            <Users className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-400">Nenhum usuario cadastrado ainda.</p>
+          <div className="px-6 py-10 text-center text-sm" style={{ color: 'var(--muted)' }}>
+            Nenhum usuario cadastrado ainda.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500">
-                  <span className="flex items-center gap-1.5">
-                    Usuario
-                    <Tooltip texto="Nome e e-mail do usuario cadastrado." />
-                  </span>
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">
-                  <span className="flex items-center gap-1.5">
-                    Papel
-                    <Tooltip texto="Papel do usuario dentro da organizacao, que define quais acoes ele pode realizar." />
-                  </span>
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Organizacao</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Cadastro</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lista.map(u => {
-                const org = orgMap[u.organizacao_id]
-                return (
-                  <tr key={u.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
-                    <td className="px-5 py-3">
-                      <p className="font-medium text-gray-900">{u.nome_completo ?? 'Sem nome'}</p>
-                      <p className="text-xs text-gray-400">{u.email}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${PAPEL_COR[u.papel] ?? 'text-gray-600 bg-gray-100'}`}>
-                        {PAPEL_LABEL[u.papel] ?? u.papel}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 text-xs">
-                      {org ? (
-                        <>
-                          <span className="font-medium text-gray-800">{org.nome}</span>
-                          <br />
-                          <span className="text-gray-400">{org.municipio} / {org.estado}</span>
-                        </>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">
+          <div className="divide-y" style={{ borderColor: 'var(--glass-edge)' }}>
+            {lista.map(u => {
+              const org = orgMap[u.organizacao_id]
+              const cor = PAPEL_COR[u.papel] ?? { bg: 'var(--surfaceAlt)', color: 'var(--muted)' }
+              return (
+                <div key={u.id} className="flex items-center gap-4 px-5 py-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{u.nome_completo ?? 'Sem nome'}</p>
+                    <p className="text-xs" style={{ color: 'var(--muted)' }}>{u.email}</p>
+                  </div>
+                  <div className="hidden sm:block min-w-0 text-right mr-2">
+                    {org ? (
+                      <>
+                        <p className="text-xs font-medium truncate" style={{ color: 'var(--inkSoft)' }}>{org.nome}</p>
+                        <p className="text-xs" style={{ color: 'var(--muted)' }}>{org.municipio} / {org.estado}</p>
+                      </>
+                    ) : (
+                      <span className="text-xs" style={{ color: 'var(--muted)' }}>-</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                      style={{ background: cor.bg, color: cor.color }}
+                    >
+                      {PAPEL_LABEL[u.papel] ?? u.papel}
+                    </span>
+                    <span className="text-xs hidden md:block" style={{ color: 'var(--muted)' }}>
                       {new Date(u.created_at).toLocaleDateString('pt-BR')}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         )}
       </div>
+
+      <FooterEditorial />
     </div>
   )
 }

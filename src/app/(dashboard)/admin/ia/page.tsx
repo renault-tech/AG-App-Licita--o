@@ -1,16 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
-import { Bot, Zap, TrendingDown, BookOpen, HelpCircle, Database } from 'lucide-react'
-
-function Tooltip({ texto }: { texto: string }) {
-  return (
-    <div className="group relative inline-flex">
-      <HelpCircle className="w-3.5 h-3.5 text-gray-300 hover:text-gray-500 cursor-help" />
-      <span className="pointer-events-none absolute left-5 top-0 z-50 hidden group-hover:block w-60 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl leading-relaxed">
-        {texto}
-      </span>
-    </div>
-  )
-}
+import { Bot, Zap, TrendingDown, BookOpen, Database } from 'lucide-react'
+import { KPIBar } from '@/components/dashboard/kpi-bar'
+import { EditorialKicker, HeadlineSerif } from '@/components/licita/editorial'
+import { FooterEditorial } from '../../dashboard/shared'
 
 export default async function AdminIAPage() {
   const supabase = await createClient()
@@ -42,13 +34,13 @@ export default async function AdminIAPage() {
 
   type AcaoIA = { provedor: string; modelo: string; tipo_acao: string; tokens_entrada: number; tokens_saida: number; sucesso: boolean; created_at: string }
   type ClausulaAprendida = { documento: string; uso_count: number; score_qualidade: number; criado_em: string }
-  type ClausulaAplicada = { tipo_documento: string; tokens_economizados: number; aplicado_em: string }
+  type ClausulaAplicada = { tipo_documento: string; tokens_economizados: number; aplicado_em: string; tipo_campo?: string }
   type ClausulaPadrao = { documento: string; fonte: string }
 
-  const acoes = (acoesIA ?? []) as AcaoIA[]
+  const acoes      = (acoesIA ?? []) as AcaoIA[]
   const aprendidas = (clausulasAprendidas ?? []) as ClausulaAprendida[]
-  const aplicadas = (clausulasAplicadas ?? []) as ClausulaAplicada[]
-  const padrao = (clausulasPadrao ?? []) as ClausulaPadrao[]
+  const aplicadas  = (clausulasAplicadas ?? []) as ClausulaAplicada[]
+  const padrao     = (clausulasPadrao ?? []) as ClausulaPadrao[]
 
   // Agregados por provedor
   const porProvedor: Record<string, { chamadas: number; tokensEntrada: number; tokensSaida: number; erros: number }> = {}
@@ -56,19 +48,19 @@ export default async function AdminIAPage() {
     if (!porProvedor[a.provedor]) porProvedor[a.provedor] = { chamadas: 0, tokensEntrada: 0, tokensSaida: 0, erros: 0 }
     porProvedor[a.provedor].chamadas++
     porProvedor[a.provedor].tokensEntrada += a.tokens_entrada ?? 0
-    porProvedor[a.provedor].tokensSaida += a.tokens_saida ?? 0
+    porProvedor[a.provedor].tokensSaida  += a.tokens_saida ?? 0
     if (!a.sucesso) porProvedor[a.provedor].erros++
   }
 
-  const totalTokensConsumidos = acoes.reduce((s, a) => s + (a.tokens_entrada ?? 0) + (a.tokens_saida ?? 0), 0)
+  const totalTokensConsumidos  = acoes.reduce((s, a) => s + (a.tokens_entrada ?? 0) + (a.tokens_saida ?? 0), 0)
   const totalTokensEconomizados = aplicadas.reduce((s, a) => s + (a.tokens_economizados ?? 500), 0)
   const totalChamadas = acoes.length
-  const totalReusos = aplicadas.length
+  const totalReusos   = aplicadas.length
   const percentualEconomia = totalTokensConsumidos + totalTokensEconomizados > 0
     ? Math.round((totalTokensEconomizados / (totalTokensConsumidos + totalTokensEconomizados)) * 100)
     : 0
 
-  // Clausulas por documento (padrao + aprendidas)
+  // Clausulas por documento
   const clausulasPorDoc: Record<string, { padrao: number; aprendidas: number; uploadAdmin: number }> = {}
   for (const c of padrao) {
     if (!clausulasPorDoc[c.documento]) clausulasPorDoc[c.documento] = { padrao: 0, aprendidas: 0, uploadAdmin: 0 }
@@ -80,7 +72,7 @@ export default async function AdminIAPage() {
     clausulasPorDoc[c.documento].aprendidas++
   }
 
-  // Reusos por semana (ultimas 8 semanas) para o grafico ASCII simplificado
+  // Atividade semanal (ultimas 8 semanas)
   const agora = new Date()
   const semanas: { label: string; reusos: number; chamadas: number }[] = []
   for (let i = 7; i >= 0; i--) {
@@ -89,259 +81,231 @@ export default async function AdminIAPage() {
     const fim = new Date(agora)
     fim.setDate(fim.getDate() - i * 7)
     const label = inicio.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-    const reusos = aplicadas.filter(a => {
-      const d = new Date(a.aplicado_em)
-      return d >= inicio && d < fim
-    }).length
-    const chamadas = acoes.filter(a => {
-      const d = new Date(a.created_at)
-      return d >= inicio && d < fim
-    }).length
+    const reusos = aplicadas.filter(a => { const d = new Date(a.aplicado_em); return d >= inicio && d < fim }).length
+    const chamadas = acoes.filter(a => { const d = new Date(a.created_at); return d >= inicio && d < fim }).length
     semanas.push({ label, reusos, chamadas })
   }
-
   const maxBarValue = Math.max(...semanas.map(s => s.chamadas + s.reusos), 1)
 
   const LABEL_PROVEDOR: Record<string, string> = {
-    gemini: 'Google Gemini',
-    groq: 'Groq (LLaMA)',
-    anthropic: 'Anthropic Claude',
-    openrouter: 'OpenRouter',
+    gemini:      'Google Gemini',
+    groq:        'Groq (LLaMA)',
+    anthropic:   'Anthropic Claude',
+    openrouter:  'OpenRouter',
   }
 
   const LABEL_DOC: Record<string, string> = {
-    dfd: 'DFD',
-    etp: 'ETP',
-    tr: 'Termo de Referência',
-    edital: 'Edital',
-    parecer: 'Parecer',
+    dfd:         'DFD',
+    etp:         'ETP',
+    tr:          'Termo de Referencia',
+    edital:      'Edital',
+    parecer:     'Parecer',
     mapa_riscos: 'Mapa de Riscos',
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Masthead editorial */}
       <div>
-        <h2 className="text-base font-semibold text-gray-900">Gestão de IA</h2>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Consumo de tokens por provedor, reutilização de cláusulas e curva de aprendizado da plataforma.
+        <div className="flex items-center justify-between pb-3.5 mb-5" style={{ borderBottom: '2px solid var(--rule)' }}>
+          <EditorialKicker
+            kicker="Administracao da Plataforma"
+            date={new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).replace(/^./, c => c.toUpperCase())}
+          />
+          <div className="font-mono text-[10px] font-semibold uppercase hidden sm:block" style={{ color: 'var(--muted)', letterSpacing: '0.14em' }}>
+            Lei 14.133/21
+          </div>
+        </div>
+        <HeadlineSerif size="md" as="h1">Gestao de IA.</HeadlineSerif>
+        <p className="mt-2 text-[15px]" style={{ color: 'var(--inkSoft)', fontFamily: 'var(--font-heading)', fontStyle: 'italic' }}>
+          Consumo de tokens, reutilizacao de clausulas e curva de aprendizado.
         </p>
       </div>
 
-      {/* KPIs de IA */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          {
-            label: 'Chamadas de IA',
-            valor: totalChamadas.toLocaleString('pt-BR'),
-            icon: Bot,
-            cor: 'bg-purple-600',
-            tooltip: 'Total de chamadas realizadas a provedores de IA. Cada chamada consome tokens e créditos.',
-          },
-          {
-            label: 'Tokens Consumidos',
-            valor: totalTokensConsumidos.toLocaleString('pt-BR'),
-            icon: Zap,
-            cor: 'bg-amber-500',
-            tooltip: 'Total de tokens de entrada e saída consumidos em todas as chamadas de IA.',
-          },
-          {
-            label: 'Tokens Economizados',
-            valor: totalTokensEconomizados.toLocaleString('pt-BR'),
-            icon: TrendingDown,
-            cor: 'bg-green-600',
-            tooltip: 'Tokens que deixaram de ser consumidos porque a plataforma reutilizou cláusulas da base de conhecimento.',
-          },
-          {
-            label: 'Taxa de Economia',
-            valor: `${percentualEconomia}%`,
-            icon: BookOpen,
-            cor: 'bg-teal-600',
-            tooltip: 'Percentual de tokens economizados em relação ao total que teria sido consumido sem a base de conhecimento. Tende a aumentar com o tempo.',
-          },
-        ].map(({ label, valor, icon: Icon, cor, tooltip }) => (
-          <div key={label} className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
-            <div className="flex items-start justify-between">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${cor}`}>
-                <Icon className="w-4 h-4 text-white" />
-              </div>
-              <Tooltip texto={tooltip} />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-gray-900">{valor}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{label}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* KPIs */}
+      <KPIBar items={[
+        { label: 'Chamadas de IA',      value: totalChamadas.toLocaleString('pt-BR'),        sub: 'total acumulado',   sparkline: 'wave', delta: 'acumulado',    deltaColor: 'blue' },
+        { label: 'Tokens consumidos',   value: totalTokensConsumidos.toLocaleString('pt-BR'), sub: 'entrada + saida',   sparkline: 'wave', delta: 'total',        deltaColor: 'muted' },
+        { label: 'Tokens economizados', value: totalTokensEconomizados.toLocaleString('pt-BR'), sub: 'via clausulas', sparkline: 'up',   delta: `${totalReusos} reusos`, deltaColor: 'success', accent: true },
+        { label: 'Taxa de economia',    value: `${percentualEconomia}%`,                       sub: 'do total',         sparkline: 'up',   delta: 'curva',        deltaColor: percentualEconomia > 20 ? 'success' : 'muted' },
+      ]} />
 
-      {/* Curva de aprendizado - grafico de barras */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <h3 className="text-sm font-semibold text-gray-800">Curva de Aprendizado</h3>
-          <Tooltip texto="Mostra a evolução semanal entre chamadas reais de IA (roxo) e reusos de cláusulas aprendidas (verde). Com o tempo, o verde deve crescer e o roxo diminuir, indicando que a plataforma está ficando mais econômica." />
-        </div>
+      {/* Curva de aprendizado */}
+      <div className="glass rounded-[var(--r-lg)] p-5">
+        <p className="text-[9.5px] font-bold uppercase mb-4" style={{ color: 'var(--accent)', letterSpacing: '0.16em', fontFamily: 'var(--font-mono)' }}>
+          Curva de Aprendizado
+        </p>
+        <p className="text-xs mb-4" style={{ color: 'var(--muted)' }}>
+          Chamadas reais de IA vs reusos de clausulas por semana. Com o tempo, o verde deve crescer e o roxo diminuir.
+        </p>
         <div className="flex items-end gap-2 h-32">
           {semanas.map((s, i) => {
             const altChamadas = (s.chamadas / maxBarValue) * 100
-            const altReusos = (s.reusos / maxBarValue) * 100
+            const altReusos   = (s.reusos   / maxBarValue) * 100
             return (
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
                 <div className="w-full flex items-end gap-0.5" style={{ height: '96px' }}>
                   <div
-                    className="flex-1 bg-purple-400 rounded-t transition-all"
-                    style={{ height: `${altChamadas}%`, minHeight: s.chamadas > 0 ? '4px' : '0' }}
+                    className="flex-1 rounded-t transition-all"
+                    style={{ height: `${altChamadas}%`, minHeight: s.chamadas > 0 ? '4px' : '0', background: 'var(--primary)', opacity: 0.7 }}
                     title={`${s.chamadas} chamadas de IA`}
                   />
                   <div
-                    className="flex-1 bg-green-400 rounded-t transition-all"
-                    style={{ height: `${altReusos}%`, minHeight: s.reusos > 0 ? '4px' : '0' }}
+                    className="flex-1 rounded-t transition-all"
+                    style={{ height: `${altReusos}%`, minHeight: s.reusos > 0 ? '4px' : '0', background: 'var(--success)', opacity: 0.8 }}
                     title={`${s.reusos} reusos`}
                   />
                 </div>
-                <span className="text-[9px] text-gray-400">{s.label}</span>
+                <span className="text-[9px]" style={{ color: 'var(--muted)' }}>{s.label}</span>
               </div>
             )
           })}
         </div>
         <div className="flex items-center gap-4 mt-3">
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-purple-400" />
-            <span className="text-xs text-gray-500">Chamadas de IA</span>
+            <div className="w-3 h-3 rounded-sm" style={{ background: 'var(--primary)', opacity: 0.7 }} />
+            <span className="text-xs" style={{ color: 'var(--muted)' }}>Chamadas de IA</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-green-400" />
-            <span className="text-xs text-gray-500">Reusos de cláusulas</span>
+            <div className="w-3 h-3 rounded-sm" style={{ background: 'var(--success)', opacity: 0.8 }} />
+            <span className="text-xs" style={{ color: 'var(--muted)' }}>Reusos de clausulas</span>
           </div>
         </div>
       </div>
 
       {/* Consumo por provedor */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <h3 className="text-sm font-semibold text-gray-800">Consumo por Provedor</h3>
-          <Tooltip texto="Detalha o uso de tokens e chamadas por provedor de IA configurado na plataforma." />
+      <div className="glass rounded-[var(--r-lg)] overflow-hidden">
+        <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid var(--glass-edge)', background: 'rgba(0,0,0,0.025)' }}>
+          <Bot className="w-4 h-4" style={{ color: 'var(--muted)' }} />
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+            Consumo por provedor
+          </h3>
         </div>
         {Object.keys(porProvedor).length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-4">Nenhuma chamada registrada ainda.</p>
+          <div className="px-5 py-8 text-center text-sm" style={{ color: 'var(--muted)' }}>
+            Nenhuma chamada registrada ainda.
+          </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left py-2 text-xs font-semibold text-gray-500">Provedor</th>
-                <th className="text-right py-2 text-xs font-semibold text-gray-500">Chamadas</th>
-                <th className="text-right py-2 text-xs font-semibold text-gray-500">Tokens Entrada</th>
-                <th className="text-right py-2 text-xs font-semibold text-gray-500">Tokens Saida</th>
-                <th className="text-right py-2 text-xs font-semibold text-gray-500">Erros</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(porProvedor).map(([prov, dados]) => (
-                <tr key={prov} className="border-b border-gray-50 last:border-0">
-                  <td className="py-2.5 font-medium text-gray-800">{LABEL_PROVEDOR[prov] ?? prov}</td>
-                  <td className="py-2.5 text-right text-gray-600">{dados.chamadas.toLocaleString('pt-BR')}</td>
-                  <td className="py-2.5 text-right text-gray-600">{dados.tokensEntrada.toLocaleString('pt-BR')}</td>
-                  <td className="py-2.5 text-right text-gray-600">{dados.tokensSaida.toLocaleString('pt-BR')}</td>
-                  <td className="py-2.5 text-right">
-                    {dados.erros > 0 ? (
-                      <span className="text-red-600">{dados.erros}</span>
-                    ) : (
-                      <span className="text-green-600">0</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="divide-y" style={{ borderColor: 'var(--glass-edge)' }}>
+            {Object.entries(porProvedor).map(([prov, dados]) => (
+              <div key={prov} className="flex items-center gap-4 px-5 py-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{LABEL_PROVEDOR[prov] ?? prov}</p>
+                  <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                    {dados.tokensEntrada.toLocaleString('pt-BR')} entrada · {dados.tokensSaida.toLocaleString('pt-BR')} saida
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-semibold tabular-nums" style={{ color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>
+                    {dados.chamadas.toLocaleString('pt-BR')} chamadas
+                  </p>
+                  {dados.erros > 0 && (
+                    <p className="text-xs" style={{ color: 'var(--danger)' }}>{dados.erros} erro{dados.erros !== 1 ? 's' : ''}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
       {/* Base de clausulas por documento */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Database className="w-4 h-4 text-gray-400" />
-          <h3 className="text-sm font-semibold text-gray-800">Base de Cláusulas por Documento</h3>
-          <Tooltip texto="Quantas cláusulas existem na base de conhecimento para cada tipo de documento. Documentos com mais cláusulas geram textos melhores e mais econômicos." />
+      <div className="glass rounded-[var(--r-lg)] p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <Database className="w-4 h-4" style={{ color: 'var(--muted)' }} />
+          <p className="text-[9.5px] font-bold uppercase" style={{ color: 'var(--accent)', letterSpacing: '0.16em', fontFamily: 'var(--font-mono)' }}>
+            Base de Clausulas por Documento
+          </p>
         </div>
         {Object.keys(clausulasPorDoc).length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-4">Nenhuma cláusula na base ainda. Envie documentos na Base de Conhecimento.</p>
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>Nenhuma clausula na base ainda.</p>
         ) : (
           <div className="space-y-3">
             {Object.entries(clausulasPorDoc).map(([doc, dados]) => {
               const total = dados.padrao + dados.aprendidas + dados.uploadAdmin
               return (
                 <div key={doc} className="flex items-center gap-3">
-                  <span className="w-32 text-xs text-gray-600 shrink-0">{LABEL_DOC[doc] ?? doc}</span>
-                  <div className="flex-1 flex items-center gap-1 h-5">
+                  <span className="w-32 text-xs shrink-0" style={{ color: 'var(--inkSoft)' }}>{LABEL_DOC[doc] ?? doc}</span>
+                  <div className="flex-1 flex items-center gap-1 h-4">
                     {dados.padrao > 0 && (
                       <div
-                        className="bg-blue-200 rounded h-full"
-                        style={{ width: `${(dados.padrao / total) * 100}%` }}
-                        title={`${dados.padrao} templates padrão`}
+                        className="rounded h-full"
+                        style={{ width: `${(dados.padrao / total) * 100}%`, background: 'var(--primary)', opacity: 0.4 }}
+                        title={`${dados.padrao} templates padrao`}
                       />
                     )}
                     {dados.uploadAdmin > 0 && (
                       <div
-                        className="bg-amber-300 rounded h-full"
-                        style={{ width: `${(dados.uploadAdmin / total) * 100}%` }}
-                        title={`${dados.uploadAdmin} do upload admin`}
+                        className="rounded h-full"
+                        style={{ width: `${(dados.uploadAdmin / total) * 100}%`, background: 'var(--warn)', opacity: 0.6 }}
+                        title={`${dados.uploadAdmin} upload admin`}
                       />
                     )}
                     {dados.aprendidas > 0 && (
                       <div
-                        className="bg-green-300 rounded h-full"
-                        style={{ width: `${(dados.aprendidas / total) * 100}%` }}
-                        title={`${dados.aprendidas} aprendidas de processos`}
+                        className="rounded h-full"
+                        style={{ width: `${(dados.aprendidas / total) * 100}%`, background: 'var(--success)', opacity: 0.7 }}
+                        title={`${dados.aprendidas} aprendidas`}
                       />
                     )}
                   </div>
-                  <span className="text-xs text-gray-500 w-8 text-right">{total}</span>
+                  <span className="text-xs w-8 text-right tabular-nums" style={{ color: 'var(--muted)' }}>{total}</span>
                 </div>
               )
             })}
-            <div className="flex items-center gap-4 pt-2 border-t border-gray-100">
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-blue-200" /><span className="text-xs text-gray-500">Templates padrão</span></div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-amber-300" /><span className="text-xs text-gray-500">Upload admin</span></div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-green-300" /><span className="text-xs text-gray-500">Aprendidas</span></div>
+            <div className="flex items-center gap-4 pt-2" style={{ borderTop: '1px solid var(--glass-edge)' }}>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm" style={{ background: 'var(--primary)', opacity: 0.4 }} />
+                <span className="text-xs" style={{ color: 'var(--muted)' }}>Templates padrao</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm" style={{ background: 'var(--warn)', opacity: 0.6 }} />
+                <span className="text-xs" style={{ color: 'var(--muted)' }}>Upload admin</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm" style={{ background: 'var(--success)', opacity: 0.7 }} />
+                <span className="text-xs" style={{ color: 'var(--muted)' }}>Aprendidas</span>
+              </div>
             </div>
           </div>
         )}
       </div>
 
       {/* Reusos recentes */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-gray-800">Reusos Recentes ({totalReusos})</h3>
-          <Tooltip texto="Cada linha representa uma vez que a plataforma reutilizou uma cláusula da base de conhecimento em vez de chamar a IA, economizando tokens." />
+      <div className="glass rounded-[var(--r-lg)] overflow-hidden">
+        <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid var(--glass-edge)', background: 'rgba(0,0,0,0.025)' }}>
+          <Zap className="w-4 h-4" style={{ color: 'var(--muted)' }} />
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+            Reusos recentes ({totalReusos})
+          </h3>
         </div>
         {aplicadas.length === 0 ? (
-          <div className="px-5 py-8 text-center text-sm text-gray-400">
-            Nenhum reuso registrado ainda. Os reusos aparecem aqui conforme os usuários geram documentos.
+          <div className="px-5 py-8 text-center text-sm" style={{ color: 'var(--muted)' }}>
+            Nenhum reuso registrado ainda.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500">Documento</th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500">Campo</th>
-                <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-500">Tokens Econ.</th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500">Data</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(aplicadas as Array<ClausulaAplicada & { tipo_campo?: string }>).slice(0, 20).map((a, i) => (
-                <tr key={i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
-                  <td className="px-5 py-2.5 font-medium text-gray-800">{LABEL_DOC[a.tipo_documento] ?? a.tipo_documento}</td>
-                  <td className="px-4 py-2.5 text-gray-500 text-xs">{a.tipo_campo ?? '-'}</td>
-                  <td className="px-4 py-2.5 text-right text-green-700 font-medium">+{(a.tokens_economizados ?? 500).toLocaleString('pt-BR')}</td>
-                  <td className="px-4 py-2.5 text-gray-400 text-xs">
+          <div className="divide-y" style={{ borderColor: 'var(--glass-edge)' }}>
+            {aplicadas.slice(0, 20).map((a, i) => (
+              <div key={i} className="flex items-center gap-4 px-5 py-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{LABEL_DOC[a.tipo_documento] ?? a.tipo_documento}</p>
+                  <p className="text-xs" style={{ color: 'var(--muted)' }}>{a.tipo_campo ?? '-'}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-semibold tabular-nums" style={{ color: 'var(--success)', fontFamily: 'var(--font-mono)' }}>
+                    +{(a.tokens_economizados ?? 500).toLocaleString('pt-BR')}
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--muted)' }}>
                     {new Date(a.aplicado_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
+
+      <FooterEditorial />
     </div>
   )
 }

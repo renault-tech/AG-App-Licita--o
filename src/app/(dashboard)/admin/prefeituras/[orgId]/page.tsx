@@ -9,7 +9,7 @@ import {
 import { KPIBar } from '@/components/dashboard/kpi-bar'
 import { FaseTimeline } from '@/components/dashboard/fase-timeline'
 import type { FaseNode } from '@/components/dashboard/fase-timeline'
-import { FooterEditorial, ListCard } from '../../../dashboard/shared'
+import { FooterEditorial } from '../../../dashboard/shared'
 
 const PAPEL_LABEL: Record<string, string> = {
   requisitante:       'Requisitante',
@@ -100,22 +100,20 @@ export default async function AdminPrefeituraPage({
   const acoesList     = (acoesIa as any[]) ?? []
   const creditosList  = (creditos as any[]) ?? []
 
-  // KPIs
-  const ativos      = usuariosList.filter((u: any) => u.status_aprovacao === 'ativo').length
-  const andamento   = processosList.filter((p: any) => !['publicado', 'assinado', 'cancelado'].includes(p.status)).length
-  const concluidos  = processosList.filter((p: any) => ['publicado', 'assinado'].includes(p.status)).length
-  const tokens      = acoesList.reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
-  const saldoTotal  = creditosList.reduce((acc: number, c: any) => acc + (c.saldo ?? 0), 0)
+  const ativos     = usuariosList.filter((u: any) => u.status_aprovacao === 'ativo').length
+  const andamento  = processosList.filter((p: any) => !['publicado', 'assinado', 'cancelado'].includes(p.status)).length
+  const concluidos = processosList.filter((p: any) => ['publicado', 'assinado'].includes(p.status)).length
+  const tokens     = acoesList.reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
+  const saldoTotal = creditosList.reduce((acc: number, c: any) => acc + (c.saldo ?? 0), 0)
 
-  // Fases
-  const FASE_KEYS   = ['requisitante', 'setor_compras', 'setor_licitacao', 'procurador', 'gestor_publico', 'publicacao']
+  const FASE_KEYS = ['requisitante', 'setor_compras', 'setor_licitacao', 'procurador', 'gestor_publico', 'publicacao']
   const FASE_LABELS: Record<string, string> = {
-    requisitante:   'Requisitante',
-    setor_compras:  'Compras',
-    setor_licitacao:'Licitacoes',
-    procurador:     'Procuradoria',
-    gestor_publico: 'Autorizacao',
-    publicacao:     'Publicacao',
+    requisitante:    'Requisitante',
+    setor_compras:   'Compras',
+    setor_licitacao: 'Licitacoes',
+    procurador:      'Procuradoria',
+    gestor_publico:  'Autorizacao',
+    publicacao:      'Publicacao',
   }
   const fases: FaseNode[] = FASE_KEYS.map((k) => ({
     key:        k,
@@ -126,7 +124,6 @@ export default async function AdminPrefeituraPage({
     href:       `/processos?fase=${k}`,
   }))
 
-  // Distribuicao por modalidade
   const modalidades = Object.entries(
     processosList.reduce((acc: Record<string, number>, p: any) => {
       const m = p.modalidade || 'nao_definida'
@@ -135,7 +132,6 @@ export default async function AdminPrefeituraPage({
     }, {})
   ).sort(([, a], [, b]) => b - a)
 
-  // Status geral
   const statusDist = Object.entries(
     processosList.reduce((acc: Record<string, number>, p: any) => {
       acc[p.status ?? 'rascunho'] = (acc[p.status ?? 'rascunho'] ?? 0) + 1
@@ -143,7 +139,6 @@ export default async function AdminPrefeituraPage({
     }, {})
   ).sort(([, a], [, b]) => b - a)
 
-  // Data de cadastro formatada
   const cadastroEm = orgData.created_at
     ? new Date(orgData.created_at).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
     : null
@@ -161,7 +156,7 @@ export default async function AdminPrefeituraPage({
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+            className="w-12 h-12 rounded-[var(--r-lg)] flex items-center justify-center shrink-0"
             style={{ background: 'var(--primaryWash)' }}
           >
             <Building2 className="w-6 h-6" style={{ color: 'var(--primary)' }} />
@@ -173,7 +168,7 @@ export default async function AdminPrefeituraPage({
             <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
               {orgData.municipio} · {orgData.estado}
               {orgData.cnpj ? ` · CNPJ ${orgData.cnpj}` : ''}
-              {cadastroEm ? ` · Na plataforma desde ${cadastroEm}` : ''}
+              {cadastroEm ? ` · Desde ${cadastroEm}` : ''}
             </p>
           </div>
         </div>
@@ -187,7 +182,7 @@ export default async function AdminPrefeituraPage({
             className="text-xs px-2 py-1 rounded-full font-semibold"
             style={{
               background: orgData.ativo ? 'var(--successWash)' : 'var(--errorWash)',
-              color: orgData.ativo ? 'var(--success)' : 'var(--error)',
+              color:      orgData.ativo ? 'var(--success)' : 'var(--error)',
             }}
           >
             {orgData.ativo ? 'Ativa' : 'Suspensa'}
@@ -195,61 +190,53 @@ export default async function AdminPrefeituraPage({
         </div>
       </div>
 
-      {/* KPIs principais */}
+      {/* KPIs */}
       <KPIBar items={[
-        { label: 'Usuarios ativos', value: ativos },
-        { label: 'Em andamento',    value: andamento },
-        { label: 'Concluidos',      value: concluidos },
-        { label: 'IA (30d)',        value: tokens.toLocaleString('pt-BR'), sub: 'tokens' },
-        { label: 'Saldo creditos',  value: saldoTotal.toLocaleString('pt-BR') },
+        { label: 'Usuarios ativos', value: ativos,                               sub: 'na organizacao',  sparkline: 'up',   delta: `${ativos} ativos`,      deltaColor: 'success' },
+        { label: 'Em andamento',    value: andamento,                             sub: 'processos',       sparkline: andamento > 0 ? 'wave' : 'flat', delta: `${andamento} ativos`, deltaColor: andamento > 0 ? 'blue' : 'muted' },
+        { label: 'Concluidos',      value: concluidos,                            sub: 'publicados',      sparkline: 'up',   delta: 'total',                 deltaColor: 'success' },
+        { label: 'IA (30d)',        value: tokens.toLocaleString('pt-BR'),        sub: 'tokens',          sparkline: 'wave', delta: '30 dias',               deltaColor: 'blue' },
+        { label: 'Saldo creditos',  value: saldoTotal.toLocaleString('pt-BR'),    sub: 'disponivel',      sparkline: saldoTotal > 0 ? 'flat' : 'down', delta: saldoTotal > 0 ? 'ok' : 'baixo', deltaColor: saldoTotal > 50 ? 'success' : 'warn' },
       ]} />
 
-      {/* Timeline de fases */}
       {processosList.length > 0 && <FaseTimeline fases={fases} />}
 
-      {/* Grid: distribuicao por modalidade + status */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Modalidades */}
-        <div className="rounded-xl border p-5 space-y-3" style={{ borderColor: 'var(--hairline)', background: 'var(--surface)' }}>
-          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
+      {/* Distribuicoes */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="glass rounded-[var(--r-lg)] p-5 space-y-3">
+          <p className="text-[9.5px] font-bold uppercase tracking-wider" style={{ color: 'var(--muted)', letterSpacing: '0.14em', fontFamily: 'var(--font-mono)' }}>
             Modalidades
           </p>
           {modalidades.length === 0 ? (
-            <p className="text-sm" style={{ color: 'var(--mutedSoft)' }}>Sem processos</p>
+            <p className="text-sm" style={{ color: 'var(--muted)' }}>Sem processos</p>
           ) : (
             <div className="space-y-2">
               {modalidades.map(([mod, count]) => (
                 <div key={mod} className="flex items-center justify-between">
-                  <span className="text-sm" style={{ color: 'var(--inkSoft)' }}>
-                    {MODALIDADE_LABEL[mod] ?? mod}
-                  </span>
-                  <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--ink)' }}>{count}</span>
+                  <span className="text-sm" style={{ color: 'var(--inkSoft)' }}>{MODALIDADE_LABEL[mod] ?? mod}</span>
+                  <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--ink)' }}>{count as number}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Status */}
-        <div className="rounded-xl border p-5 space-y-3" style={{ borderColor: 'var(--hairline)', background: 'var(--surface)' }}>
-          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
+        <div className="glass rounded-[var(--r-lg)] p-5 space-y-3">
+          <p className="text-[9.5px] font-bold uppercase tracking-wider" style={{ color: 'var(--muted)', letterSpacing: '0.14em', fontFamily: 'var(--font-mono)' }}>
             Status dos processos
           </p>
           {statusDist.length === 0 ? (
-            <p className="text-sm" style={{ color: 'var(--mutedSoft)' }}>Sem processos</p>
+            <p className="text-sm" style={{ color: 'var(--muted)' }}>Sem processos</p>
           ) : (
             <div className="space-y-2">
               {statusDist.map(([status, count]) => {
                 const s = STATUS_LABEL[status] ?? { label: status, bg: 'var(--surfaceAlt)', color: 'var(--muted)' }
                 return (
                   <div key={status} className="flex items-center justify-between">
-                    <span
-                      className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                      style={{ background: s.bg, color: s.color }}
-                    >
+                    <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: s.bg, color: s.color }}>
                       {s.label}
                     </span>
-                    <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--ink)' }}>{count}</span>
+                    <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--ink)' }}>{count as number}</span>
                   </div>
                 )
               })}
@@ -259,84 +246,93 @@ export default async function AdminPrefeituraPage({
       </div>
 
       {/* Lista de processos */}
-      <ListCard
-        title="Processos"
-        subtitle={`${processosList.length} no total`}
-      >
+      <div className="glass rounded-[var(--r-lg)] overflow-hidden">
+        <div
+          className="flex items-center justify-between px-6 py-5"
+          style={{ borderBottom: '1px solid var(--glass-edge)', background: 'rgba(0,0,0,0.025)' }}
+        >
+          <div>
+            <h2 className="text-base font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>Processos</h2>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{processosList.length} no total</p>
+          </div>
+        </div>
         {processosList.length === 0 ? (
           <div className="px-6 py-10 text-center">
-            <FileText className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--mutedSoft)' }} />
+            <FileText className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--muted)' }} />
             <p className="text-sm" style={{ color: 'var(--muted)' }}>Nenhum processo criado ainda</p>
           </div>
         ) : (
-          processosList.map((p: any) => {
-            const s = STATUS_LABEL[p.status ?? 'rascunho'] ?? STATUS_LABEL.rascunho
-            return (
-              <Link
-                key={p.id}
-                href={`/processos/${p.id}/dfd`}
-                className="flex items-center gap-4 px-6 py-3 border-b last:border-b-0 transition-colors hover:bg-[var(--surfaceAlt)]"
-                style={{ borderColor: 'var(--hairline)' }}
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: 'var(--ink)' }}>
-                    {p.numero_processo ? `${p.numero_processo}: ` : ''}{p.objeto || 'Sem objeto definido'}
-                  </p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                    {MODALIDADE_LABEL[p.modalidade] ?? p.modalidade ?? 'Modalidade nao definida'}
-                    {p.updated_at ? ` · Atualizado ${new Date(p.updated_at).toLocaleDateString('pt-BR')}` : ''}
-                  </p>
-                </div>
-                <span
-                  className="text-xs px-2 py-0.5 rounded-full font-semibold shrink-0"
-                  style={{ background: s.bg, color: s.color }}
+          <div className="divide-y" style={{ borderColor: 'var(--glass-edge)' }}>
+            {processosList.map((p: any) => {
+              const s = STATUS_LABEL[p.status ?? 'rascunho'] ?? STATUS_LABEL.rascunho
+              return (
+                <Link
+                  key={p.id}
+                  href={`/processos/${p.id}/dfd`}
+                  className="flex items-center gap-4 px-6 py-3 transition-colors hover:bg-[var(--surfaceAlt)]"
                 >
-                  {s.label}
-                </span>
-              </Link>
-            )
-          })
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: 'var(--ink)' }}>
+                      {p.numero_processo ? `${p.numero_processo}: ` : ''}{p.objeto || 'Sem objeto definido'}
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                      {MODALIDADE_LABEL[p.modalidade] ?? p.modalidade ?? 'Modalidade nao definida'}
+                      {p.updated_at ? ` · ${new Date(p.updated_at).toLocaleDateString('pt-BR')}` : ''}
+                    </p>
+                  </div>
+                  <span className="text-xs px-2 py-0.5 rounded-full font-semibold shrink-0" style={{ background: s.bg, color: s.color }}>
+                    {s.label}
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
         )}
-      </ListCard>
+      </div>
 
       {/* Lista de usuarios */}
-      <ListCard title="Usuarios" subtitle={`${usuariosList.length} cadastrados · ${ativos} ativos`}>
+      <div className="glass rounded-[var(--r-lg)] overflow-hidden">
+        <div
+          className="flex items-center justify-between px-6 py-5"
+          style={{ borderBottom: '1px solid var(--glass-edge)', background: 'rgba(0,0,0,0.025)' }}
+        >
+          <div>
+            <h2 className="text-base font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>Usuarios</h2>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{usuariosList.length} cadastrados · {ativos} ativos</p>
+          </div>
+        </div>
         {usuariosList.length === 0 ? (
           <div className="px-6 py-10 text-center">
-            <Users className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--mutedSoft)' }} />
+            <Users className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--muted)' }} />
             <p className="text-sm" style={{ color: 'var(--muted)' }}>Nenhum usuario cadastrado</p>
           </div>
         ) : (
-          usuariosList.map((u: any) => (
-            <div
-              key={u.id}
-              className="flex items-center justify-between px-6 py-3 border-b last:border-b-0"
-              style={{ borderColor: 'var(--hairline)' }}
-            >
-              <div>
-                <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{u.nome_completo}</p>
-                <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                  {PAPEL_LABEL[u.papel] ?? u.papel}
-                </p>
+          <div className="divide-y" style={{ borderColor: 'var(--glass-edge)' }}>
+            {usuariosList.map((u: any) => (
+              <div key={u.id} className="flex items-center justify-between px-6 py-3">
+                <div>
+                  <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{u.nome_completo}</p>
+                  <p className="text-xs" style={{ color: 'var(--muted)' }}>{PAPEL_LABEL[u.papel] ?? u.papel}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {u.status_aprovacao !== 'ativo' && (
+                    <AlertCircle className="w-3.5 h-3.5" style={{ color: 'var(--warn)' }} />
+                  )}
+                  <span
+                    className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                    style={{
+                      background: u.status_aprovacao === 'ativo' ? 'var(--successWash)' : 'var(--warnWash)',
+                      color:      u.status_aprovacao === 'ativo' ? 'var(--success)' : 'var(--warn)',
+                    }}
+                  >
+                    {u.status_aprovacao === 'ativo' ? 'Ativo' : 'Aguardando'}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                {u.status_aprovacao !== 'ativo' && (
-                  <AlertCircle className="w-3.5 h-3.5" style={{ color: 'var(--warn)' }} />
-                )}
-                <span
-                  className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                  style={{
-                    background: u.status_aprovacao === 'ativo' ? 'var(--successWash)' : 'var(--warnWash)',
-                    color:      u.status_aprovacao === 'ativo' ? 'var(--success)' : 'var(--warn)',
-                  }}
-                >
-                  {u.status_aprovacao === 'ativo' ? 'Ativo' : 'Aguardando'}
-                </span>
-              </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
-      </ListCard>
+      </div>
 
       <FooterEditorial />
     </div>
