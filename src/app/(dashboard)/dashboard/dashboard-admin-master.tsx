@@ -1,12 +1,9 @@
 import { createServiceClient } from '@/lib/supabase/server'
-import Link from 'next/link'
-import {
-  ArrowRight, Building2, AlertCircle,
-  Users, FileText,
-} from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { KPIBar } from '@/components/dashboard/kpi-bar'
 import { CardConfigShell } from '@/components/dashboard/card-config-shell'
-import { FooterEditorial, SectionHeader, ListCard } from './shared'
+import { PrefeiturasList } from '@/components/dashboard/prefeituras-list'
+import { FooterEditorial, SectionHeader } from './shared'
 import { buscarPreferenciaDashboard } from '@/lib/actions/dashboard'
 
 interface Props { userId: string }
@@ -228,7 +225,7 @@ export async function DashboardAdminMaster({ userId: _userId }: Props) {
         </div>
       </div>
 
-      {/* Lista de prefeituras */}
+      {/* Lista de prefeituras com filtros */}
       <CardConfigShell
         configKey="ia_periodo_dias"
         configValue={{ dias: diasIa }}
@@ -239,73 +236,7 @@ export async function DashboardAdminMaster({ userId: _userId }: Props) {
           options: [7, 15, 30, 60, 90].map((d) => ({ value: d, label: `${d} dias` })),
         }}
       >
-        <ListCard
-          title="Prefeituras"
-          subtitle={`${orgsList.length} organizacoes · ordenadas por atividade recente`}
-        >
-          {orgsOrdenadas.map((org: any) => (
-            <Link
-              key={org.id}
-              href={`/admin/prefeituras/${org.id}`}
-              className="flex items-center gap-4 px-6 py-4 border-b transition-colors hover:bg-[var(--surfaceAlt)] last:border-b-0"
-              style={{ borderColor: 'var(--hairline)' }}
-            >
-              {/* Icone com indicador de status */}
-              <div className="relative shrink-0">
-                <div
-                  className="w-9 h-9 rounded-[var(--r-md)] flex items-center justify-center"
-                  style={{ background: org.ativo ? 'var(--primaryWash)' : 'var(--surfaceAlt)' }}
-                >
-                  <Building2 className="w-4 h-4" style={{ color: org.ativo ? 'var(--primary)' : 'var(--muted)' }} />
-                </div>
-                {org.is_demo && (
-                  <span
-                    className="absolute -top-1 -right-1 text-[9px] font-bold px-1 rounded-full"
-                    style={{ background: 'var(--warnWash)', color: 'var(--warn)' }}
-                  >D</span>
-                )}
-              </div>
-
-              {/* Dados da org */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-[14px] font-semibold truncate" style={{ color: 'var(--ink)' }}>{org.nome}</p>
-                  {!org.ativo && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold shrink-0"
-                      style={{ background: 'var(--errorWash)', color: 'var(--error)' }}>
-                      Suspensa
-                    </span>
-                  )}
-                  {org.usuariosPend > 0 && (
-                    <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: 'var(--warnWash)', color: 'var(--warn)' }}>
-                      <AlertCircle className="w-2.5 h-2.5" />
-                      {org.usuariosPend}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                  {org.municipio} · {org.estado}
-                  {' · '}<span className="inline-flex items-center gap-0.5"><Users className="w-2.5 h-2.5" /> {org.usuariosAtivos}</span>
-                  {' · '}<span className="inline-flex items-center gap-0.5"><FileText className="w-2.5 h-2.5" /> {org.processos} proc ({org.andamento} em and.)</span>
-                  {org.ultimaAtiv ? ` · ${new Date(org.ultimaAtiv).toLocaleDateString('pt-BR')}` : ''}
-                </p>
-              </div>
-
-              {/* Metricas e seta */}
-              <div className="flex items-center gap-4 shrink-0">
-                <div className="text-right hidden sm:block">
-                  <p className="text-xs font-mono" style={{ color: 'var(--muted)' }}>
-                    {org.tokens.toLocaleString('pt-BR')} tok
-                  </p>
-                  <p className="text-xs font-mono" style={{ color: 'var(--mutedSoft)' }}>
-                    {org.creditos.toLocaleString('pt-BR')} cred
-                  </p>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5" style={{ color: 'var(--mutedSoft)' }} />
-              </div>
-            </Link>
-          ))}
-        </ListCard>
+        <PrefeiturasList orgs={orgsOrdenadas} diasIa={diasIa} />
       </CardConfigShell>
 
       <FooterEditorial />
