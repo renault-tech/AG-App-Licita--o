@@ -110,13 +110,22 @@ export default function FormCadastroConvidado({ token, emailDestino, nomePrefeit
   if (concluido) {
     return (
       <Card className="shadow-lg border-0 text-center">
-        <CardContent className="pt-8 pb-6 space-y-3">
-          <CheckCircle2 className="w-10 h-10 text-green-600 mx-auto" />
+        <CardContent className="pt-8 pb-6 space-y-4">
+          <CheckCircle2 className="w-10 h-10 mx-auto" style={{ color: 'var(--success)' }} />
           <h2 className="text-lg font-semibold">Prefeitura cadastrada!</h2>
-          <p className="text-sm text-muted-foreground">
-            O cadastro foi concluido. Confirme seu e-mail ({emailDestino}) e depois acesse a plataforma normalmente.
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>
+            Enviamos um e-mail de confirmacao para <strong>{emailDestino}</strong>. Clique no link do e-mail para ativar seu acesso e entrar na plataforma.
           </p>
-          <Link href="/login" className="text-sm font-semibold hover:underline">Ir para o login</Link>
+          <p className="text-xs" style={{ color: 'var(--muted)' }}>
+            Apos confirmar o e-mail, sua conta ficara disponivel para ativacao pelo administrador da plataforma.
+          </p>
+          <Link
+            href="/login"
+            className="inline-block text-sm font-semibold px-4 py-2 rounded-lg"
+            style={{ background: 'var(--primary)', color: '#fff' }}
+          >
+            Ir para o login
+          </Link>
         </CardContent>
       </Card>
     )
@@ -125,9 +134,18 @@ export default function FormCadastroConvidado({ token, emailDestino, nomePrefeit
   return (
     <Card className="shadow-lg border-0">
       <CardHeader>
-        <div className="flex items-center gap-2 mb-1">
-          <Building2 className="w-5 h-5" style={{ color: 'var(--primary)' }} />
-          <CardTitle className="text-xl">Cadastro de Prefeitura</CardTitle>
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <Building2 className="w-5 h-5" style={{ color: 'var(--primary)' }} />
+            <CardTitle className="text-xl">Cadastro de Prefeitura</CardTitle>
+          </div>
+          <Link
+            href="/login"
+            className="text-xs font-medium underline underline-offset-2"
+            style={{ color: 'var(--muted)' }}
+          >
+            Ja tenho conta
+          </Link>
         </div>
         <CardDescription>
           Voce foi convidado para cadastrar a prefeitura na plataforma LicitaIA.

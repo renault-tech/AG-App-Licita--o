@@ -179,7 +179,7 @@ export async function cadastrarAdminOrg(
   const { data: authData, error: authError } = await supabaseAuth.auth.signUp({
     email:    parsed.data.email,
     password: parsed.data.senha,
-    options:  { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/aguardando-ativacao` },
+    options:  { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/dashboard` },
   })
   if (authError || !authData.user) return { success: false, error: authError?.message ?? 'Erro ao criar conta.' }
 

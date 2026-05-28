@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, AlertTriangle } from 'lucide-react'
 import { KPIBar } from '@/components/dashboard/kpi-bar'
 import { CardConfigShell } from '@/components/dashboard/card-config-shell'
 import {
@@ -33,17 +33,20 @@ export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo, nome }:
     { data: processos },
     { data: acoesIa },
     { data: creditos },
+    { data: orgInfo },
   ] = await Promise.all([
     (supabase as any).from('usuarios').select('id, nome_completo, papel, status_aprovacao').eq('organizacao_id', orgId),
     (supabase as any).from('processos_licitatorios').select('id, status, fase_atual').eq('organizacao_id', orgId),
     (supabase as any).from('acoes_ia').select('id, usuario_id, creditos_consumidos').eq('organizacao_id', orgId).gte('created_at', corte),
     (supabase as any).from('creditos_usuario').select('saldo').eq('usuario_id', userId).maybeSingle(),
+    (supabase as any).from('organizacoes').select('ativo').eq('id', orgId).maybeSingle(),
   ])
 
   const usuariosList  = (usuarios as any[]) ?? []
   const processosList = (processos as any[]) ?? []
   const acoesList     = (acoesIa as any[]) ?? []
   const saldo         = (creditos as any)?.saldo ?? 0
+  const orgAtiva      = (orgInfo as any)?.ativo ?? false
 
   const ativos    = usuariosList.filter((u: any) => u.status_aprovacao === 'ativo').length
   const pendentes = usuariosList.filter((u: any) => u.status_aprovacao !== 'ativo').length
@@ -77,6 +80,21 @@ export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo, nome }:
             : `${ativos} usuario${ativos !== 1 ? 's' : ''} ativo${ativos !== 1 ? 's' : ''}, ${andamento} processo${andamento !== 1 ? 's' : ''} em andamento.`
         }
       />
+
+      {!orgAtiva && (
+        <div
+          className="flex items-start gap-3 rounded-[var(--r-lg)] px-5 py-4"
+          style={{ background: 'var(--warnWash)', border: '1px solid var(--warn)', color: 'var(--warn)' }}
+        >
+          <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold">Prefeitura aguardando ativacao</p>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--inkSoft)' }}>
+              O cadastro foi recebido e esta em analise pelo administrador da plataforma. Voce sera notificado por e-mail quando a conta for ativada.
+            </p>
+          </div>
+        </div>
+      )}
 
       <KPIBar items={[
         { label: 'Usuarios ativos',  value: ativos,   sub: 'na organizacao',     sparkline: 'up',   delta: `${ativos} ativos`,   deltaColor: 'success' },
