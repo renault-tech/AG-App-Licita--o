@@ -90,7 +90,7 @@ export default function CadastroPage() {
           <CheckCircle2 className="w-10 h-10 text-green-600 mx-auto" />
           <h2 className="text-lg font-semibold">Solicitacao enviada!</h2>
           <p className="text-sm text-muted-foreground">
-            Sua conta foi criada e aguarda aprovacao do administrador da sua prefeitura. Confirme seu e-mail e aguarde a liberacao.
+            Sua conta foi criada e aguarda aprovacao do administrador da sua prefeitura.
           </p>
           <Link href="/login" className="text-sm font-semibold hover:underline">Voltar ao login</Link>
         </CardContent>

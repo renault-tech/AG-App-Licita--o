@@ -171,7 +171,7 @@ export default function NovaPrefeituraPage() {
           <Building2 className="w-10 h-10 text-primary mx-auto" />
           <h2 className="text-lg font-semibold">Prefeitura registrada!</h2>
           <p className="text-sm text-muted-foreground">
-            O cadastro de {nomePref} foi enviado. Confirme seu e-mail e aguarde a ativacao pelo administrador da plataforma. Apos a ativacao, faca login normalmente.
+            O cadastro de {nomePref} foi enviado e aguarda ativacao pelo administrador da plataforma. Apos a ativacao, faca login normalmente.
           </p>
           <Link href="/login" className="text-sm font-semibold hover:underline">Voltar ao login</Link>
         </CardContent>

@@ -114,10 +114,7 @@ export default function FormCadastroConvidado({ token, emailDestino, nomePrefeit
           <CheckCircle2 className="w-10 h-10 mx-auto" style={{ color: 'var(--success)' }} />
           <h2 className="text-lg font-semibold">Prefeitura cadastrada!</h2>
           <p className="text-sm" style={{ color: 'var(--muted)' }}>
-            Enviamos um e-mail de confirmacao para <strong>{emailDestino}</strong>. Clique no link do e-mail para ativar seu acesso e entrar na plataforma.
-          </p>
-          <p className="text-xs" style={{ color: 'var(--muted)' }}>
-            Apos confirmar o e-mail, sua conta ficara disponivel para ativacao pelo administrador da plataforma.
+            Cadastro concluido. Sua conta esta aguardando ativacao pelo administrador da plataforma. Voce sera notificado em <strong>{emailDestino}</strong>.
           </p>
           <Link
             href="/login"
