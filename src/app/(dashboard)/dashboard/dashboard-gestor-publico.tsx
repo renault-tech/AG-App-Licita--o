@@ -12,7 +12,7 @@ export async function DashboardGestorPublico({ userId, orgId, cargo }: Props) {
   const supabase = await createClient()
   const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
 
-  const [{ data: autorizacoes }, { data: filaData }] = await Promise.all([
+  const [{ data: autorizacoes }, { data: filaData }, { data: historicoData }] = await Promise.all([
     (supabase as any)
       .from('processos_licitatorios')
       .select('id, status, valor_estimado, updated_at')
@@ -25,10 +25,18 @@ export async function DashboardGestorPublico({ userId, orgId, cargo }: Props) {
       .eq('fase_atual', 'gestor_publico')
       .order('updated_at', { ascending: true })
       .limit(20),
+    (supabase as any)
+      .from('processos_licitatorios')
+      .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at')
+      .eq('organizacao_id', orgId)
+      .eq('fase_atual', 'publicacao')
+      .order('updated_at', { ascending: false })
+      .limit(10),
   ])
 
-  const lista = (autorizacoes as any[]) ?? []
-  const fila  = (filaData as any[]) ?? []
+  const lista     = (autorizacoes as any[]) ?? []
+  const fila      = (filaData as any[]) ?? []
+  const historico = (historicoData as any[]) ?? []
 
   const aguardando  = lista.filter((p: any) => p.status !== 'autorizado' && p.status !== 'devolvido').length
   const autorizados = lista.filter((p: any) => p.status === 'autorizado' && p.updated_at >= inicioMes).length
@@ -58,6 +66,11 @@ export async function DashboardGestorPublico({ userId, orgId, cargo }: Props) {
           : fila.map((p: any) => <ProcessoRowDashboard key={p.id} {...p} href={`/processos/${p.id}/autorizacao`} />)
         }
       </ListCard>
+      {historico.length > 0 && (
+        <ListCard title="Histórico de autorizações" subtitle="Processos autorizados aguardando publicação">
+          {historico.map((p: any) => <ProcessoRowDashboard key={p.id} {...p} />)}
+        </ListCard>
+      )}
       <FooterEditorial />
     </div>
   )

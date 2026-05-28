@@ -8,6 +8,16 @@ import { buscarPreferenciaDashboard } from '@/lib/actions/dashboard'
 
 interface Props { userId: string; orgId: string; orgNome: string; cargo: string | null }
 
+const FASE_KEYS = ['requisitante', 'setor_compras', 'setor_licitacao', 'procurador', 'gestor_publico', 'publicacao']
+const FASE_LABELS: Record<string, string> = {
+  requisitante:    'Requisitante',
+  setor_compras:   'Compras',
+  setor_licitacao: 'Licitações',
+  procurador:      'Procuradoria',
+  gestor_publico:  'Autorização',
+  publicacao:      'Publicação',
+}
+
 export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo }: Props) {
   const supabase = await createClient()
 
@@ -22,7 +32,7 @@ export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo }: Props
     { data: creditos },
   ] = await Promise.all([
     (supabase as any).from('usuarios').select('id, nome_completo, papel, status_aprovacao').eq('organizacao_id', orgId),
-    (supabase as any).from('processos_licitatorios').select('id, status').eq('organizacao_id', orgId),
+    (supabase as any).from('processos_licitatorios').select('id, status, fase_atual').eq('organizacao_id', orgId),
     (supabase as any).from('acoes_ia').select('id, usuario_id, creditos_consumidos').eq('organizacao_id', orgId).gte('created_at', corte),
     (supabase as any).from('creditos_usuario').select('saldo').eq('usuario_id', userId).maybeSingle(),
   ])
@@ -35,6 +45,12 @@ export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo }: Props
   const ativos    = usuariosList.filter((u: any) => u.status_aprovacao === 'ativo').length
   const andamento = processosList.filter((p: any) => !['publicado','assinado'].includes(p.status)).length
   const tokensMes = acoesList.reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
+
+  const faseDist = FASE_KEYS.map((k) => ({
+    key:   k,
+    label: FASE_LABELS[k],
+    count: processosList.filter((p: any) => p.fase_atual === k && !['publicado','assinado','cancelado'].includes(p.status)).length,
+  })).filter((f) => f.count > 0)
 
   return (
     <div className="space-y-8">
@@ -105,6 +121,23 @@ export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo }: Props
           </div>
         ))}
       </ListCard>
+
+      {/* Processos por fase */}
+      {faseDist.length > 0 && (
+        <div className="rounded-xl border p-5 space-y-3" style={{ borderColor: 'var(--hairline)', background: 'var(--surface)' }}>
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
+            Processos em andamento por fase
+          </p>
+          <div className="space-y-2">
+            {faseDist.map((f) => (
+              <div key={f.key} className="flex items-center justify-between">
+                <span className="text-sm" style={{ color: 'var(--inkSoft)' }}>{f.label}</span>
+                <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--ink)' }}>{f.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <FooterEditorial />
     </div>

@@ -34,29 +34,55 @@ const FASE_KEYS = [
 export async function DashboardCompras({ userId, orgId, cargo }: Props) {
   const supabase = await createClient()
 
-  const [{ data: todosProcessos }, { data: filaCompleta }, { data: cotacoesFeitasData }] =
-    await Promise.all([
-      (supabase as any)
-        .from('processos_licitatorios')
-        .select('id, fase_atual, status')
-        .eq('organizacao_id', orgId),
-      (supabase as any)
-        .from('processos_licitatorios')
-        .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at')
-        .eq('organizacao_id', orgId)
-        .eq('fase_atual', 'setor_compras')
-        .order('updated_at', { ascending: true })
-        .limit(20),
-      (supabase as any)
-        .from('cotacoes')
-        .select('id')
-        .eq('organizacao_id', orgId)
-        .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString()),
-    ])
+  const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+
+  const [
+    { data: todosProcessos },
+    { data: filaCompleta },
+    { data: cotacoesFeitasData },
+    { data: concluidosData },
+    { data: acoesIaData },
+  ] = await Promise.all([
+    (supabase as any)
+      .from('processos_licitatorios')
+      .select('id, fase_atual, status, valor_estimado')
+      .eq('organizacao_id', orgId),
+    (supabase as any)
+      .from('processos_licitatorios')
+      .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at')
+      .eq('organizacao_id', orgId)
+      .eq('fase_atual', 'setor_compras')
+      .order('updated_at', { ascending: true })
+      .limit(20),
+    (supabase as any)
+      .from('cotacoes')
+      .select('id')
+      .eq('organizacao_id', orgId)
+      .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString()),
+    (supabase as any)
+      .from('processos_licitatorios')
+      .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at')
+      .eq('organizacao_id', orgId)
+      .not('fase_atual', 'eq', 'setor_compras')
+      .not('fase_atual', 'eq', 'requisitante')
+      .order('updated_at', { ascending: false })
+      .limit(10),
+    (supabase as any)
+      .from('acoes_ia')
+      .select('creditos_consumidos')
+      .eq('organizacao_id', orgId)
+      .gte('created_at', inicioMes),
+  ])
 
   const todos = (todosProcessos as any[]) ?? []
   const fila = (filaCompleta as any[]) ?? []
   const cotacoesSemana = ((cotacoesFeitasData as any[]) ?? []).length
+  const concluidosList = (concluidosData as any[]) ?? []
+  const creditosIaMes = ((acoesIaData as any[]) ?? []).reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
+
+  const valorEmFila = todos
+    .filter((p: any) => p.fase_atual === 'setor_compras')
+    .reduce((acc: number, p: any) => acc + (p.valor_estimado ?? 0), 0)
 
   const fases: FaseNode[] = FASE_KEYS.map((k) => ({
     key: k,
@@ -82,8 +108,10 @@ export async function DashboardCompras({ userId, orgId, cargo }: Props) {
 
       <KPIBar
         items={[
-          { label: 'Na fila', value: naFila, sub: 'aguardando cotação' },
+          { label: 'Na fila',           value: naFila, sub: 'aguardando cotação' },
           { label: 'Cotações (semana)', value: cotacoesSemana, sub: 'últimos 7 dias' },
+          { label: 'Valor em cotação',  value: valorEmFila > 0 ? `R$ ${(valorEmFila / 1000).toFixed(0)}k` : 'R$ 0', sub: 'estimado' },
+          { label: 'IA (mês)',          value: creditosIaMes.toLocaleString('pt-BR'), sub: 'créditos org' },
         ]}
       />
 
@@ -113,6 +141,14 @@ export async function DashboardCompras({ userId, orgId, cargo }: Props) {
           ))
         )}
       </ListCard>
+
+      {concluidosList.length > 0 && (
+        <ListCard title="Cotações concluídas recentes" subtitle="Processos que avançaram de fase">
+          {concluidosList.map((p: any) => (
+            <ProcessoRowDashboard key={p.id} {...p} />
+          ))}
+        </ListCard>
+      )}
 
       <FooterEditorial />
     </div>

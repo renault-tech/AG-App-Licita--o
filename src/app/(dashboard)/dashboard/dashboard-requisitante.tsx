@@ -22,7 +22,9 @@ const FASE_KEYS = ['requisitante','setor_compras','setor_licitacao','procurador'
 export async function DashboardRequisitante({ userId, orgId, cargo }: Props) {
   const supabase = await createClient()
 
-  const [{ data: processos }, { data: notifData }] = await Promise.all([
+  const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+
+  const [{ data: processos }, { data: notifData }, { data: acoesIaData }] = await Promise.all([
     (supabase as any)
       .from('processos_licitatorios')
       .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at, created_at')
@@ -34,10 +36,16 @@ export async function DashboardRequisitante({ userId, orgId, cargo }: Props) {
       .select('id')
       .eq('usuario_id', userId)
       .eq('lida', false),
+    (supabase as any)
+      .from('acoes_ia')
+      .select('creditos_consumidos')
+      .eq('usuario_id', userId)
+      .gte('created_at', inicioMes),
   ])
 
   const lista = (processos as any[]) ?? []
   const notifCount = ((notifData as any[]) ?? []).length
+  const creditosIaMes = ((acoesIaData as any[]) ?? []).reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
 
   const contagens = {
     total:      lista.length,
@@ -71,6 +79,7 @@ export async function DashboardRequisitante({ userId, orgId, cargo }: Props) {
         { label: 'Total criados', value: contagens.total, sub: 'processos' },
         { label: 'Em andamento',  value: contagens.andamento, sub: 'na fila' },
         { label: 'Concluídos',    value: contagens.concluidos, sub: 'publicados / assinados' },
+        { label: 'IA (mês)',      value: creditosIaMes.toLocaleString('pt-BR'), sub: 'créditos usados' },
       ]} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

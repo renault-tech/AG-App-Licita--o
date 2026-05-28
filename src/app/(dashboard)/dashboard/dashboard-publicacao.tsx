@@ -12,12 +12,12 @@ export async function DashboardPublicacao({ userId, orgId, cargo }: Props) {
   const supabase = await createClient()
   const inicioSemana = new Date(Date.now() - 7 * 86400000).toISOString()
 
-  const [{ data: publ }, { data: filaData }] = await Promise.all([
+  const [{ data: publ }, { data: filaData }, { data: publicadosData }] = await Promise.all([
     (supabase as any)
       .from('processos_licitatorios')
       .select('id, status, fase_atual, updated_at')
       .eq('organizacao_id', orgId)
-      .in('fase_atual', ['publicacao', 'publicado']),
+      .or('fase_atual.eq.publicacao,status.eq.publicado,status.eq.assinado'),
     (supabase as any)
       .from('processos_licitatorios')
       .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at')
@@ -25,17 +25,28 @@ export async function DashboardPublicacao({ userId, orgId, cargo }: Props) {
       .eq('fase_atual', 'publicacao')
       .order('updated_at', { ascending: true })
       .limit(20),
+    (supabase as any)
+      .from('processos_licitatorios')
+      .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at')
+      .eq('organizacao_id', orgId)
+      .in('status', ['publicado', 'assinado'])
+      .order('updated_at', { ascending: false })
+      .limit(10),
   ])
 
-  const lista = (publ as any[]) ?? []
-  const fila  = (filaData as any[]) ?? []
+  const lista         = (publ as any[]) ?? []
+  const fila          = (filaData as any[]) ?? []
+  const publicadosList = (publicadosData as any[]) ?? []
 
   const aguardando       = lista.filter((p: any) => p.fase_atual === 'publicacao').length
   const publicadosSemana = lista.filter((p: any) => p.status === 'publicado' && p.updated_at >= inicioSemana).length
+  const totalPublicados  = lista.filter((p: any) => p.status === 'publicado').length
+  const semPNCP          = lista.filter((p: any) => p.fase_atual === 'publicacao').length
 
   const fases: FaseNode[] = [
-    { key: 'publicacao', label: 'Aguardando', count: aguardando,       devolvidos: 0, parados: 0, href: '/processos?fase=publicacao', isCurrent: true },
-    { key: 'publicado',  label: 'Publicados', count: publicadosSemana, devolvidos: 0, parados: 0, href: '/processos?status=publicado' },
+    { key: 'publicacao',     label: 'Aguardando',  count: aguardando,       devolvidos: 0, parados: 0, href: '/processos?fase=publicacao',     isCurrent: true },
+    { key: 'publicado_pncp', label: 'PNCP',        count: publicadosSemana, devolvidos: 0, parados: 0, href: '/processos?status=publicado' },
+    { key: 'publicado',      label: 'Publicados',  count: totalPublicados,  devolvidos: 0, parados: 0, href: '/processos?status=publicado' },
   ]
 
   return (
@@ -44,7 +55,9 @@ export async function DashboardPublicacao({ userId, orgId, cargo }: Props) {
       <FaseTimeline fases={fases} />
       <KPIBar items={[
         { label: 'Aguardando',       value: aguardando },
-        { label: 'Publicados (sem)', value: publicadosSemana },
+        { label: 'Publicados (sem)', value: publicadosSemana, sub: 'últimos 7 dias' },
+        { label: 'Total publicados', value: totalPublicados },
+        { label: 'Pendentes PNCP',   value: semPNCP, accent: semPNCP > 0, sub: 'na fila' },
       ]} />
       <PendenciasCard userId={userId} orgId={orgId} faseAtual="publicacao" />
       <ListCard title="Aguardando publicação" subtitle="Mais antigo primeiro">
@@ -53,6 +66,11 @@ export async function DashboardPublicacao({ userId, orgId, cargo }: Props) {
           : fila.map((p: any) => <ProcessoRowDashboard key={p.id} {...p} href={`/processos/${p.id}/publicacao`} />)
         }
       </ListCard>
+      {publicadosList.length > 0 && (
+        <ListCard title="Histórico de publicações" subtitle="Processos publicados recentemente">
+          {publicadosList.map((p: any) => <ProcessoRowDashboard key={p.id} {...p} />)}
+        </ListCard>
+      )}
       <FooterEditorial />
     </div>
   )
