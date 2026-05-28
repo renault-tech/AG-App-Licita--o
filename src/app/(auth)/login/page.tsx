@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Loader2, LogIn, Building2, UserPlus } from 'lucide-react'
+// Building2 usado no Select de prefeituras abaixo
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -166,30 +167,17 @@ function LoginForm() {
         </form>
       </Card>
 
-      {/* Dois caminhos de cadastro */}
-      <div className="grid grid-cols-2 gap-3">
-        <Link
-          href="/cadastro"
-          className="flex flex-col items-center gap-2 p-4 rounded-xl border bg-white hover:bg-gray-50 transition-colors text-center shadow-sm"
-        >
-          <UserPlus className="w-5 h-5 text-muted-foreground" />
-          <div>
-            <div className="text-sm font-semibold text-gray-900">Solicitar acesso</div>
-            <div className="text-xs text-muted-foreground">Minha prefeitura ja esta cadastrada</div>
-          </div>
-        </Link>
-
-        <Link
-          href="/cadastro/nova-prefeitura"
-          className="flex flex-col items-center gap-2 p-4 rounded-xl border bg-white hover:bg-gray-50 transition-colors text-center shadow-sm"
-        >
-          <Building2 className="w-5 h-5 text-muted-foreground" />
-          <div>
-            <div className="text-sm font-semibold text-gray-900">Cadastrar prefeitura</div>
-            <div className="text-xs text-muted-foreground">Sou o administrador da prefeitura</div>
-          </div>
-        </Link>
-      </div>
+      {/* Acesso para usuarios de prefeituras ja cadastradas */}
+      <Link
+        href="/cadastro"
+        className="flex items-center gap-3 p-4 rounded-xl border bg-white hover:bg-gray-50 transition-colors shadow-sm"
+      >
+        <UserPlus className="w-5 h-5 text-muted-foreground shrink-0" />
+        <div>
+          <div className="text-sm font-semibold text-gray-900">Solicitar acesso</div>
+          <div className="text-xs text-muted-foreground">Minha prefeitura ja esta cadastrada na plataforma</div>
+        </div>
+      </Link>
     </div>
   )
 }

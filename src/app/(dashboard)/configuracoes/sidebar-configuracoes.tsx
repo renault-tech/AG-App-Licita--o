@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, Users, Bot, Settings2, PenTool, Lock, Radio, ScrollText } from 'lucide-react'
+import { Building2, Users, Bot, Settings2, PenTool, Lock, Radio, ScrollText, Mail } from 'lucide-react'
 import { PODE_CONFIGURAR } from '@/lib/permissions'
 import type { PapelUsuario } from '@/types/database'
 
@@ -17,6 +17,10 @@ const NAV_ADMIN = [
   { href: '/configuracoes/logs',                  label: 'Logs de Auditoria',      icon: ScrollText  },
 ]
 
+const NAV_PLATAFORMA_EXTRA = [
+  { href: '/configuracoes/convites', label: 'Convites de Prefeitura', icon: Mail },
+]
+
 const NAV_USUARIO = [
   { href: '/configuracoes/ia', label: 'Inteligência Artificial', icon: Bot },
 ]
@@ -29,8 +33,11 @@ interface SidebarConfiguracoesProps {
 
 export default function SidebarConfiguracoes({ brasaoUrl, orgNome, papel }: SidebarConfiguracoesProps) {
   const pathname = usePathname()
-  const isAdmin = papel ? PODE_CONFIGURAR.includes(papel) : false
-  const NAV = isAdmin ? NAV_ADMIN : NAV_USUARIO
+  const isAdmin     = papel ? PODE_CONFIGURAR.includes(papel) : false
+  const isPlataforma = papel === 'admin_plataforma'
+  const NAV = isAdmin
+    ? [...NAV_ADMIN, ...(isPlataforma ? NAV_PLATAFORMA_EXTRA : [])]
+    : NAV_USUARIO
 
   return (
     <nav className="w-52 shrink-0" aria-label="Menu de configuracoes">
