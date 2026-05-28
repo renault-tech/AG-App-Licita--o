@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { buildPromptMelhorarCampo, type ContextoCampo } from '@/lib/ai/prompts/melhorar-campo'
+import { buildPromptSugerirConteudo, type ContextoSugestao } from '@/lib/ai/prompts/sugerir-conteudo'
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages'
 
@@ -29,21 +29,21 @@ export async function POST(req: NextRequest) {
     return new Response('Saldo de creditos insuficiente. Adquira mais creditos para continuar.', { status: 402 })
   }
 
-  let ctx: ContextoCampo
+  let ctx: ContextoSugestao
   try {
     ctx = await req.json()
   } catch {
     return new Response('Payload invalido', { status: 400 })
   }
 
-  if (!ctx.textoAtual || ctx.textoAtual.trim().length === 0) {
-    return new Response('Texto vazio nao pode ser melhorado', { status: 400 })
+  if (!ctx.dadosProcesso?.objeto || ctx.dadosProcesso.objeto.trim().length < 5) {
+    return new Response('Campo "Objeto" e obrigatorio para gerar sugestao.', { status: 400 })
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) return new Response('IA nao configurada', { status: 503 })
 
-  const prompt = buildPromptMelhorarCampo(ctx)
+  const prompt = buildPromptSugerirConteudo(ctx)
 
   const upstream = await fetch(ANTHROPIC_URL, {
     method: 'POST',
@@ -65,7 +65,6 @@ export async function POST(req: NextRequest) {
     return new Response(err || 'Erro na API Anthropic', { status: upstream.status })
   }
 
-  // Transpoe o SSE da Anthropic extraindo apenas os deltas de texto
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder()
@@ -103,9 +102,9 @@ export async function POST(req: NextRequest) {
         await (supabase as any).from('acoes_ia').insert({
           usuario_id: usuario.id,
           organizacao_id: usuario.organizacao_id,
-          tipo_acao: 'aprimorar_texto',
+          tipo_acao: 'sugerir_conteudo',
           modelo: 'claude-sonnet-4-6',
-          input_resumo: ctx.textoAtual.slice(0, 200),
+          input_resumo: ctx.dadosProcesso.objeto.slice(0, 200),
           output_resumo: textoCompleto.slice(0, 200),
           tokens_input: Math.ceil(prompt.length / 4),
           tokens_output: Math.ceil(textoCompleto.length / 4),

@@ -24,6 +24,7 @@ import { AutoSaveIndicator } from '@/components/licita/auto-save-indicator'
 import BotaoTramitacao from '@/components/documentos/botao-tramitacao'
 import ModalEncaminharAdesao from './modal-encaminhar-adesao'
 import { BotaoMelhorarCampo } from '@/components/ai/botao-melhorar-campo'
+import { BotaoSugerirConteudo } from '@/components/ai/botao-sugerir-conteudo'
 import { AvisoCotacaoPendente } from '@/components/processo/aviso-cotacao-pendente'
 import type { PapelUsuario, StatusDocumento, DFDItemRow, DFDParticipacaoRow } from '@/types/database'
 
@@ -426,21 +427,37 @@ export default function EditorDFD({
 
           {/* Objeto */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <Label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
                 <FileText className="w-3.5 h-3.5 text-gray-400" />
                 1. Objeto
               </Label>
               {!readonly && (
-                <BotaoMelhorarCampo
-                  textoAtual={objeto}
-                  contexto={{
-                    nomeCampo: 'Objeto da Contratacao',
-                    documentoContexto: 'DFD — Documento de Formalizacao da Demanda',
-                    artigo: 'Art. 6, X da Lei 14.133/21',
-                  }}
-                  onTextMelhorado={texto => setObjeto(texto)}
-                />
+                <div className="flex items-center gap-1.5">
+                  <BotaoSugerirConteudo
+                    contexto={{
+                      nomeCampo: 'Objeto da Contratacao',
+                      documentoContexto: 'DFD — Documento de Formalizacao da Demanda',
+                      artigo: 'Art. 6, X da Lei 14.133/21',
+                      dadosProcesso: {
+                        objeto: objeto || dfd.secretaria_nome,
+                        secretaria: dfd.secretaria_nome,
+                      },
+                    }}
+                    onTextoSugerido={texto => setObjeto(texto)}
+                    secaoLabel="Objeto"
+                  />
+                  <BotaoMelhorarCampo
+                    textoAtual={objeto}
+                    contexto={{
+                      nomeCampo: 'Objeto da Contratacao',
+                      documentoContexto: 'DFD — Documento de Formalizacao da Demanda',
+                      artigo: 'Art. 6, X da Lei 14.133/21',
+                      dadosProcesso: { secretaria: dfd.secretaria_nome },
+                    }}
+                    onTextMelhorado={texto => setObjeto(texto)}
+                  />
+                </div>
               )}
             </div>
             <Textarea

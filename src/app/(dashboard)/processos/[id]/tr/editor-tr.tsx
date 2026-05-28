@@ -11,6 +11,7 @@ import { atualizarTR, aprimorarTRComIA } from '@/lib/actions/tr'
 import { useAutoSave } from '@/hooks/use-auto-save'
 import { AutoSaveIndicator } from '@/components/licita/auto-save-indicator'
 import BotaoTramitacao from '@/components/documentos/botao-tramitacao'
+import { BotaoSugerirConteudo } from '@/components/ai/botao-sugerir-conteudo'
 import Link from 'next/link'
 import type { PapelUsuario } from '@/types/database'
 
@@ -54,9 +55,10 @@ export default function EditorTR({ tr, processoId, papelUsuario, podeEditar = tr
     sancoes:             tr.sancoes             || '',
   })
 
-  const [salvando, setSalvando]   = useState(false)
-  const [iaLoading, setIaLoading] = useState<string | null>(null)
-  const [iaEditado, setIaEditado] = useState<Set<string>>(new Set())
+  const [salvando, setSalvando]     = useState(false)
+  const [iaLoading, setIaLoading]   = useState<string | null>(null)
+  const [iaEditado, setIaEditado]   = useState<Set<string>>(new Set())
+  const [iaSugerido, setIaSugerido] = useState<Set<string>>(new Set())
 
   const autoSalvarTR = useCallback(async () => {
     if (!podeEditar || tr.status === 'assinado') return
@@ -98,33 +100,59 @@ export default function EditorTR({ tr, processoId, papelUsuario, podeEditar = tr
             Visualização somente leitura. Seu perfil não tem permissão de editar este documento.
           </p>
         )}
-        {CLAUSULAS.map(({ id, num, label, placeholder }) => {
-          const foiIA = iaEditado.has(id)
+        {CLAUSULAS.map(({ id, num, label, placeholder }, idx) => {
+          const foiIA     = iaEditado.has(id)
+          const foiSugeri = iaSugerido.has(id)
+          // Usa o objeto do TR como contexto; para o proprio campo objeto, usa o que ja foi digitado
+          const objetoContexto = idx === 0 ? (formData.objeto || tr.objeto || '') : formData.objeto
           return (
             <div key={id} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <div className="flex items-center justify-between gap-2">
+                <Label className="flex items-center gap-2 text-sm font-medium text-gray-700 min-w-0">
                   <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs flex items-center justify-center font-semibold shrink-0">
                     {num}
                   </span>
-                  {label}
+                  <span className="truncate">{label}</span>
                   {foiIA && (
-                    <span className="text-xs font-normal text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">
+                    <span className="text-xs font-normal text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded shrink-0">
                       Aprimorado por IA
                     </span>
                   )}
+                  {foiSugeri && !foiIA && (
+                    <span className="text-xs font-normal text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded shrink-0">
+                      Sugerido por IA
+                    </span>
+                  )}
                 </Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100 gap-1 shrink-0"
-                  onClick={() => handleIA(id as keyof FormData)}
-                  disabled={iaLoading === id || !podeEditar}
-                >
-                  {iaLoading === id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
-                  IA
-                </Button>
+                <div className="flex items-center gap-1 shrink-0">
+                  {podeEditar && (
+                    <BotaoSugerirConteudo
+                      contexto={{
+                        nomeCampo: label,
+                        documentoContexto: 'Termo de Referencia',
+                        artigo: 'Art. 6, XXIII da Lei 14.133/21',
+                        dadosProcesso: { objeto: objetoContexto },
+                      }}
+                      onTextoSugerido={(texto) => {
+                        setFormData(prev => ({ ...prev, [id]: texto }))
+                        if (texto) setIaSugerido(prev => new Set(prev).add(id))
+                      }}
+                      disabled={!podeEditar}
+                    />
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100 gap-1 shrink-0"
+                    onClick={() => handleIA(id as keyof FormData)}
+                    disabled={iaLoading === id || !podeEditar}
+                    title="Aprimorar texto existente com IA"
+                  >
+                    {iaLoading === id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+                    Aprimorar
+                  </Button>
+                </div>
               </div>
               <Textarea
                 rows={4}
@@ -132,7 +160,7 @@ export default function EditorTR({ tr, processoId, papelUsuario, podeEditar = tr
                 value={formData[id as keyof FormData]}
                 onChange={(e) => setFormData(prev => ({ ...prev, [id]: e.target.value }))}
                 readOnly={!podeEditar}
-                className={`resize-y ${foiIA ? 'border-purple-200 bg-purple-50/30' : ''} ${!podeEditar ? 'bg-gray-50 cursor-default' : ''}`}
+                className={`resize-y ${foiIA ? 'border-purple-200 bg-purple-50/30' : ''} ${foiSugeri && !foiIA ? 'border-amber-200 bg-amber-50/20' : ''} ${!podeEditar ? 'bg-gray-50 cursor-default' : ''}`}
               />
             </div>
           )
