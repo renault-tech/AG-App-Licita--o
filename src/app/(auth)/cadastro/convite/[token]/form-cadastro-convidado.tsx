@@ -211,7 +211,7 @@ export default function FormCadastroConvidado({ token, emailDestino, nomePrefeit
 
             <div className="space-y-1.5">
               <Label>Secretaria</Label>
-              <Select onValueChange={(v: string) => setSecretariaNome(v)}>
+              <Select onValueChange={(v: string | null) => { if (v) setSecretariaNome(v) }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione sua secretaria..." />
                 </SelectTrigger>
