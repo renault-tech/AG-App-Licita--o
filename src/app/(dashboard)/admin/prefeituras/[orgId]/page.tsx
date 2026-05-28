@@ -31,10 +31,10 @@ export default async function AdminPrefeituraPage({
       .eq('organizacao_id', orgId)
       .order('updated_at', { ascending: false })
       .limit(20),
-    (supabase as any).from('usuarios').select('id, nome_completo, papel, status').eq('organizacao_id', orgId),
+    (supabase as any).from('usuarios').select('id, nome_completo, papel, status_aprovacao').eq('organizacao_id', orgId),
     (supabase as any)
       .from('acoes_ia')
-      .select('id, tokens_consumidos')
+      .select('id, creditos_consumidos')
       .eq('organizacao_id', orgId)
       .gte('created_at', new Date(Date.now() - 30 * 86400000).toISOString()),
   ])
@@ -60,9 +60,9 @@ export default async function AdminPrefeituraPage({
     href: `/processos?fase=${k}`,
   }))
 
-  const ativos    = usuariosList.filter((u: any) => u.status === 'ativo').length
+  const ativos    = usuariosList.filter((u: any) => u.status_aprovacao === 'ativo').length
   const andamento = processosList.filter((p: any) => !['publicado','assinado'].includes(p.status)).length
-  const tokens    = acoesList.reduce((acc: number, a: any) => acc + (a.tokens_consumidos ?? 0), 0)
+  const tokens    = acoesList.reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
 
   return (
     <div className="space-y-8">
@@ -101,11 +101,11 @@ export default async function AdminPrefeituraPage({
             <span
               className="text-xs px-2 py-0.5 rounded-full font-semibold"
               style={{
-                background: u.status === 'ativo' ? 'var(--successWash)' : 'var(--warnWash)',
-                color: u.status === 'ativo' ? 'var(--success)' : 'var(--warn)',
+                background: u.status_aprovacao === 'ativo' ? 'var(--successWash)' : 'var(--warnWash)',
+                color: u.status_aprovacao === 'ativo' ? 'var(--success)' : 'var(--warn)',
               }}
             >
-              {u.status}
+              {u.status_aprovacao}
             </span>
           </div>
         ))}

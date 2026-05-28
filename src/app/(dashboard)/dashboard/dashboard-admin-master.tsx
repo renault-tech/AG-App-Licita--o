@@ -23,9 +23,9 @@ export async function DashboardAdminMaster({ userId: _userId }: Props) {
     { data: acoesIa },
   ] = await Promise.all([
     (supabase as any).from('organizacoes').select('id, nome, municipio, estado').order('nome'),
-    (supabase as any).from('usuarios').select('id, organizacao_id, status').eq('status', 'ativo'),
+    (supabase as any).from('usuarios').select('id, organizacao_id, status_aprovacao').eq('status_aprovacao', 'ativo'),
     (supabase as any).from('processos_licitatorios').select('id, organizacao_id, status'),
-    (supabase as any).from('acoes_ia').select('id, organizacao_id, tokens_consumidos').gte('created_at', corte),
+    (supabase as any).from('acoes_ia').select('id, organizacao_id, creditos_consumidos').gte('created_at', corte),
   ])
 
   const orgsList      = (orgs as any[]) ?? []
@@ -33,7 +33,7 @@ export async function DashboardAdminMaster({ userId: _userId }: Props) {
   const processosList = (processos as any[]) ?? []
   const acoesList     = (acoesIa as any[]) ?? []
 
-  const totalTokens = acoesList.reduce((acc: number, a: any) => acc + (a.tokens_consumidos ?? 0), 0)
+  const totalTokens = acoesList.reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
 
   const orgsComDados = orgsList.map((org: any) => ({
     ...org,
@@ -41,7 +41,7 @@ export async function DashboardAdminMaster({ userId: _userId }: Props) {
     processos:      processosList.filter((p: any) => p.organizacao_id === org.id).length,
     tokens:         acoesList
       .filter((a: any) => a.organizacao_id === org.id)
-      .reduce((acc: number, a: any) => acc + (a.tokens_consumidos ?? 0), 0),
+      .reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0),
   }))
 
   return (

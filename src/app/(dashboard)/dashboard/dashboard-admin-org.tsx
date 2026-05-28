@@ -21,9 +21,9 @@ export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo }: Props
     { data: acoesIa },
     { data: creditos },
   ] = await Promise.all([
-    (supabase as any).from('usuarios').select('id, nome_completo, papel, status, ultimo_acesso').eq('organizacao_id', orgId),
+    (supabase as any).from('usuarios').select('id, nome_completo, papel, status_aprovacao').eq('organizacao_id', orgId),
     (supabase as any).from('processos_licitatorios').select('id, status').eq('organizacao_id', orgId),
-    (supabase as any).from('acoes_ia').select('id, usuario_id, tokens_consumidos').eq('organizacao_id', orgId).gte('created_at', corte),
+    (supabase as any).from('acoes_ia').select('id, usuario_id, creditos_consumidos').eq('organizacao_id', orgId).gte('created_at', corte),
     (supabase as any).from('creditos_usuario').select('saldo').eq('usuario_id', userId).maybeSingle(),
   ])
 
@@ -32,9 +32,9 @@ export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo }: Props
   const acoesList     = (acoesIa as any[]) ?? []
   const saldo         = (creditos as any)?.saldo ?? 0
 
-  const ativos    = usuariosList.filter((u: any) => u.status === 'ativo').length
+  const ativos    = usuariosList.filter((u: any) => u.status_aprovacao === 'ativo').length
   const andamento = processosList.filter((p: any) => !['publicado','assinado'].includes(p.status)).length
-  const tokensMes = acoesList.reduce((acc: number, a: any) => acc + (a.tokens_consumidos ?? 0), 0)
+  const tokensMes = acoesList.reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
 
   return (
     <div className="space-y-8">
@@ -71,7 +71,7 @@ export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo }: Props
             {usuariosList.slice(0, 10).map((u: any) => {
               const tokens = acoesList
                 .filter((a: any) => a.usuario_id === u.id)
-                .reduce((acc: number, a: any) => acc + (a.tokens_consumidos ?? 0), 0)
+                .reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
               return (
                 <div key={u.id} className="flex items-center justify-between px-6 py-3 border-b last:border-b-0" style={{ borderColor: 'var(--hairline)' }}>
                   <div>
@@ -105,11 +105,11 @@ export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo }: Props
             <span
               className="text-xs px-2 py-0.5 rounded-full font-semibold"
               style={{
-                background: u.status === 'ativo' ? 'var(--successWash)' : 'var(--warnWash)',
-                color: u.status === 'ativo' ? 'var(--success)' : 'var(--warn)',
+                background: u.status_aprovacao === 'ativo' ? 'var(--successWash)' : 'var(--warnWash)',
+                color: u.status_aprovacao === 'ativo' ? 'var(--success)' : 'var(--warn)',
               }}
             >
-              {u.status}
+              {u.status_aprovacao}
             </span>
           </div>
         ))}
