@@ -53,8 +53,11 @@ export function ListCard({ title, subtitle, action, children }: {
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-[var(--r-lg)] border overflow-hidden" style={{ background: 'var(--surface)', borderColor: 'var(--hairline)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-      <div className="flex flex-row items-center justify-between px-6 py-5 border-b" style={{ background: 'var(--surfaceAlt)', borderColor: 'var(--hairline)' }}>
+    <div className="glass rounded-[var(--r-lg)] overflow-hidden">
+      <div
+        className="flex flex-row items-center justify-between px-6 py-5 border-b"
+        style={{ borderColor: 'var(--glass-edge)', background: 'rgba(0,0,0,0.025)' }}
+      >
         <div>
           <h2 className="text-lg font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>{title}</h2>
           {subtitle && <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>{subtitle}</p>}

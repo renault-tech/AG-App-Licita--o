@@ -64,6 +64,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
+      {/* Cristal aurora atmospheric background — purely visual, no pointer events */}
+      <div className="cristal-aurora" aria-hidden="true" />
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-primary focus:text-primary-foreground focus:font-medium focus:shadow-lg"

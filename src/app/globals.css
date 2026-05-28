@@ -137,6 +137,18 @@
   --chart-5: #607080;
   --navy: #1F3B4E;
   --gold: #B56B30;
+
+  /* Cristal glass tokens */
+  --glass:           rgba(255,255,255,0.72);
+  --glass-strong:    rgba(247,245,240,0.88);
+  --glass-edge:      rgba(214,206,189,0.50);
+  --glass-shadow:    0 4px 20px rgba(31,59,78,0.07), 0 1px 4px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.60);
+  --glass-hover:     rgba(255,255,255,0.86);
+  --ease-cristal:    cubic-bezier(0.25,0.46,0.45,0.94);
+  --aurora-bg:
+    radial-gradient(ellipse 880px 660px at 15% 20%, rgba(31,59,78,0.10) 0%, transparent 65%),
+    radial-gradient(ellipse 560px 400px at 85% 28%, rgba(181,107,48,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 700px 500px at 50% 88%, rgba(42,102,68,0.06) 0%, transparent 70%);
 }
 
 [data-theme="grafite"] {
@@ -215,6 +227,17 @@
   --chart-5: #666666;
   --navy: #111111;
   --gold: #0F6FBA;
+
+  /* Cristal glass tokens */
+  --glass:           rgba(248,248,248,0.70);
+  --glass-strong:    rgba(235,235,235,0.88);
+  --glass-edge:      rgba(204,204,204,0.48);
+  --glass-shadow:    0 4px 20px rgba(17,17,17,0.08), 0 1px 4px rgba(0,0,0,0.06);
+  --glass-hover:     rgba(248,248,248,0.88);
+  --ease-cristal:    cubic-bezier(0.25,0.46,0.45,0.94);
+  --aurora-bg:
+    radial-gradient(ellipse 800px 600px at 20% 20%, rgba(15,111,186,0.06) 0%, transparent 65%),
+    radial-gradient(ellipse 500px 380px at 80% 30%, rgba(100,100,120,0.04) 0%, transparent 60%);
 }
 
 [data-theme="brasao"] {
@@ -293,6 +316,18 @@
   --chart-5: #A09878;
   --navy: #1A4828;
   --gold: #9C6A14;
+
+  /* Cristal glass tokens */
+  --glass:           rgba(250,247,236,0.78);
+  --glass-strong:    rgba(240,236,216,0.90);
+  --glass-edge:      rgba(200,188,144,0.45);
+  --glass-shadow:    0 4px 20px rgba(26,72,40,0.07), 0 1px 4px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.50);
+  --glass-hover:     rgba(255,253,244,0.90);
+  --ease-cristal:    cubic-bezier(0.25,0.46,0.45,0.94);
+  --aurora-bg:
+    radial-gradient(ellipse 880px 660px at 15% 20%, rgba(26,72,40,0.09) 0%, transparent 65%),
+    radial-gradient(ellipse 560px 400px at 82% 25%, rgba(156,106,20,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 600px 500px at 50% 85%, rgba(138,32,32,0.04) 0%, transparent 70%);
 }
 
 [data-theme="noite"] {
@@ -371,6 +406,18 @@
   --chart-5: #7A8A9A;
   --navy: #4A90D9;
   --gold: #E8A030;
+
+  /* Cristal glass tokens */
+  --glass:           rgba(22,28,36,0.70);
+  --glass-strong:    rgba(13,17,23,0.84);
+  --glass-edge:      rgba(74,144,217,0.16);
+  --glass-shadow:    0 4px 32px rgba(0,0,0,0.32), 0 1px 8px rgba(0,0,0,0.24), inset 0 1px 0 rgba(74,144,217,0.10);
+  --glass-hover:     rgba(28,36,46,0.80);
+  --ease-cristal:    cubic-bezier(0.25,0.46,0.45,0.94);
+  --aurora-bg:
+    radial-gradient(ellipse 900px 700px at 20% 15%, rgba(74,144,217,0.14) 0%, transparent 65%),
+    radial-gradient(ellipse 600px 450px at 80% 30%, rgba(232,160,48,0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 700px 500px at 50% 85%, rgba(58,170,112,0.08) 0%, transparent 70%);
 }
 
 [data-theme="cataguases"] {
@@ -456,6 +503,18 @@
   --chart-5: #5A6878;
   --navy: #0E1B33;
   --gold: #D4A020;
+
+  /* Cristal glass tokens */
+  --glass:           rgba(245,240,224,0.76);
+  --glass-strong:    rgba(237,232,216,0.90);
+  --glass-edge:      rgba(200,186,160,0.45);
+  --glass-shadow:    0 4px 20px rgba(14,27,51,0.07), 0 1px 4px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.55);
+  --glass-hover:     rgba(252,248,234,0.90);
+  --ease-cristal:    cubic-bezier(0.25,0.46,0.45,0.94);
+  --aurora-bg:
+    radial-gradient(ellipse 880px 660px at 15% 20%, rgba(14,27,51,0.10) 0%, transparent 65%),
+    radial-gradient(ellipse 560px 400px at 83% 25%, rgba(212,160,32,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 600px 500px at 48% 85%, rgba(192,48,32,0.06) 0%, transparent 70%);
 }
 
 /* ── Tailwind aliases para tokens LicitaIA ─────────────────── */
@@ -655,4 +714,42 @@ body::before {
   background-size: 3px 3px, 7px 7px;
   background-position: 0 0, 1px 1px;
   opacity: 0.6;
+}
+
+/* ────────────────────────────────────────────────────────────
+ * Licita·IA · Cristal glass system
+ * ──────────────────────────────────────────────────────────── */
+
+/* Aurora atmospheric background layer */
+.cristal-aurora {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: var(--aurora-bg);
+}
+
+/* Glass morphism — light surface with backdrop blur */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-strong {
+  background: var(--glass-strong);
+  backdrop-filter: blur(60px) saturate(200%);
+  -webkit-backdrop-filter: blur(60px) saturate(200%);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Lift — subtle hover elevation for interactive glass cards */
+.lift {
+  transition: transform 180ms var(--ease-cristal, cubic-bezier(0.25,0.46,0.45,0.94)),
+              box-shadow 180ms var(--ease-cristal, cubic-bezier(0.25,0.46,0.45,0.94));
+  will-change: transform;
+}
+.lift:hover {
+  transform: translateY(-2px);
+  background: var(--glass-hover);
 }
