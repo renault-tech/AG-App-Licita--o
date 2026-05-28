@@ -2,17 +2,53 @@ import { createServiceClient, createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
+import {
+  ChevronRight, Users, FileText,
+  AlertCircle, Building2,
+} from 'lucide-react'
 import { KPIBar } from '@/components/dashboard/kpi-bar'
 import { FaseTimeline } from '@/components/dashboard/fase-timeline'
 import type { FaseNode } from '@/components/dashboard/fase-timeline'
 import { FooterEditorial, ListCard } from '../../../dashboard/shared'
 
+const PAPEL_LABEL: Record<string, string> = {
+  requisitante:       'Requisitante',
+  setor_compras:      'Setor de Compras',
+  setor_licitacao:    'Setor de Licitacoes',
+  procurador:         'Procurador',
+  gestor_publico:     'Gestor Publico',
+  publicacao:         'Publicacao',
+  admin_organizacao:  'Admin da Organizacao',
+  admin_plataforma:   'Admin da Plataforma',
+}
+
+const STATUS_LABEL: Record<string, { label: string; bg: string; color: string }> = {
+  rascunho:    { label: 'Rascunho',    bg: 'var(--surfaceAlt)',  color: 'var(--muted)' },
+  em_revisao:  { label: 'Em revisao',  bg: 'var(--warnWash)',    color: 'var(--warn)' },
+  devolvido:   { label: 'Devolvido',   bg: 'var(--errorWash)',   color: 'var(--error)' },
+  aprovado:    { label: 'Aprovado',    bg: 'var(--successWash)', color: 'var(--success)' },
+  publicado:   { label: 'Publicado',   bg: 'var(--successWash)', color: 'var(--success)' },
+  assinado:    { label: 'Assinado',    bg: 'var(--primaryWash)', color: 'var(--primary)' },
+  cancelado:   { label: 'Cancelado',   bg: 'var(--errorWash)',   color: 'var(--error)' },
+}
+
+const MODALIDADE_LABEL: Record<string, string> = {
+  pregao_eletronico:    'Pregao Eletronico',
+  concorrencia:         'Concorrencia',
+  concurso:             'Concurso',
+  leilao:               'Leilao',
+  dialogo_competitivo:  'Dialogo Competitivo',
+  dispensa:             'Dispensa',
+  inexigibilidade:      'Inexigibilidade',
+}
+
 export default async function AdminPrefeituraPage({
   params,
 }: {
-  params: { orgId: string }
+  params: Promise<{ orgId: string }>
 }) {
+  const { orgId } = await params
+
   const authClient = await createClient()
   const { data: { user } } = await authClient.auth.getUser()
   if (!user) redirect('/login')
@@ -21,22 +57,39 @@ export default async function AdminPrefeituraPage({
   if (papel !== 'admin_plataforma') redirect('/dashboard')
 
   const supabase = await createServiceClient()
-  const { orgId } = params
+  const corte30d = new Date(Date.now() - 30 * 86400000).toISOString()
 
-  const [{ data: org }, { data: processos }, { data: usuarios }, { data: acoesIa }] = await Promise.all([
-    (supabase as any).from('organizacoes').select('id, nome, municipio, estado, cnpj').eq('id', orgId).maybeSingle(),
+  const [
+    { data: org },
+    { data: processos },
+    { data: usuarios },
+    { data: acoesIa },
+    { data: creditos },
+  ] = await Promise.all([
+    (supabase as any)
+      .from('organizacoes')
+      .select('id, nome, municipio, estado, cnpj, ativo, is_demo, created_at')
+      .eq('id', orgId)
+      .maybeSingle(),
     (supabase as any)
       .from('processos_licitatorios')
       .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at')
       .eq('organizacao_id', orgId)
-      .order('updated_at', { ascending: false })
-      .limit(20),
-    (supabase as any).from('usuarios').select('id, nome_completo, papel, status_aprovacao').eq('organizacao_id', orgId),
+      .order('updated_at', { ascending: false }),
+    (supabase as any)
+      .from('usuarios')
+      .select('id, nome_completo, papel, status_aprovacao, created_at')
+      .eq('organizacao_id', orgId)
+      .order('nome_completo'),
     (supabase as any)
       .from('acoes_ia')
-      .select('id, creditos_consumidos')
+      .select('id, creditos_consumidos, tipo_acao, created_at')
       .eq('organizacao_id', orgId)
-      .gte('created_at', new Date(Date.now() - 30 * 86400000).toISOString()),
+      .gte('created_at', corte30d),
+    (supabase as any)
+      .from('creditos_usuario')
+      .select('saldo')
+      .eq('organizacao_id', orgId),
   ])
 
   if (!org) redirect('/dashboard')
@@ -45,85 +98,244 @@ export default async function AdminPrefeituraPage({
   const processosList = (processos as any[]) ?? []
   const usuariosList  = (usuarios as any[]) ?? []
   const acoesList     = (acoesIa as any[]) ?? []
+  const creditosList  = (creditos as any[]) ?? []
 
+  // KPIs
+  const ativos      = usuariosList.filter((u: any) => u.status_aprovacao === 'ativo').length
+  const andamento   = processosList.filter((p: any) => !['publicado', 'assinado', 'cancelado'].includes(p.status)).length
+  const concluidos  = processosList.filter((p: any) => ['publicado', 'assinado'].includes(p.status)).length
+  const tokens      = acoesList.reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
+  const saldoTotal  = creditosList.reduce((acc: number, c: any) => acc + (c.saldo ?? 0), 0)
+
+  // Fases
+  const FASE_KEYS   = ['requisitante', 'setor_compras', 'setor_licitacao', 'procurador', 'gestor_publico', 'publicacao']
   const FASE_LABELS: Record<string, string> = {
-    requisitante: 'Requisitante', setor_compras: 'Compras', setor_licitacao: 'Licitações',
-    procurador: 'Procuradoria', gestor_publico: 'Autorização', publicacao: 'Publicação',
+    requisitante:   'Requisitante',
+    setor_compras:  'Compras',
+    setor_licitacao:'Licitacoes',
+    procurador:     'Procuradoria',
+    gestor_publico: 'Autorizacao',
+    publicacao:     'Publicacao',
   }
-  const FASE_KEYS = ['requisitante','setor_compras','setor_licitacao','procurador','gestor_publico','publicacao']
-
   const fases: FaseNode[] = FASE_KEYS.map((k) => ({
-    key: k, label: FASE_LABELS[k],
+    key:        k,
+    label:      FASE_LABELS[k],
     count:      processosList.filter((p: any) => p.fase_atual === k).length,
     devolvidos: processosList.filter((p: any) => p.fase_atual === k && p.status === 'devolvido').length,
-    parados: 0,
-    href: `/processos?fase=${k}`,
+    parados:    0,
+    href:       `/processos?fase=${k}`,
   }))
 
-  const ativos    = usuariosList.filter((u: any) => u.status_aprovacao === 'ativo').length
-  const andamento = processosList.filter((p: any) => !['publicado','assinado'].includes(p.status)).length
-  const tokens    = acoesList.reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
+  // Distribuicao por modalidade
+  const modalidades = Object.entries(
+    processosList.reduce((acc: Record<string, number>, p: any) => {
+      const m = p.modalidade || 'nao_definida'
+      acc[m] = (acc[m] ?? 0) + 1
+      return acc
+    }, {})
+  ).sort(([, a], [, b]) => b - a)
+
+  // Status geral
+  const statusDist = Object.entries(
+    processosList.reduce((acc: Record<string, number>, p: any) => {
+      acc[p.status ?? 'rascunho'] = (acc[p.status ?? 'rascunho'] ?? 0) + 1
+      return acc
+    }, {})
+  ).sort(([, a], [, b]) => b - a)
+
+  // Data de cadastro formatada
+  const cadastroEm = orgData.created_at
+    ? new Date(orgData.created_at).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+    : null
 
   return (
     <div className="space-y-8">
+      {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm" style={{ color: 'var(--muted)' }}>
         <Link href="/dashboard" className="hover:underline">Plataforma</Link>
-        <ChevronRight className="w-3.5 h-3.5" />
-        <span style={{ color: 'var(--inkSoft)' }}>Prefeituras</span>
         <ChevronRight className="w-3.5 h-3.5" />
         <span style={{ color: 'var(--ink)', fontWeight: 600 }}>{orgData.nome}</span>
       </nav>
 
-      <div>
-        <h1 className="text-2xl font-semibold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--ink)' }}>
-          {orgData.nome}
-        </h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
-          {orgData.municipio} · {orgData.estado} · CNPJ {orgData.cnpj}
-        </p>
+      {/* Cabecalho */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: 'var(--primaryWash)' }}
+          >
+            <Building2 className="w-6 h-6" style={{ color: 'var(--primary)' }} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--ink)' }}>
+              {orgData.nome}
+            </h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
+              {orgData.municipio} · {orgData.estado}
+              {orgData.cnpj ? ` · CNPJ ${orgData.cnpj}` : ''}
+              {cadastroEm ? ` · Na plataforma desde ${cadastroEm}` : ''}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {orgData.is_demo && (
+            <span className="text-xs px-2 py-1 rounded-full font-semibold" style={{ background: 'var(--warnWash)', color: 'var(--warn)' }}>
+              Demo
+            </span>
+          )}
+          <span
+            className="text-xs px-2 py-1 rounded-full font-semibold"
+            style={{
+              background: orgData.ativo ? 'var(--successWash)' : 'var(--errorWash)',
+              color: orgData.ativo ? 'var(--success)' : 'var(--error)',
+            }}
+          >
+            {orgData.ativo ? 'Ativa' : 'Suspensa'}
+          </span>
+        </div>
       </div>
 
-      <FaseTimeline fases={fases} />
-
+      {/* KPIs principais */}
       <KPIBar items={[
-        { label: 'Usuários ativos', value: ativos },
+        { label: 'Usuarios ativos', value: ativos },
         { label: 'Em andamento',    value: andamento },
+        { label: 'Concluidos',      value: concluidos },
         { label: 'IA (30d)',        value: tokens.toLocaleString('pt-BR'), sub: 'tokens' },
+        { label: 'Saldo creditos',  value: saldoTotal.toLocaleString('pt-BR') },
       ]} />
 
-      <ListCard title="Usuários">
-        {usuariosList.map((u: any) => (
-          <div key={u.id} className="flex items-center justify-between px-6 py-3 border-b last:border-b-0" style={{ borderColor: 'var(--hairline)' }}>
-            <div>
-              <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{u.nome_completo}</p>
-              <p className="text-xs" style={{ color: 'var(--muted)' }}>{u.papel}</p>
+      {/* Timeline de fases */}
+      {processosList.length > 0 && <FaseTimeline fases={fases} />}
+
+      {/* Grid: distribuicao por modalidade + status */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Modalidades */}
+        <div className="rounded-xl border p-5 space-y-3" style={{ borderColor: 'var(--hairline)', background: 'var(--surface)' }}>
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
+            Modalidades
+          </p>
+          {modalidades.length === 0 ? (
+            <p className="text-sm" style={{ color: 'var(--mutedSoft)' }}>Sem processos</p>
+          ) : (
+            <div className="space-y-2">
+              {modalidades.map(([mod, count]) => (
+                <div key={mod} className="flex items-center justify-between">
+                  <span className="text-sm" style={{ color: 'var(--inkSoft)' }}>
+                    {MODALIDADE_LABEL[mod] ?? mod}
+                  </span>
+                  <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--ink)' }}>{count}</span>
+                </div>
+              ))}
             </div>
-            <span
-              className="text-xs px-2 py-0.5 rounded-full font-semibold"
-              style={{
-                background: u.status_aprovacao === 'ativo' ? 'var(--successWash)' : 'var(--warnWash)',
-                color: u.status_aprovacao === 'ativo' ? 'var(--success)' : 'var(--warn)',
-              }}
-            >
-              {u.status_aprovacao}
-            </span>
+          )}
+        </div>
+
+        {/* Status */}
+        <div className="rounded-xl border p-5 space-y-3" style={{ borderColor: 'var(--hairline)', background: 'var(--surface)' }}>
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
+            Status dos processos
+          </p>
+          {statusDist.length === 0 ? (
+            <p className="text-sm" style={{ color: 'var(--mutedSoft)' }}>Sem processos</p>
+          ) : (
+            <div className="space-y-2">
+              {statusDist.map(([status, count]) => {
+                const s = STATUS_LABEL[status] ?? { label: status, bg: 'var(--surfaceAlt)', color: 'var(--muted)' }
+                return (
+                  <div key={status} className="flex items-center justify-between">
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                      style={{ background: s.bg, color: s.color }}
+                    >
+                      {s.label}
+                    </span>
+                    <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--ink)' }}>{count}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Lista de processos */}
+      <ListCard
+        title="Processos"
+        subtitle={`${processosList.length} no total`}
+      >
+        {processosList.length === 0 ? (
+          <div className="px-6 py-10 text-center">
+            <FileText className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--mutedSoft)' }} />
+            <p className="text-sm" style={{ color: 'var(--muted)' }}>Nenhum processo criado ainda</p>
           </div>
-        ))}
+        ) : (
+          processosList.map((p: any) => {
+            const s = STATUS_LABEL[p.status ?? 'rascunho'] ?? STATUS_LABEL.rascunho
+            return (
+              <Link
+                key={p.id}
+                href={`/processos/${p.id}/dfd`}
+                className="flex items-center gap-4 px-6 py-3 border-b last:border-b-0 transition-colors hover:bg-[var(--surfaceAlt)]"
+                style={{ borderColor: 'var(--hairline)' }}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate" style={{ color: 'var(--ink)' }}>
+                    {p.numero_processo ? `${p.numero_processo}: ` : ''}{p.objeto || 'Sem objeto definido'}
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                    {MODALIDADE_LABEL[p.modalidade] ?? p.modalidade ?? 'Modalidade nao definida'}
+                    {p.updated_at ? ` · Atualizado ${new Date(p.updated_at).toLocaleDateString('pt-BR')}` : ''}
+                  </p>
+                </div>
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full font-semibold shrink-0"
+                  style={{ background: s.bg, color: s.color }}
+                >
+                  {s.label}
+                </span>
+              </Link>
+            )
+          })
+        )}
       </ListCard>
 
-      <ListCard title="Processos recentes">
-        {processosList.slice(0, 10).map((p: any) => (
-          <Link
-            key={p.id}
-            href={`/processos/${p.id}/dfd`}
-            className="flex items-center justify-between px-6 py-3 border-b last:border-b-0 transition-colors hover:bg-[var(--surfaceAlt)]"
-            style={{ borderColor: 'var(--hairline)' }}
-          >
-            <p className="text-sm font-medium truncate" style={{ color: 'var(--ink)' }}>
-              {p.numero_processo ? `${p.numero_processo}: ` : ''}{p.objeto}
-            </p>
-          </Link>
-        ))}
+      {/* Lista de usuarios */}
+      <ListCard title="Usuarios" subtitle={`${usuariosList.length} cadastrados · ${ativos} ativos`}>
+        {usuariosList.length === 0 ? (
+          <div className="px-6 py-10 text-center">
+            <Users className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--mutedSoft)' }} />
+            <p className="text-sm" style={{ color: 'var(--muted)' }}>Nenhum usuario cadastrado</p>
+          </div>
+        ) : (
+          usuariosList.map((u: any) => (
+            <div
+              key={u.id}
+              className="flex items-center justify-between px-6 py-3 border-b last:border-b-0"
+              style={{ borderColor: 'var(--hairline)' }}
+            >
+              <div>
+                <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{u.nome_completo}</p>
+                <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                  {PAPEL_LABEL[u.papel] ?? u.papel}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {u.status_aprovacao !== 'ativo' && (
+                  <AlertCircle className="w-3.5 h-3.5" style={{ color: 'var(--warn)' }} />
+                )}
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                  style={{
+                    background: u.status_aprovacao === 'ativo' ? 'var(--successWash)' : 'var(--warnWash)',
+                    color:      u.status_aprovacao === 'ativo' ? 'var(--success)' : 'var(--warn)',
+                  }}
+                >
+                  {u.status_aprovacao === 'ativo' ? 'Ativo' : 'Aguardando'}
+                </span>
+              </div>
+            </div>
+          ))
+        )}
       </ListCard>
 
       <FooterEditorial />
