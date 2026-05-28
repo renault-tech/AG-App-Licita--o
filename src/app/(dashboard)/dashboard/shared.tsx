@@ -148,7 +148,7 @@ export function ListCard({ title, subtitle, action, children }: {
  * ---------------------------------------------------------------- */
 export function ProcessosListSection({ title, rightLabel, children, emptyMessage }: {
   title: string
-  rightLabel?: string
+  rightLabel?: React.ReactNode
   children: React.ReactNode
   emptyMessage?: string
 }) {
@@ -159,9 +159,11 @@ export function ProcessosListSection({ title, rightLabel, children, emptyMessage
           {title}
         </h2>
         {rightLabel && (
-          <span className="text-[9.5px] font-bold uppercase" style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)', letterSpacing: '0.14em' }}>
-            {rightLabel}
-          </span>
+          typeof rightLabel === 'string' ? (
+            <span className="text-[9.5px] font-bold uppercase" style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)', letterSpacing: '0.14em' }}>
+              {rightLabel}
+            </span>
+          ) : rightLabel
         )}
       </div>
       <div className="space-y-2">

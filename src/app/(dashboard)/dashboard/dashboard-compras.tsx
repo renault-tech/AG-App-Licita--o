@@ -4,8 +4,11 @@ import { FaseTimeline } from '@/components/dashboard/fase-timeline'
 import type { FaseNode } from '@/components/dashboard/fase-timeline'
 import { PendenciasCard } from '@/components/dashboard/pendencias-card'
 import { ProcessoRowDashboard } from '@/components/dashboard/processo-row-dashboard'
-import { FooterEditorial, SectionHeader, ListCard } from './shared'
 import { AlertCircle } from 'lucide-react'
+import {
+  FooterEditorial, SectionHeader,
+  ProcessosListSection, DarkFeaturedCard, AiSuggestionCard,
+} from './shared'
 
 interface Props {
   userId: string
@@ -22,19 +25,10 @@ const FASE_LABELS: Record<string, string> = {
   gestor_publico: 'Autorização',
   publicacao: 'Publicação',
 }
-
-const FASE_KEYS = [
-  'requisitante',
-  'setor_compras',
-  'setor_licitacao',
-  'procurador',
-  'gestor_publico',
-  'publicacao',
-]
+const FASE_KEYS = ['requisitante', 'setor_compras', 'setor_licitacao', 'procurador', 'gestor_publico', 'publicacao']
 
 export async function DashboardCompras({ userId, orgId, cargo, nome }: Props) {
   const supabase = await createClient()
-
   const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
 
   const [
@@ -50,7 +44,7 @@ export async function DashboardCompras({ userId, orgId, cargo, nome }: Props) {
       .eq('organizacao_id', orgId),
     (supabase as any)
       .from('processos_licitatorios')
-      .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at')
+      .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at, valor_estimado')
       .eq('organizacao_id', orgId)
       .eq('fase_atual', 'setor_compras')
       .order('updated_at', { ascending: true })
@@ -95,7 +89,12 @@ export async function DashboardCompras({ userId, orgId, cargo, nome }: Props) {
     isCurrent: k === 'setor_compras',
   }))
 
-  const naFila = todos.filter((p: any) => p.fase_atual === 'setor_compras').length
+  const naFila = fila.length
+  const urgente = fila[0] ?? null
+
+  const ctxLine = naFila > 0
+    ? `${naFila} processo${naFila > 1 ? 's' : ''} aguardando cotacao.`
+    : 'Fila vazia.'
 
   return (
     <div className="space-y-8">
@@ -103,19 +102,17 @@ export async function DashboardCompras({ userId, orgId, cargo, nome }: Props) {
         supTitle="Setor de Compras"
         title="Fila de cotacoes."
         nome={nome}
-        contextLine={naFila > 0 ? `${naFila} processo${naFila > 1 ? 's' : ''} aguardando cotacao.` : 'Fila vazia.'}
+        contextLine={ctxLine}
       />
 
       <FaseTimeline fases={fases} />
 
-      <KPIBar
-        items={[
-          { label: 'Na fila',           value: naFila, sub: 'aguardando cotação' },
-          { label: 'Cotações (semana)', value: cotacoesSemana, sub: 'últimos 7 dias' },
-          { label: 'Valor em cotação',  value: valorEmFila > 0 ? `R$ ${(valorEmFila / 1000).toFixed(0)}k` : 'R$ 0', sub: 'estimado' },
-          { label: 'IA (mês)',          value: creditosIaMes.toLocaleString('pt-BR'), sub: 'créditos org' },
-        ]}
-      />
+      <KPIBar items={[
+        { label: 'Na fila',           value: naFila,     sub: 'aguardando cotacao',   sparkline: naFila > 0 ? 'wave' : 'flat', delta: `${naFila} pendente${naFila !== 1 ? 's' : ''}`, deltaColor: naFila > 0 ? 'warn' : 'muted' },
+        { label: 'Cotacoes (semana)', value: cotacoesSemana, sub: 'ultimos 7 dias',   sparkline: 'up',   delta: 'semana',    deltaColor: 'success' },
+        { label: 'Valor em cotacao',  value: valorEmFila > 0 ? `R$ ${(valorEmFila / 1000).toFixed(0)}k` : 'R$ 0', sub: 'estimado', sparkline: 'up', delta: 'total', deltaColor: 'blue' },
+        { label: 'IA (mes)',          value: creditosIaMes.toLocaleString('pt-BR'), sub: 'creditos org', sparkline: 'wave', delta: 'mes atual', deltaColor: 'blue' },
+      ]} />
 
       {naFila > 0 && (
         <div
@@ -124,33 +121,67 @@ export async function DashboardCompras({ userId, orgId, cargo, nome }: Props) {
         >
           <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: 'var(--warn)' }} />
           <p className="text-sm" style={{ color: 'var(--ink)' }}>
-            A pesquisa de preços deve observar os parâmetros do Art. 23 da Lei 14.133/21,
-            incluindo cotações de fornecedores, painel de preços e contratos anteriores.
+            A pesquisa de precos deve observar os parametros do Art. 23 da Lei 14.133/21,
+            incluindo cotacoes de fornecedores, painel de precos e contratos anteriores.
           </p>
         </div>
       )}
 
       <PendenciasCard userId={userId} orgId={orgId} faseAtual="setor_compras" />
 
-      <ListCard title="Fila de cotação" subtitle="Ordenada por mais antigo">
-        {fila.length === 0 ? (
-          <div className="px-6 py-10 text-center text-sm" style={{ color: 'var(--muted)' }}>
-            Nenhum processo aguardando cotação.
-          </div>
-        ) : (
-          fila.map((p: any) => (
-            <ProcessoRowDashboard key={p.id} {...p} href={`/processos/${p.id}/cotacao`} />
-          ))
-        )}
-      </ListCard>
+      {/* Layout duas colunas */}
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6 items-start">
 
-      {concluidosList.length > 0 && (
-        <ListCard title="Cotações concluídas recentes" subtitle="Processos que avançaram de fase">
-          {concluidosList.map((p: any) => (
-            <ProcessoRowDashboard key={p.id} {...p} />
-          ))}
-        </ListCard>
-      )}
+        {/* Coluna principal */}
+        <div className="space-y-6">
+          <ProcessosListSection
+            title="Fila de cotacao"
+            rightLabel="Mais antigo primeiro"
+          >
+            {fila.length === 0 ? (
+              <div className="glass rounded-[var(--r-lg)] px-6 py-10 text-center text-sm" style={{ color: 'var(--muted)' }}>
+                Nenhum processo aguardando cotacao.
+              </div>
+            ) : (
+              fila.map((p: any) => (
+                <ProcessoRowDashboard key={p.id} {...p} href={`/processos/${p.id}/cotacao`} />
+              ))
+            )}
+          </ProcessosListSection>
+
+          {concluidosList.length > 0 && (
+            <ProcessosListSection
+              title="Cotacoes concluidas recentes"
+              rightLabel="Avancaram de fase"
+            >
+              {concluidosList.map((p: any) => (
+                <ProcessoRowDashboard key={p.id} {...p} />
+              ))}
+            </ProcessosListSection>
+          )}
+        </div>
+
+        {/* Coluna lateral direita */}
+        <div className="space-y-4">
+          {urgente && (
+            <DarkFeaturedCard
+              titulo={`Processo ${urgente.numero_processo ?? urgente.id.slice(0, 8)} aguarda cotacao.`}
+              descricao={urgente.objeto}
+              href={`/processos/${urgente.id}/cotacao`}
+              badge="Cotacao · Mais antigo na fila"
+              meta={new Date(urgente.updated_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+            />
+          )}
+          <AiSuggestionCard
+            texto={
+              naFila > 0
+                ? `Ha ${naFila} processo${naFila > 1 ? 's' : ''} aguardando cotacao. Lembre-se: o Art. 23 exige minimo de 3 fornecedores consultados na pesquisa direta de precos.`
+                : 'Fila de cotacao vazia. Processos aprovados pelo setor requisitante aparecao aqui assim que chegarem.'
+            }
+            hrefDetalhes={urgente ? `/processos/${urgente.id}/cotacao` : '/processos'}
+          />
+        </div>
+      </div>
 
       <FooterEditorial />
     </div>

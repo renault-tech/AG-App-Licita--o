@@ -3,7 +3,10 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { KPIBar } from '@/components/dashboard/kpi-bar'
 import { CardConfigShell } from '@/components/dashboard/card-config-shell'
-import { FooterEditorial, SectionHeader, ListCard } from './shared'
+import {
+  FooterEditorial, SectionHeader,
+  ProcessosListSection, DarkFeaturedCard, AiSuggestionCard,
+} from './shared'
 import { buscarPreferenciaDashboard } from '@/lib/actions/dashboard'
 
 interface Props { userId: string; orgId: string; orgNome: string; cargo: string | null; nome?: string | null }
@@ -12,10 +15,10 @@ const FASE_KEYS = ['requisitante', 'setor_compras', 'setor_licitacao', 'procurad
 const FASE_LABELS: Record<string, string> = {
   requisitante:    'Requisitante',
   setor_compras:   'Compras',
-  setor_licitacao: 'Licitações',
+  setor_licitacao: 'Licitacoes',
   procurador:      'Procuradoria',
-  gestor_publico:  'Autorização',
-  publicacao:      'Publicação',
+  gestor_publico:  'Autorizacao',
+  publicacao:      'Publicacao',
 }
 
 export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo, nome }: Props) {
@@ -43,6 +46,7 @@ export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo, nome }:
   const saldo         = (creditos as any)?.saldo ?? 0
 
   const ativos    = usuariosList.filter((u: any) => u.status_aprovacao === 'ativo').length
+  const pendentes = usuariosList.filter((u: any) => u.status_aprovacao !== 'ativo').length
   const andamento = processosList.filter((p: any) => !['publicado','assinado'].includes(p.status)).length
   const tokensMes = acoesList.reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
 
@@ -52,85 +56,129 @@ export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo, nome }:
     count: processosList.filter((p: any) => p.fase_atual === k && !['publicado','assinado','cancelado'].includes(p.status)).length,
   })).filter((f) => f.count > 0)
 
+  // Fase com maior gargalo para o card de destaque
+  const faseUrgente = faseDist.sort((a, b) => b.count - a.count)[0] ?? null
+
+  // Top usuarios por consumo de IA
+  const usuariosComConsumo = usuariosList.map((u: any) => ({
+    ...u,
+    tokens: acoesList.filter((a: any) => a.usuario_id === u.id).reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0),
+  })).sort((a, b) => b.tokens - a.tokens)
+
   return (
     <div className="space-y-8">
       <SectionHeader
         supTitle="Admin Organizacao"
         title={orgNome}
         nome={nome}
-        contextLine="Visao gerencial da organizacao."
+        contextLine={
+          pendentes > 0
+            ? `${pendentes} usuario${pendentes > 1 ? 's' : ''} pendente${pendentes > 1 ? 's' : ''} de aprovacao.`
+            : `${ativos} usuario${ativos !== 1 ? 's' : ''} ativo${ativos !== 1 ? 's' : ''}, ${andamento} processo${andamento !== 1 ? 's' : ''} em andamento.`
+        }
       />
 
       <KPIBar items={[
-        { label: 'Usuários ativos',  value: ativos },
-        { label: 'Em andamento',     value: andamento, sub: 'processos' },
-        { label: `IA (${diasIa}d)`,  value: tokensMes.toLocaleString('pt-BR'), sub: 'tokens consumidos' },
-        { label: 'Créditos disp.',   value: saldo, sub: 'saldo atual' },
+        { label: 'Usuarios ativos',  value: ativos,   sub: 'na organizacao',     sparkline: 'up',   delta: `${ativos} ativos`,   deltaColor: 'success' },
+        { label: 'Em andamento',     value: andamento, sub: 'processos',          sparkline: andamento > 0 ? 'wave' : 'flat', delta: `${andamento} ativos`, deltaColor: andamento > 0 ? 'blue' : 'muted' },
+        { label: `IA (${diasIa}d)`,  value: tokensMes.toLocaleString('pt-BR'), sub: 'tokens consumidos', sparkline: 'wave', delta: `${diasIa}d`, deltaColor: 'blue' },
+        { label: 'Creditos disp.',   value: saldo, sub: 'saldo atual',            sparkline: saldo > 0 ? 'flat' : 'down', delta: saldo > 0 ? 'disponivel' : 'baixo', deltaColor: saldo > 50 ? 'success' : 'warn' },
       ]} />
 
-      <CardConfigShell
-        configKey="ia_periodo_dias"
-        configValue={{ dias: diasIa }}
-        config={{
-          type: 'select',
-          label: 'Período de análise de IA',
-          field: 'dias',
-          options: [7, 15, 30, 60, 90].map((d) => ({ value: d, label: `${d} dias` })),
-        }}
-      >
-        <ListCard title={`Uso de IA — últimos ${diasIa} dias`}>
-          <div>
-            {usuariosList.slice(0, 10).map((u: any) => {
-              const tokens = acoesList
-                .filter((a: any) => a.usuario_id === u.id)
-                .reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
-              return (
-                <div key={u.id} className="flex items-center justify-between px-6 py-3 border-b last:border-b-0" style={{ borderColor: 'var(--hairline)' }}>
+      {/* Layout duas colunas */}
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6 items-start">
+
+        {/* Coluna principal */}
+        <div className="space-y-6">
+          <CardConfigShell
+            configKey="ia_periodo_dias"
+            configValue={{ dias: diasIa }}
+            config={{
+              type: 'select',
+              label: 'Periodo de analise de IA',
+              field: 'dias',
+              options: [7, 15, 30, 60, 90].map((d) => ({ value: d, label: `${d} dias` })),
+            }}
+          >
+            <ProcessosListSection
+              title={`Uso de IA — ultimos ${diasIa} dias`}
+              rightLabel="Por usuario"
+            >
+              {usuariosComConsumo.slice(0, 10).map((u: any) => (
+                <div
+                  key={u.id}
+                  className="glass rounded-[var(--r-lg)] flex items-center justify-between px-5 py-3"
+                >
                   <div>
                     <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{u.nome_completo}</p>
                     <p className="text-xs" style={{ color: 'var(--muted)' }}>{u.papel}</p>
                   </div>
-                  <span className="text-sm font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>
-                    {tokens.toLocaleString('pt-BR')} tok
+                  <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>
+                    {u.tokens.toLocaleString('pt-BR')} tok
                   </span>
                 </div>
-              )
-            })}
-          </div>
-        </ListCard>
-      </CardConfigShell>
+              ))}
+            </ProcessosListSection>
+          </CardConfigShell>
 
-      <ListCard
-        title="Usuários"
-        action={
-          <Link href="/configuracoes/usuarios" className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: 'var(--primary)' }}>
-            Gerenciar <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        }
-      >
-        {usuariosList.slice(0, 10).map((u: any) => (
-          <div key={u.id} className="flex items-center justify-between px-6 py-3 border-b last:border-b-0" style={{ borderColor: 'var(--hairline)' }}>
-            <div>
-              <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{u.nome_completo}</p>
-              <p className="text-xs" style={{ color: 'var(--muted)' }}>{u.papel}</p>
-            </div>
-            <span
-              className="text-xs px-2 py-0.5 rounded-full font-semibold"
-              style={{
-                background: u.status_aprovacao === 'ativo' ? 'var(--successWash)' : 'var(--warnWash)',
-                color: u.status_aprovacao === 'ativo' ? 'var(--success)' : 'var(--warn)',
-              }}
-            >
-              {u.status_aprovacao}
-            </span>
-          </div>
-        ))}
-      </ListCard>
+          <ProcessosListSection
+            title="Usuarios"
+            rightLabel={
+              <Link href="/configuracoes/usuarios" className="flex items-center gap-1 text-[11px] font-bold uppercase" style={{ color: 'var(--primary)', letterSpacing: '0.1em' }}>
+                Gerenciar <ArrowRight className="w-3 h-3" />
+              </Link>
+            }
+          >
+            {usuariosList.slice(0, 10).map((u: any) => (
+              <div
+                key={u.id}
+                className="glass rounded-[var(--r-lg)] flex items-center justify-between px-5 py-3"
+              >
+                <div>
+                  <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{u.nome_completo}</p>
+                  <p className="text-xs" style={{ color: 'var(--muted)' }}>{u.papel}</p>
+                </div>
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                  style={{
+                    background: u.status_aprovacao === 'ativo' ? 'var(--successWash)' : 'var(--warnWash)',
+                    color: u.status_aprovacao === 'ativo' ? 'var(--success)' : 'var(--warn)',
+                  }}
+                >
+                  {u.status_aprovacao}
+                </span>
+              </div>
+            ))}
+          </ProcessosListSection>
+        </div>
+
+        {/* Coluna lateral direita */}
+        <div className="space-y-4">
+          {faseUrgente && (
+            <DarkFeaturedCard
+              titulo={`${faseUrgente.count} processo${faseUrgente.count > 1 ? 's' : ''} parado${faseUrgente.count > 1 ? 's' : ''} em ${faseUrgente.label}.`}
+              descricao={`O gargalo atual esta na fase ${faseUrgente.label}. Verifique se ha bloqueios ou usuarios sem capacidade.`}
+              href={`/processos?fase=${faseUrgente.key}`}
+              badge="Gargalo · Fase com mais processos"
+            />
+          )}
+          <AiSuggestionCard
+            texto={
+              pendentes > 0
+                ? `Ha ${pendentes} usuario${pendentes > 1 ? 's' : ''} aguardando aprovacao. Acesse Configuracoes para liberar o acesso.`
+                : saldo < 20
+                  ? 'Saldo de creditos IA baixo. Considere recarregar para nao interromper o fluxo de geracoes.'
+                  : `Organizacao saudavel com ${ativos} usuario${ativos !== 1 ? 's' : ''} ativos e ${andamento} processo${andamento !== 1 ? 's' : ''} em andamento.`
+            }
+            hrefDetalhes={pendentes > 0 ? '/configuracoes/usuarios' : saldo < 20 ? '/creditos' : '/processos'}
+          />
+        </div>
+      </div>
 
       {/* Processos por fase */}
       {faseDist.length > 0 && (
-        <div className="rounded-xl border p-5 space-y-3" style={{ borderColor: 'var(--hairline)', background: 'var(--surface)' }}>
-          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
+        <div className="glass rounded-[var(--r-lg)] p-5 space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)', letterSpacing: '0.14em', fontFamily: 'var(--font-mono)' }}>
             Processos em andamento por fase
           </p>
           <div className="space-y-2">

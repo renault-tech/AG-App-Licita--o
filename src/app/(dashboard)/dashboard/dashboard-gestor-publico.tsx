@@ -4,7 +4,10 @@ import { FaseTimeline } from '@/components/dashboard/fase-timeline'
 import type { FaseNode } from '@/components/dashboard/fase-timeline'
 import { PendenciasCard } from '@/components/dashboard/pendencias-card'
 import { ProcessoRowDashboard } from '@/components/dashboard/processo-row-dashboard'
-import { FooterEditorial, SectionHeader, ListCard } from './shared'
+import {
+  FooterEditorial, SectionHeader,
+  ProcessosListSection, DarkFeaturedCard, AiSuggestionCard,
+} from './shared'
 
 interface Props { userId: string; orgId: string; cargo: string | null; nome?: string | null }
 
@@ -20,7 +23,7 @@ export async function DashboardGestorPublico({ userId, orgId, cargo, nome }: Pro
       .eq('fase_atual', 'gestor_publico'),
     (supabase as any)
       .from('processos_licitatorios')
-      .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at')
+      .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at, valor_estimado')
       .eq('organizacao_id', orgId)
       .eq('fase_atual', 'gestor_publico')
       .order('updated_at', { ascending: true })
@@ -49,33 +52,83 @@ export async function DashboardGestorPublico({ userId, orgId, cargo, nome }: Pro
     { key: 'devolvido',  label: 'Devolvido',  count: devolvidos,  devolvidos: devolvidos, parados: 0, href: '/processos?fase=gestor_publico' },
   ]
 
+  const urgente = fila[0] ?? null
+
+  const ctxLine = aguardando > 0
+    ? `${aguardando} processo${aguardando > 1 ? 's' : ''} aguardam sua decisao.`
+    : 'Nenhuma autorizacao pendente.'
+
   return (
     <div className="space-y-8">
       <SectionHeader
         supTitle="Autoridade Competente"
         title="Autorizacoes pendentes."
         nome={nome}
-        contextLine={aguardando > 0 ? `${aguardando} processo${aguardando > 1 ? 's' : ''} aguardam sua decisao.` : 'Nenhuma autorizacao pendente.'}
+        contextLine={ctxLine}
       />
       <FaseTimeline fases={fases} />
       <KPIBar items={[
-        { label: 'Aguardando decisão', value: aguardando },
-        { label: 'Autorizados (mês)',  value: autorizados },
-        { label: 'Devolvidos',         value: devolvidos, accent: devolvidos > 0 },
-        { label: 'Valor autorizado',   value: `R$ ${(valorTotal / 1000).toFixed(0)}k`, sub: 'total' },
+        { label: 'Aguardando decisao', value: aguardando,  sub: 'para autorizar',    sparkline: aguardando > 0 ? 'wave' : 'flat', delta: `${aguardando} pendente${aguardando !== 1 ? 's' : ''}`, deltaColor: aguardando > 0 ? 'warn' : 'muted' },
+        { label: 'Autorizados (mes)',  value: autorizados, sub: 'mes atual',          sparkline: 'up',   delta: 'autorizados',  deltaColor: 'success' },
+        { label: 'Devolvidos',         value: devolvidos,  sub: 'para correcao',      sparkline: devolvidos > 0 ? 'down' : 'flat', delta: devolvidos > 0 ? 'atencao' : 'ok', deltaColor: devolvidos > 0 ? 'warn' : 'muted', accent: devolvidos > 0 },
+        { label: 'Valor autorizado',   value: `R$ ${(valorTotal / 1000).toFixed(0)}k`, sub: 'total', sparkline: 'up', delta: 'acumulado', deltaColor: 'blue' },
       ]} />
       <PendenciasCard userId={userId} orgId={orgId} faseAtual="gestor_publico" />
-      <ListCard title="Aguardando autorização" subtitle="Mais antigo primeiro">
-        {fila.length === 0
-          ? <div className="px-6 py-10 text-center text-sm" style={{ color: 'var(--muted)' }}>Nenhuma autorização pendente.</div>
-          : fila.map((p: any) => <ProcessoRowDashboard key={p.id} {...p} href={`/processos/${p.id}/autorizacao`} />)
-        }
-      </ListCard>
-      {historico.length > 0 && (
-        <ListCard title="Histórico de autorizações" subtitle="Processos autorizados aguardando publicação">
-          {historico.map((p: any) => <ProcessoRowDashboard key={p.id} {...p} />)}
-        </ListCard>
-      )}
+
+      {/* Layout duas colunas */}
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6 items-start">
+
+        {/* Coluna principal */}
+        <div className="space-y-6">
+          <ProcessosListSection
+            title="Aguardando autorizacao"
+            rightLabel="Mais antigo primeiro"
+          >
+            {fila.length === 0 ? (
+              <div className="glass rounded-[var(--r-lg)] px-6 py-10 text-center text-sm" style={{ color: 'var(--muted)' }}>
+                Nenhuma autorizacao pendente.
+              </div>
+            ) : (
+              fila.map((p: any) => (
+                <ProcessoRowDashboard key={p.id} {...p} href={`/processos/${p.id}/autorizacao`} />
+              ))
+            )}
+          </ProcessosListSection>
+
+          {historico.length > 0 && (
+            <ProcessosListSection
+              title="Historico de autorizacoes"
+              rightLabel="Aguardando publicacao"
+            >
+              {historico.map((p: any) => (
+                <ProcessoRowDashboard key={p.id} {...p} />
+              ))}
+            </ProcessosListSection>
+          )}
+        </div>
+
+        {/* Coluna lateral direita */}
+        <div className="space-y-4">
+          {urgente && (
+            <DarkFeaturedCard
+              titulo={`Processo ${urgente.numero_processo ?? urgente.id.slice(0, 8)} aguarda sua autorizacao.`}
+              descricao={urgente.objeto}
+              href={`/processos/${urgente.id}/autorizacao`}
+              badge="Autorizacao · Mais antigo na fila"
+              meta={new Date(urgente.updated_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+            />
+          )}
+          <AiSuggestionCard
+            texto={
+              aguardando > 0
+                ? `Ha ${aguardando} processo${aguardando > 1 ? 's' : ''} com parecer juridico favoravel aguardando sua autorizacao para abertura.`
+                : 'Nenhuma autorizacao pendente no momento. Processos aprovados pela Procuradoria aparecao aqui.'
+            }
+            hrefDetalhes={urgente ? `/processos/${urgente.id}/autorizacao` : '/processos'}
+          />
+        </div>
+      </div>
+
       <FooterEditorial />
     </div>
   )
