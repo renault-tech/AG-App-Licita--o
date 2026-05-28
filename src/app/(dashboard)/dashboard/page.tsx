@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import type { PapelUsuario } from '@/types/database'
+import { obterPerfilAtivo } from '@/lib/perfil-session'
+import { obterConfiguracoes } from '@/lib/actions/configuracoes-plataforma'
 import { DashboardRequisitante } from './dashboard-requisitante'
 import { DashboardCompras } from './dashboard-compras'
 import { DashboardLicitacoes } from './dashboard-licitacoes'
@@ -23,12 +25,21 @@ export default async function DashboardPage() {
 
   if (!usuarioData) redirect('/login')
 
-  const papel  = (usuarioData as any).papel as string
-  const orgId  = (usuarioData as any).organizacao_id as string
-  const cargo  = (usuarioData as any).cargo as string | null
-  const userId = user.id
+  const papelReal = (usuarioData as any).papel as PapelUsuario
+  const orgId     = (usuarioData as any).organizacao_id as string
+  const cargo     = (usuarioData as any).cargo as string | null
+  const userId    = user.id
 
-  if (!orgId && papel !== 'admin_plataforma') redirect('/onboarding')
+  // Respeita perfil sobreposto (troca de perfil pelo admin)
+  const configs           = await obterConfiguracoes()
+  const adminOrgPodeTrocar = configs['admin_org_pode_trocar_perfil'] === 'true'
+  const podeTracar         =
+    papelReal === 'admin_plataforma' ||
+    (papelReal === 'admin_organizacao' && adminOrgPodeTrocar)
+  const perfilCookie = podeTracar ? await obterPerfilAtivo() : null
+  const papel        = (perfilCookie ?? papelReal) as string
+
+  if (!orgId && papelReal !== 'admin_plataforma') redirect('/onboarding')
 
   const { data: orgData } = orgId
     ? await (supabase as any).from('organizacoes').select('nome').eq('id', orgId).maybeSingle()
