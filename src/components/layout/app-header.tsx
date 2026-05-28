@@ -80,15 +80,16 @@ export function AppHeader({
   const t = THEMES[theme]
   const [themePanelOpen, setThemePanelOpen] = useState(false)
   const [menuMobile, setMenuMobile] = useState(false)
-  const [trocandoPapel, setTrocandoPapel] = useState(false)
-  const [, startTransition] = useTransition()
+  const [isPending, startTransition] = useTransition()
 
   const perfilSobreposto = podeTracarPerfil && papel !== papelReal && papelReal !== null
 
-  async function handleTrocarPerfil(novoPapel: PapelUsuario | null) {
-    setTrocandoPapel(true)
-    await trocarPerfilAtivo(novoPapel)
-    startTransition(() => { router.refresh() })
+  function handleTrocarPerfil(novoPapel: PapelUsuario | null) {
+    if (isPending) return
+    startTransition(async () => {
+      await trocarPerfilAtivo(novoPapel)
+      router.refresh()
+    })
   }
 
   const iniciais = nomeUsuario
@@ -194,7 +195,7 @@ export function AppHeader({
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.filter = 'brightness(0.88)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.filter = ''}
               >
-                {trocandoPapel
+                {isPending
                   ? <Loader2 className="w-2.5 h-2.5 animate-spin" />
                   : perfilSobreposto && <RefreshCw className="w-2.5 h-2.5" />
                 }
