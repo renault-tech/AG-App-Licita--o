@@ -1,16 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { FileText, PlusCircle, ArrowRight, X } from 'lucide-react'
+import { FileText, PlusCircle, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import BotaoExcluirProcesso from './botao-excluir-processo'
-import { StatusPill } from '@/components/licita/status-pill'
-import type { StatusProcesso } from '@/components/licita/status-pill'
 import { EditorialKicker, HeadlineSerif } from '@/components/licita/editorial'
 import BuscaProcessos from './busca-processos'
 import PaginacaoProcessos from './paginacao-processos'
 import { EmptyState } from '@/components/licita/empty-state'
+import { ProcessoRowDashboard } from '@/components/dashboard/processo-row-dashboard'
 import { Suspense } from 'react'
 
 const PAGE_SIZE = 20
@@ -114,7 +113,7 @@ export default async function ProcessosPage({
       papel, user.id, organizacaoId, filtroStatus, filtroFase, qSafe, filtroCriadoPor
     ),
     aplicarFiltros(
-      (supabase as any).from('processos_licitatorios').select('id, objeto, modalidade, status, numero_processo, valor_estimado, created_at'),
+      (supabase as any).from('processos_licitatorios').select('id, objeto, modalidade, status, fase_atual, numero_processo, valor_estimado, created_at, updated_at'),
       papel, user.id, organizacaoId, filtroStatus, filtroFase, qSafe, filtroCriadoPor
     )
       .order('created_at', { ascending: false })
@@ -189,134 +188,102 @@ export default async function ProcessosPage({
         </div>
       </div>
 
-      {/* KPI rail */}
-      <div className="glass grid grid-cols-4 overflow-hidden rounded-[var(--r-lg)]">
+      {/* KPI rail — cards individuais */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Total', valor: totais.total, sub: 'processos', href: '/processos' },
-          { label: 'Rascunho', valor: totais.rascunho, sub: 'em elaboração', href: '/processos?status=rascunho' },
-          { label: 'Em revisão', valor: totais.emRevisao, sub: 'aguardando análise', href: '/processos?status=em_revisao' },
-          { label: 'Concluídos', valor: totais.concluidos, sub: 'publicados/assinados', href: '/processos?status=concluido' },
-        ].map((k, i, arr) => (
-          <Link key={k.label} href={k.href} className="block transition-colors hover:bg-[var(--surfaceAlt)]">
-            <div className="px-5 pt-4 pb-3.5" style={{ borderRight: i < arr.length - 1 ? '1px solid var(--hairline)' : 'none' }}>
-              <div className="l-meta mb-2" style={{ color: 'var(--muted)' }}>{k.label}</div>
-              <div
-                className="l-h l-tnum"
-                style={{ fontFamily: 'var(--font-heading)', fontSize: 40, lineHeight: 0.94, letterSpacing: '-0.03em', color: 'var(--ink)', fontWeight: 500 }}
-              >
-                {k.valor}
-              </div>
-              <div className="text-[11px] mt-2" style={{ color: 'var(--inkSoft)' }}>{k.sub}</div>
+          { label: 'Total',      valor: totais.total,      sub: 'processos',           href: '/processos' },
+          { label: 'Rascunho',   valor: totais.rascunho,   sub: 'em elaboracao',       href: '/processos?status=rascunho' },
+          { label: 'Em revisao', valor: totais.emRevisao,  sub: 'aguardando analise',  href: '/processos?status=em_revisao' },
+          { label: 'Concluidos', valor: totais.concluidos, sub: 'publicados/assinados', href: '/processos?status=concluido' },
+        ].map((k) => (
+          <Link key={k.label} href={k.href} className="glass lift rounded-[var(--r-lg)] block px-5 pt-4 pb-3.5">
+            <div className="l-meta mb-2" style={{ color: 'var(--muted)' }}>{k.label}</div>
+            <div
+              className="l-h l-tnum"
+              style={{ fontFamily: 'var(--font-heading)', fontSize: 36, lineHeight: 0.94, letterSpacing: '-0.03em', color: 'var(--ink)', fontWeight: 500 }}
+            >
+              {k.valor}
             </div>
+            <div className="text-[11px] mt-2" style={{ color: 'var(--inkSoft)' }}>{k.sub}</div>
           </Link>
         ))}
       </div>
 
-      {/* Lista */}
-      <div className="glass rounded-[var(--r-lg)] overflow-hidden">
-        {/* Card header */}
-        <div
-          className="flex flex-row items-center justify-between px-6 py-5 border-b gap-4 flex-wrap"
-          style={{ background: 'rgba(0,0,0,0.025)', borderColor: 'var(--glass-edge)' }}
-        >
-          <div>
-            <h2 className="text-lg font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
-              Processos{filtroLabel ? ` · ${filtroLabel}` : ''}
-            </h2>
-            <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
-              {papel === 'requisitante' ? 'Processos que você criou' : 'Todos os processos da organização'}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Suspense>
-              <BuscaProcessos />
-            </Suspense>
-            <Link href="/processos/novo">
-              <Button variant="outline" size="sm" className="gap-1.5 text-sm h-9" style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}>
-                <PlusCircle className="w-4 h-4" /> Novo
-              </Button>
-            </Link>
-          </div>
+      {/* Cabecalho da lista */}
+      <div className="flex flex-row items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-[15px] font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+            Processos{filtroLabel ? ` · ${filtroLabel}` : ''}
+          </h2>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
+            {papel === 'requisitante' ? 'Processos que voce criou' : 'Todos os processos da organizacao'}
+          </p>
         </div>
+        <div className="flex items-center gap-3">
+          <Suspense>
+            <BuscaProcessos />
+          </Suspense>
+          <Link href="/processos/novo">
+            <Button variant="outline" size="sm" className="gap-1.5 text-sm h-9" style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}>
+              <PlusCircle className="w-4 h-4" /> Novo
+            </Button>
+          </Link>
+        </div>
+      </div>
 
-        {/* Conteudo */}
-        {lista.length === 0 ? (
-          !qSafe && !filtroStatus && !filtroFase ? (
+      {/* Lista de processos — cards individuais */}
+      {lista.length === 0 ? (
+        !qSafe && !filtroStatus && !filtroFase ? (
+          <div className="glass rounded-[var(--r-lg)]">
             <EmptyState
               icon={FileText}
               titulo="Nenhum processo encontrado"
               descricao="Crie o primeiro processo licitatorio da sua organizacao."
               cta={{ label: 'Novo Processo', href: '/processos/novo' }}
             />
-          ) : (
+          </div>
+        ) : (
+          <div className="glass rounded-[var(--r-lg)]">
             <EmptyState
               icon={FileText}
               titulo="Nenhum resultado para esse filtro"
               descricao="Tente remover os filtros ou alterar o texto da busca."
               cta={{ label: 'Limpar filtros', href: '/processos' }}
             />
-          )
-        ) : (
-          <div>
-            {lista.map((p: any) => {
-              const modalidade = MODALIDADE_LABEL[p.modalidade] ?? p.modalidade
-              const status = (p.status as StatusProcesso) ?? 'rascunho'
-              return (
-                <div
-                  key={p.id}
-                  className="flex items-center gap-2 px-6 py-5 transition-colors group hover:bg-[var(--surfaceAlt)]"
-                  style={{ borderBottom: '1px solid var(--hairline)' }}
-                >
-                  <Link href={`/processos/${p.id}/dfd`} className="flex items-center gap-4 flex-1 min-w-0">
-                    <div
-                      className="w-10 h-10 rounded-[var(--r-md)] flex items-center justify-center shrink-0"
-                      style={{ background: 'var(--primaryWash)' }}
-                    >
-                      <FileText className="w-[18px] h-[18px]" style={{ color: 'var(--primary)' }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-                        {p.numero_processo ? `${p.numero_processo} - ` : ''}{p.objeto}
-                      </p>
-                      <div className="flex items-center gap-2.5 mt-1 flex-wrap">
-                        <span className="text-sm" style={{ color: 'var(--muted)' }}>{modalidade}</span>
-                        {p.valor_estimado > 0 && (
-                          <>
-                            <span style={{ color: 'var(--hairline)' }}>|</span>
-                            <span className="text-sm font-medium" style={{ color: 'var(--inkSoft)' }}>
-                              R$ {(p.valor_estimado as number).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="hidden sm:block">
-                        <StatusPill status={status} size="sm" />
-                      </span>
-                      <ArrowRight className="w-4 h-4" style={{ color: 'var(--mutedSoft)' }} />
-                    </div>
-                  </Link>
-                  {['admin_organizacao', 'admin_plataforma'].includes(papel ?? '') && (
-                    <BotaoExcluirProcesso processoId={p.id} objeto={p.objeto} />
-                  )}
-                </div>
-              )
-            })}
-            <div className="px-6">
-              <PaginacaoProcessos
-                total={total}
-                page={page}
-                pageSize={PAGE_SIZE}
-                q={qSafe || undefined}
-                status={filtroStatus}
-                fase={filtroFase}
-                criadoPor={filtroCriadoPor}
-              />
-            </div>
           </div>
-        )}
-      </div>
+        )
+      ) : (
+        <div className="space-y-2">
+          {lista.map((p: any) => (
+            <div key={p.id} className="flex items-center gap-2">
+              <div className="flex-1 min-w-0">
+                <ProcessoRowDashboard
+                  id={p.id}
+                  objeto={p.objeto}
+                  numero_processo={p.numero_processo}
+                  modalidade={p.modalidade}
+                  status={p.status}
+                  fase_atual={p.fase_atual}
+                  updated_at={p.updated_at ?? p.created_at}
+                  valor_estimado={p.valor_estimado}
+                />
+              </div>
+              {['admin_organizacao', 'admin_plataforma'].includes(papel ?? '') && (
+                <BotaoExcluirProcesso processoId={p.id} objeto={p.objeto} />
+              )}
+            </div>
+          ))}
+          <PaginacaoProcessos
+            total={total}
+            page={page}
+            pageSize={PAGE_SIZE}
+            q={qSafe || undefined}
+            status={filtroStatus}
+            fase={filtroFase}
+            criadoPor={filtroCriadoPor}
+          />
+        </div>
+      )}
     </div>
   )
 }
