@@ -2,8 +2,7 @@
 
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM   = process.env.RESEND_FROM_EMAIL ?? 'noreply@licitaia.com.br'
+const FROM    = process.env.RESEND_FROM_EMAIL  ?? 'noreply@licitaia.com.br'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://licitaia.com.br'
 
 export async function enviarConvitePrefeitura({
@@ -56,6 +55,9 @@ export async function enviarConvitePrefeitura({
   `
 
   try {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) return { success: false, error: 'RESEND_API_KEY nao configurada.' }
+    const resend = new Resend(apiKey)
     const { error } = await resend.emails.send({
       from:    FROM,
       to:      email,
