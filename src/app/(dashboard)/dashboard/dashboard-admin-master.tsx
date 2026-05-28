@@ -62,21 +62,12 @@ export async function DashboardAdminMaster({ userId: _userId }: Props) {
       <CardConfigShell
         configKey="ia_periodo_dias"
         configValue={{ dias: diasIa }}
-        configContent={(val, setVal) => (
-          <div>
-            <label className="text-xs" style={{ color: 'var(--ink)' }}>Período de análise</label>
-            <select
-              defaultValue={String((val as any).dias ?? 30)}
-              onChange={(e) => setVal({ dias: Number(e.target.value) })}
-              className="mt-2 w-full border rounded px-3 py-1.5 text-sm"
-              style={{ borderColor: 'var(--hairline)', background: 'var(--surface)', color: 'var(--ink)' }}
-            >
-              {[7, 15, 30, 60, 90].map((d) => (
-                <option key={d} value={String(d)}>{d} dias</option>
-              ))}
-            </select>
-          </div>
-        )}
+        config={{
+          type: 'select',
+          label: 'Período de análise',
+          field: 'dias',
+          options: [7, 15, 30, 60, 90].map((d) => ({ value: d, label: `${d} dias` })),
+        }}
       >
         <ListCard title="Prefeituras" subtitle={`${orgsList.length} organizações na plataforma`}>
           {orgsComDados.map((org: any) => (

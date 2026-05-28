@@ -52,22 +52,7 @@ export async function PendenciasCard({ userId, orgId, faseAtual }: PendenciasCar
     <CardConfigShell
       configKey="pendencias_dias"
       configValue={{ dias }}
-      configContent={(val, setVal) => (
-        <div>
-          <label className="text-xs" style={{ color: 'var(--ink)' }}>
-            Avisar após quantos dias parado
-          </label>
-          <input
-            type="number"
-            min={1}
-            max={90}
-            defaultValue={(val as any).dias ?? 5}
-            onChange={(e) => setVal({ dias: Math.max(1, Math.min(90, Number(e.target.value))) })}
-            className="mt-2 w-full border rounded px-3 py-1.5 text-sm"
-            style={{ borderColor: 'var(--hairline)', background: 'var(--surface)', color: 'var(--ink)' }}
-          />
-        </div>
-      )}
+      config={{ type: 'number-input', label: 'Avisar após quantos dias parado', field: 'dias', min: 1, max: 90 }}
     >
       <div
         className="rounded-[var(--r-lg)] border overflow-hidden"

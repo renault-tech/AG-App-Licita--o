@@ -9,25 +9,26 @@ import {
 } from '@/components/ui/popover'
 import { salvarPreferenciaDashboard } from '@/lib/actions/dashboard'
 
+export type ConfigSpec =
+  | { type: 'number-input'; label: string; field: string; min: number; max: number }
+  | { type: 'select';       label: string; field: string; options: Array<{ value: number; label: string }> }
+
 interface CardConfigShellProps {
-  configKey: string
+  configKey:   string
   configValue: Record<string, unknown>
-  configContent: (
-    value: Record<string, unknown>,
-    onChange: (v: Record<string, unknown>) => void
-  ) => React.ReactNode
-  children: React.ReactNode
+  config:      ConfigSpec
+  children:    React.ReactNode
 }
 
 export function CardConfigShell({
   configKey,
   configValue: initialValue,
-  configContent,
+  config,
   children,
 }: CardConfigShellProps) {
-  const [open, setOpen] = useState(false)
-  const [value, setValue] = useState(initialValue)
-  const [, startTransition] = useTransition()
+  const [open, setOpen]       = useState(false)
+  const [value, setValue]     = useState(initialValue)
+  const [, startTransition]   = useTransition()
 
   function handleOpenChange(next: boolean) {
     if (!next && open) {
@@ -37,6 +38,12 @@ export function CardConfigShell({
     }
     setOpen(next)
   }
+
+  function handleChange(rawValue: string) {
+    setValue((prev) => ({ ...prev, [config.field]: Number(rawValue) }))
+  }
+
+  const currentVal = String((value as any)[config.field] ?? '')
 
   return (
     <div className="relative">
@@ -51,7 +58,29 @@ export function CardConfigShell({
           <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>
             Configurar card
           </p>
-          {configContent(value, setValue)}
+          <label className="text-xs" style={{ color: 'var(--ink)' }}>{config.label}</label>
+          {config.type === 'number-input' ? (
+            <input
+              type="number"
+              min={config.min}
+              max={config.max}
+              value={currentVal}
+              onChange={(e) => handleChange(e.target.value)}
+              className="mt-2 w-full border rounded px-3 py-1.5 text-sm"
+              style={{ borderColor: 'var(--hairline)', background: 'var(--surface)', color: 'var(--ink)' }}
+            />
+          ) : (
+            <select
+              value={currentVal}
+              onChange={(e) => handleChange(e.target.value)}
+              className="mt-2 w-full border rounded px-3 py-1.5 text-sm"
+              style={{ borderColor: 'var(--hairline)', background: 'var(--surface)', color: 'var(--ink)' }}
+            >
+              {config.options.map((opt) => (
+                <option key={opt.value} value={String(opt.value)}>{opt.label}</option>
+              ))}
+            </select>
+          )}
         </PopoverContent>
       </Popover>
       {children}
