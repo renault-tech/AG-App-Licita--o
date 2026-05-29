@@ -1,15 +1,15 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   MessageCircle, X, Pin, PinOff,
-  Hash, Building2, Users, Loader2,
+  Hash, Building2, Users, Loader2, UserSearch, ArrowLeft,
 } from 'lucide-react'
-import { buscarCanaisComNaoLidos, buscarMensagens, marcarCanalComoLido } from '@/lib/actions/chat'
+import { buscarCanaisComNaoLidos, buscarMensagens, marcarCanalComoLido, listarUsuariosOrg, garantirCanalDM } from '@/lib/actions/chat'
 import { useChatRealtime } from '@/hooks/use-chat-realtime'
 import { MensagemChatItem } from './mensagem-chat'
 import { InputMensagem } from './input-mensagem'
-import type { CanalComNaoLidos, MensagemChat, TipoCanal } from '@/types/chat'
+import type { CanalComNaoLidos, MensagemChat, TipoCanal, UsuarioChat } from '@/types/chat'
 
 const CANAL_ICON: Record<TipoCanal, React.ElementType> = {
   plataforma: Hash,
@@ -23,6 +23,16 @@ interface ChatDrawerProps {
   naoLidosChat?: number
 }
 
+const PAPEL_LABEL: Record<string, string> = {
+  requisitante:      'Requisitante',
+  setor_licitacao:   'Licitacoes',
+  setor_compras:     'Compras',
+  procurador:        'Procuradoria',
+  gestor_publico:    'Gestor',
+  admin_organizacao: 'Admin',
+  admin_plataforma:  'Admin',
+}
+
 export function ChatDrawer({ usuarioId, naoLidosChat = 0 }: ChatDrawerProps) {
   const [aberto, setAberto] = useState(false)
   const [fixado, setFixado] = useState(false)
@@ -32,6 +42,10 @@ export function ChatDrawer({ usuarioId, naoLidosChat = 0 }: ChatDrawerProps) {
   const [carregando, setCarregando] = useState(false)
   const [carregandoCanais, setCarregandoCanais] = useState(false)
   const [inicializado, setInicializado] = useState(false)
+  const [modoPessoas, setModoPessoas] = useState(false)
+  const [usuarios, setUsuarios] = useState<UsuarioChat[]>([])
+  const [carregandoUsuarios, setCarregandoUsuarios] = useState(false)
+  const [abrindoDM, setAbrindoDM] = useState<string | null>(null)
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -61,6 +75,30 @@ export function ChatDrawer({ usuarioId, naoLidosChat = 0 }: ChatDrawerProps) {
       })
       .finally(() => setCarregandoCanais(false))
   }, [aberto])
+
+  // Carrega usuarios ao entrar no modo Pessoas
+  useEffect(() => {
+    if (!modoPessoas || usuarios.length > 0) return
+    setCarregandoUsuarios(true)
+    listarUsuariosOrg()
+      .then(setUsuarios)
+      .finally(() => setCarregandoUsuarios(false))
+  }, [modoPessoas])
+
+  async function abrirDM(outroUsuarioId: string) {
+    setAbrindoDM(outroUsuarioId)
+    try {
+      const canalId = await garantirCanalDM(outroUsuarioId)
+      if (!canalId) return
+      // Recarrega canais para incluir o novo DM
+      const novosCanais = await buscarCanaisComNaoLidos()
+      setCanais(novosCanais)
+      setCanalAtivo(canalId)
+      setModoPessoas(false)
+    } finally {
+      setAbrindoDM(null)
+    }
+  }
 
   // Carrega mensagens ao trocar de canal
   useEffect(() => {
@@ -186,7 +224,17 @@ export function ChatDrawer({ usuarioId, naoLidosChat = 0 }: ChatDrawerProps) {
             flexShrink: 0,
           }}
         >
-          <MessageCircle style={{ width: 15, height: 15, color: 'var(--primary)', flexShrink: 0 }} />
+          {modoPessoas ? (
+            <button
+              onClick={() => setModoPessoas(false)}
+              title="Voltar"
+              style={{ width: 24, height: 24, borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', flexShrink: 0 }}
+            >
+              <ArrowLeft style={{ width: 13, height: 13 }} />
+            </button>
+          ) : (
+            <MessageCircle style={{ width: 15, height: 15, color: 'var(--primary)', flexShrink: 0 }} />
+          )}
           <span
             style={{
               flex: 1,
@@ -199,49 +247,48 @@ export function ChatDrawer({ usuarioId, naoLidosChat = 0 }: ChatDrawerProps) {
               whiteSpace: 'nowrap',
             }}
           >
-            {canalAtivoData ? canalAtivoData.nome : 'Mensagens'}
+            {modoPessoas ? 'Encontrar pessoas' : (canalAtivoData ? canalAtivoData.nome : 'Mensagens')}
           </span>
 
-          <button
-            onClick={toggleFixado}
-            title={fixado ? 'Desafixar painel' : 'Fixar painel'}
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 'var(--r-md)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'background 150ms',
-              color: fixado ? 'var(--primary)' : 'var(--muted)',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'var(--hairline)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-          >
-            {fixado
-              ? <Pin style={{ width: 13, height: 13 }} />
-              : <PinOff style={{ width: 13, height: 13 }} />
-            }
-          </button>
+          {!modoPessoas && (
+            <button
+              onClick={() => setModoPessoas(true)}
+              title="Encontrar pessoas"
+              style={{
+                width: 28, height: 28, borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer',
+                transition: 'background 150ms', color: 'var(--muted)',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--hairline)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              <UserSearch style={{ width: 13, height: 13 }} />
+            </button>
+          )}
+
+          {!modoPessoas && (
+            <button
+              onClick={toggleFixado}
+              title={fixado ? 'Desafixar painel' : 'Fixar painel'}
+              style={{
+                width: 28, height: 28, borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer',
+                transition: 'background 150ms', color: fixado ? 'var(--primary)' : 'var(--muted)',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--hairline)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              {fixado ? <Pin style={{ width: 13, height: 13 }} /> : <PinOff style={{ width: 13, height: 13 }} />}
+            </button>
+          )}
 
           <button
             onClick={fechar}
             title="Fechar"
             style={{
-              width: 28,
-              height: 28,
-              borderRadius: 'var(--r-md)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'background 150ms',
-              color: 'var(--muted)',
+              width: 28, height: 28, borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer',
+              transition: 'background 150ms', color: 'var(--muted)',
             }}
             onMouseEnter={e => (e.currentTarget.style.background = 'var(--hairline)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
@@ -324,65 +371,124 @@ export function ChatDrawer({ usuarioId, naoLidosChat = 0 }: ChatDrawerProps) {
           </div>
         )}
 
-        {/* Area de mensagens */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '16px 14px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 14,
-            minHeight: 0,
-          }}
-        >
-          {carregandoCanais || carregando ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-              <Loader2 style={{ width: 20, height: 20, color: 'var(--muted)', animation: 'spin 1s linear infinite' }} />
-            </div>
-          ) : mensagens.length === 0 ? (
+        {/* Modo Pessoas */}
+        {modoPessoas ? (
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+            {carregandoUsuarios ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+                <Loader2 style={{ width: 20, height: 20, color: 'var(--muted)', animation: 'spin 1s linear infinite' }} />
+              </div>
+            ) : usuarios.length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, gap: 8, textAlign: 'center' }}>
+                <Users style={{ width: 28, height: 28, color: 'var(--hairline)' }} />
+                <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>Nenhum outro usuario na organizacao.</p>
+              </div>
+            ) : (
+              <div>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--muted)', padding: '12px 14px 6px' }}>
+                  {usuarios.length} pessoa{usuarios.length !== 1 ? 's' : ''}
+                </p>
+                {usuarios.map(u => (
+                  <button
+                    key={u.id}
+                    onClick={() => abrirDM(u.id)}
+                    disabled={abrindoDM === u.id}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '10px 14px', background: 'transparent', border: 'none',
+                      cursor: 'pointer', textAlign: 'left', transition: 'background 150ms',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--hairline)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <div style={{
+                      width: 32, height: 32, borderRadius: '50%', background: 'var(--primaryWash)',
+                      color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 13, fontWeight: 700, flexShrink: 0,
+                    }}>
+                      {(u.nome_completo ?? 'U').charAt(0).toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {u.nome_completo ?? 'Usuario'}
+                      </p>
+                      <p style={{ fontSize: 11, color: 'var(--muted)', margin: 0 }}>
+                        {PAPEL_LABEL[u.papel] ?? u.papel}
+                      </p>
+                    </div>
+                    {abrindoDM === u.id ? (
+                      <Loader2 style={{ width: 13, height: 13, color: 'var(--muted)', animation: 'spin 1s linear infinite', flexShrink: 0 }} />
+                    ) : (
+                      <MessageCircle style={{ width: 13, height: 13, color: 'var(--muted)', flexShrink: 0 }} />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* Area de mensagens */}
             <div
               style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '16px 14px',
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flex: 1,
-                gap: 8,
-                textAlign: 'center',
+                gap: 14,
+                minHeight: 0,
               }}
             >
-              <MessageCircle style={{ width: 32, height: 32, color: 'var(--hairline)' }} />
-              <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>
-                Nenhuma mensagem ainda.
-              </p>
-              <p style={{ fontSize: 11, color: 'var(--muted)', margin: 0 }}>
-                Seja o primeiro a escrever.
-              </p>
+              {carregandoCanais || carregando ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+                  <Loader2 style={{ width: 20, height: 20, color: 'var(--muted)', animation: 'spin 1s linear infinite' }} />
+                </div>
+              ) : mensagens.length === 0 ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flex: 1,
+                    gap: 8,
+                    textAlign: 'center',
+                  }}
+                >
+                  <MessageCircle style={{ width: 32, height: 32, color: 'var(--hairline)' }} />
+                  <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>
+                    Nenhuma mensagem ainda.
+                  </p>
+                  <p style={{ fontSize: 11, color: 'var(--muted)', margin: 0 }}>
+                    Seja o primeiro a escrever.
+                  </p>
+                </div>
+              ) : (
+                mensagens.map(m => (
+                  <MensagemChatItem
+                    key={m.id}
+                    mensagem={m}
+                    eProprioUsuario={m.autor_id === usuarioId}
+                  />
+                ))
+              )}
+              <div ref={bottomRef} />
             </div>
-          ) : (
-            mensagens.map(m => (
-              <MensagemChatItem
-                key={m.id}
-                mensagem={m}
-                eProprioUsuario={m.autor_id === usuarioId}
-              />
-            ))
-          )}
-          <div ref={bottomRef} />
-        </div>
 
-        {/* Input */}
-        {canalAtivo && (
-          <div
-            style={{
-              padding: '10px 12px',
-              borderTop: '1px solid var(--hairline)',
-              flexShrink: 0,
-            }}
-          >
-            <InputMensagem canalId={canalAtivo} />
-          </div>
+            {/* Input */}
+            {canalAtivo && (
+              <div
+                style={{
+                  padding: '10px 12px',
+                  borderTop: '1px solid var(--hairline)',
+                  flexShrink: 0,
+                }}
+              >
+                <InputMensagem canalId={canalAtivo} />
+              </div>
+            )}
+          </>
         )}
       </div>
 
