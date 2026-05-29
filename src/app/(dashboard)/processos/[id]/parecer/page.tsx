@@ -1,3 +1,4 @@
+import { createClient } from '@/lib/supabase/server'
 import { obterParecer } from '@/lib/actions/parecer'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { buscarPrecedentes, obterResumoProcesso } from '@/lib/actions/procuradoria'
@@ -6,21 +7,31 @@ import { StepPageHeader } from '@/components/licita/step-page-header'
 import EditorParecer from './editor-parecer'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import BotaoAssinatura from '@/components/assinatura/botao-assinatura'
-import BotaoAvancarEtapa from '@/components/documentos/botao-avancar-etapa'
+import BotoesParecer from '@/components/documentos/botoes-parecer'
 import { obterProvedorAssinatura } from '@/lib/actions/assinaturas'
+import type { FaseProcesso } from '@/types/database'
 
 export default async function ParecerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const supabase = await createClient()
 
-  const [parecer, papel, precedentes, resumo, provedor] = await Promise.all([
+  const [parecer, papel, precedentes, resumo, provedor, processoRes] = await Promise.all([
     obterParecer(id),
     obterPapelUsuario(),
     buscarPrecedentes(id),
     obterResumoProcesso(id),
     obterProvedorAssinatura(),
+    (supabase as any)
+      .from('processos_licitatorios')
+      .select('fase_atual, etapa_atual')
+      .eq('id', id)
+      .maybeSingle(),
   ])
 
   if (!parecer) return notFound()
+
+  const faseAtual: FaseProcesso = processoRes.data?.fase_atual ?? 'procurador'
+  const etapaAtual: number = processoRes.data?.etapa_atual ?? 10
 
   const podeAssinar = ['procurador', 'admin_organizacao', 'admin_plataforma'].includes(papel ?? '')
 
@@ -49,7 +60,7 @@ export default async function ParecerPage({ params }: { params: Promise<{ id: st
               />
             )}
             <BotoesExportacao tipo="parecer" processoId={id} nomeDocumento="Parecer" />
-            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="autorizacao" />
+            <BotoesParecer processoId={id} faseAtual={faseAtual} etapaAtual={etapaAtual} />
           </>
         }
       />

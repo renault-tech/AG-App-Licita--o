@@ -20,16 +20,23 @@ function calcularStatusEtapas(
   const indiceAtual = ORDEM_FLUXO.indexOf(faseAtual)
   const resultado = {} as Record<FaseProcesso, StatusEtapa>
 
+  // Fases que ja tiveram pelo menos uma entrada no historico como "de_papel"
+  // Isso cobre o caso da 2a passagem do setor_licitacao (apos parecer):
+  // o procurador ja foi "de_papel" no historico, entao deve aparecer como concluido
+  // mesmo que indiceAtual da fase atual seja menor que o indice do procurador.
+  const fasesComHistorico = new Set(historico.map(h => h.de_papel))
+
   ORDEM_FLUXO.forEach((fase, i) => {
-    // Apenas fases que sao do tipo FaseProcesso (excluindo admins)
     const faseComoFase = fase as FaseProcesso
-    if (i < indiceAtual) {
+    const jaPassouPelaFase = fasesComHistorico.has(faseComoFase)
+
+    if (fase === faseAtual) {
+      resultado[faseComoFase] = 'em_andamento'
+    } else if (i < indiceAtual || jaPassouPelaFase) {
       const temPendencia = historico.some(
         h => h.de_papel === faseComoFase && h.pendencias && h.pendencias.length > 0
       )
       resultado[faseComoFase] = temPendencia ? 'pendente' : 'concluido'
-    } else if (i === indiceAtual) {
-      resultado[faseComoFase] = 'em_andamento'
     } else {
       resultado[faseComoFase] = 'aguardando'
     }

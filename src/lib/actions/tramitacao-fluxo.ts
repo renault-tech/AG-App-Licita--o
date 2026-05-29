@@ -24,6 +24,7 @@ const DEVOLUCOES_PERMITIDAS: Partial<Record<PapelUsuario, PapelUsuario[]>> = {
   setor_licitacao: ['requisitante', 'setor_compras'],
   procurador:      ['setor_licitacao'],
   gestor_publico:  ['setor_licitacao'],
+  publicacao:      ['gestor_publico', 'setor_licitacao'],
 }
 
 // Mapa canônico: etapa_atual (número) -> fase responsável
@@ -80,6 +81,90 @@ async function registrarHistorico(
     motivo,
     pendencias,
   })
+}
+
+/**
+ * Usado exclusivamente pelo procurador ao concluir o parecer.
+ * Retorna o processo para o setor_licitacao SEM avancar etapa_atual.
+ * O setor de licitacao revisa o parecer e encaminha para o gestor via avancarEtapa.
+ */
+export async function retornarParaLicitacaoAposParece(
+  processoId: string
+): Promise<ResultadoFluxo> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Nao autenticado.' }
+
+  const { data: usuario } = await supabase
+    .from('usuarios')
+    .select('id, papel, organizacao_id, nome_completo')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (!usuario) return { success: false, error: 'Usuario nao encontrado.' }
+
+  const papelUsuario = (usuario as any).papel as PapelUsuario
+  const ehAdmin = papelUsuario === 'admin_plataforma' || papelUsuario === 'admin_organizacao'
+  if (!ehAdmin && papelUsuario !== 'procurador') {
+    return { success: false, error: 'Apenas o procurador pode concluir o parecer.' }
+  }
+
+  const { data: processo } = await (supabase as any)
+    .from('processos_licitatorios')
+    .select('id, fase_atual, etapa_atual, organizacao_id, numero_processo, objeto')
+    .eq('id', processoId)
+    .maybeSingle()
+
+  if (!processo) return { success: false, error: 'Processo nao encontrado.' }
+  if (!ehAdmin && (processo.organizacao_id !== (usuario as any).organizacao_id)) {
+    return { success: false, error: 'Sem permissao para este processo.' }
+  }
+
+  const { error } = await (supabase as any)
+    .from('processos_licitatorios')
+    .update({ fase_atual: 'setor_licitacao', updated_at: new Date().toISOString() })
+    .eq('id', processoId)
+
+  if (error) return { success: false, error: error.message }
+
+  await registrarHistorico(
+    supabase,
+    processoId,
+    (processo.organizacao_id as string),
+    (usuario as any).id,
+    (usuario as any).nome_completo,
+    'procurador',
+    'setor_licitacao',
+    'avanco',
+    null,
+    null
+  )
+
+  // Notifica setor_licitacao
+  const { data: destinatarios } = await supabase
+    .from('usuarios')
+    .select('id')
+    .eq('organizacao_id', (processo.organizacao_id as string))
+    .eq('papel', 'setor_licitacao')
+    .eq('ativo', true)
+
+  const identificador = (processo.objeto as string) ?? (processo.numero_processo as string) ?? 'processo'
+
+  if (destinatarios && (destinatarios as any[]).length > 0) {
+    await (supabase as any).from('notificacoes').insert(
+      (destinatarios as any[]).map((u: { id: string }) => ({
+        usuario_id: u.id,
+        organizacao_id: processo.organizacao_id,
+        processo_id: processoId,
+        titulo: 'Parecer concluido',
+        mensagem: `Parecer emitido para "${identificador}". Encaminhe para a autoridade competente.`,
+        lida: false,
+        link: `/processos/${processoId}/parecer`,
+      }))
+    )
+  }
+
+  revalidatePath(`/processos/${processoId}`)
+  return { success: true }
 }
 
 /**
