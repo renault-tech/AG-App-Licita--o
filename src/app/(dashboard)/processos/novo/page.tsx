@@ -136,8 +136,9 @@ export default function NovoProcessoPage() {
         })
         return
       }
-      // Fallback silencioso para templates se a IA falhar
-      toast.warning('IA indisponivel. Gerando com templates padrao.')
+      // Fallback para templates quando a IA falha — exibe o motivo real
+      const motivoFalha = resIA.error ?? 'Provedor de IA nao respondeu.'
+      toast.warning(`Gerando com templates. IA retornou: ${motivoFalha}`, { duration: 6000 })
     }
 
     const res = await gerarDocumentos(dados)

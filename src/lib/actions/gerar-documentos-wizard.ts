@@ -22,10 +22,10 @@ interface ResultadoGeracao {
 }
 
 async function gerarTextoDocumento(prompt: string): Promise<string> {
+  // Usa o provider ativo do ambiente (AI_PROVIDER), sem forcar Anthropic
   const res = await gerarTextoIA({
     prompt,
     maxTokens: 4096,
-    provider: 'anthropic',
   })
   return res.text
 }
@@ -99,6 +99,7 @@ export async function gerarDocumentosWizard(
     documentos = { dfd, etp, tr }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Erro na geracao com IA.'
+    console.error('[gerarDocumentosWizard] falha na IA:', msg)
     return { success: false, error: msg }
   }
 
