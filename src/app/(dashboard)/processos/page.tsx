@@ -263,7 +263,7 @@ export default async function ProcessosPage({
                   numero_processo={p.numero_processo}
                   modalidade={p.modalidade}
                   status={p.status}
-                  fase_atual={p.fase_atual}
+                  fase_atual={p.fase_atual ?? null}
                   updated_at={p.updated_at ?? p.created_at}
                   valor_estimado={p.valor_estimado}
                 />
