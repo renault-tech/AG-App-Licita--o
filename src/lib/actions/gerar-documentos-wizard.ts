@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { gerarTextoIA } from '@/lib/ai/client'
+import { executarIAComCreditos } from '@/lib/ai/wrapper'
 import {
   buildPromptDFD,
   buildPromptETP,
@@ -19,15 +19,6 @@ interface ResultadoGeracao {
   success: boolean
   documentos?: DocumentosGeradosIA
   error?: string
-}
-
-async function gerarTextoDocumento(prompt: string): Promise<string> {
-  // Usa o provider ativo do ambiente (AI_PROVIDER), sem forcar Anthropic
-  const res = await gerarTextoIA({
-    prompt,
-    maxTokens: 4096,
-  })
-  return res.text
 }
 
 export async function gerarDocumentosWizard(
@@ -89,38 +80,45 @@ export async function gerarDocumentosWizard(
     unidadeRequisitante: secretariaNome,
   }
 
-  let documentos: DocumentosGeradosIA
-  try {
-    const [dfd, etp, tr] = await Promise.all([
-      gerarTextoDocumento(buildPromptDFD(dadosPrompt)),
-      gerarTextoDocumento(buildPromptETP(dadosPrompt)),
-      gerarTextoDocumento(buildPromptTR(dadosPrompt)),
-    ])
-    documentos = { dfd, etp, tr }
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Erro na geracao com IA.'
-    console.error('[gerarDocumentosWizard] falha na IA:', msg)
-    return { success: false, error: msg }
+  // Gerar os 3 documentos sequencialmente via wrapper padrao.
+  // O wrapper le ia_config.provider da org, debita creditos e registra em acoes_ia.
+  // Sequencial (nao paralelo) para respeitar rate limit do provider configurado.
+  const resDFD = await executarIAComCreditos({
+    prompt: buildPromptDFD(dadosPrompt),
+    tipoAcao: 'gerar_documento',
+    temperature: 0.3,
+  })
+  if (!resDFD.success) {
+    console.error('[gerarDocumentosWizard] falha no DFD:', resDFD.error)
+    return { success: false, error: resDFD.error }
   }
 
-  const logsIA = [
-    { documento: 'dfd', output: documentos.dfd },
-    { documento: 'etp', output: documentos.etp },
-    { documento: 'tr',  output: documentos.tr },
-  ]
+  const resETP = await executarIAComCreditos({
+    prompt: buildPromptETP(dadosPrompt),
+    tipoAcao: 'gerar_documento',
+    temperature: 0.3,
+  })
+  if (!resETP.success) {
+    console.error('[gerarDocumentosWizard] falha no ETP:', resETP.error)
+    return { success: false, error: resETP.error }
+  }
 
-  await Promise.all(logsIA.map(log =>
-    (supabase as any).from('acoes_ia').insert({
-      usuario_id: usuario.id,
-      organizacao_id: usuario.organizacao_id,
-      tipo_acao: 'gerar_documento',
-      modelo: 'anthropic',
-      input_resumo: dados.objeto.slice(0, 200),
-      output_resumo: log.output.slice(0, 200),
-      tokens_input: 0,
-      tokens_output: Math.ceil(log.output.length / 4),
-    }).catch(() => {})
-  ))
+  const resTR = await executarIAComCreditos({
+    prompt: buildPromptTR(dadosPrompt),
+    tipoAcao: 'gerar_documento',
+    temperature: 0.3,
+  })
+  if (!resTR.success) {
+    console.error('[gerarDocumentosWizard] falha no TR:', resTR.error)
+    return { success: false, error: resTR.error }
+  }
 
-  return { success: true, documentos }
+  return {
+    success: true,
+    documentos: {
+      dfd: resDFD.texto,
+      etp: resETP.texto,
+      tr:  resTR.texto,
+    },
+  }
 }

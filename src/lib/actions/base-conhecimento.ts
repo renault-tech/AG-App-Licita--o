@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { gerarTextoIA } from '@/lib/ai/client'
+import { executarIAComCreditos } from '@/lib/ai/wrapper'
 
 const BUCKET = 'documentos-base'
 
@@ -181,8 +181,9 @@ Responda APENAS com JSON valido neste formato exato, sem texto adicional:
   ]
 }`
 
-    const resIA = await gerarTextoIA({ prompt, temperature: 0.1 })
-    const textoJSON = resIA.text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+    const resIA = await executarIAComCreditos({ prompt, tipoAcao: 'gerar_documento', temperature: 0.1 })
+    if (!resIA.success) throw new Error(resIA.error)
+    const textoJSON = resIA.texto.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
 
     let clausulas: Array<{ tipo_campo: string; texto: string; aplicavel_para: string }> = []
     try {
