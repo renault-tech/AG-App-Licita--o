@@ -200,7 +200,7 @@ export async function ativarUsuario(usuarioId: string): Promise<ActionResult> {
   const supabase = await createClient()
   const { error } = await (supabase
     .from('usuarios') as any)
-    .update({ ativo: true, status_aprovacao: 'aprovado' })
+    .update({ ativo: true, status_aprovacao: 'ativo' })
     .eq('id', usuarioId)
     .eq('organizacao_id', usuario.organizacao_id)
 
