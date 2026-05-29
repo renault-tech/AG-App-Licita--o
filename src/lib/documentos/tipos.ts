@@ -8,6 +8,7 @@ export interface CabecalhoDoc {
   email: string | null
   brasaoUrl: string | null
   geradoPorIA: boolean
+  corPrimaria: string
 }
 
 export interface SecaoDoc {

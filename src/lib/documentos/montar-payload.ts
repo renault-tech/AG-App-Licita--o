@@ -3,6 +3,14 @@
 import { createClient } from '@/lib/supabase/server'
 import type { PayloadDocumento, CabecalhoDoc } from './tipos'
 
+const COR_POR_TEMA: Record<string, string> = {
+  petroleo:   '#1F3B4E',
+  grafite:    '#111111',
+  brasao:     '#1A4828',
+  noite:      '#0D1117',
+  cataguases: '#0E1B33',
+}
+
 const MODALIDADE_LABEL: Record<string, string> = {
   pregao_eletronico:   'Pregão Eletrônico',
   pregao_presencial:   'Pregão Presencial',
@@ -21,7 +29,7 @@ async function buscarCabecalho(
 ): Promise<CabecalhoDoc> {
   const { data: org } = await (supabase as any)
     .from('organizacoes')
-    .select('nome, municipio, estado, endereco, telefone, email, brasao_url, cabecalho_institucional')
+    .select('nome, municipio, estado, endereco, telefone, email, brasao_url, cabecalho_institucional, cor_primaria, tema_padrao')
     .eq('id', organizacaoId)
     .maybeSingle()
 
@@ -35,6 +43,11 @@ async function buscarCabecalho(
     nomeSecretaria = sec?.nome ?? null
   }
 
+  const corPrimaria =
+    org?.cor_primaria?.match(/^#[0-9a-fA-F]{6}$/)
+      ? org.cor_primaria
+      : (COR_POR_TEMA[org?.tema_padrao ?? ''] ?? '#06007D')
+
   return {
     municipio:        org?.municipio ?? '',
     estado:           org?.estado ?? '',
@@ -45,6 +58,7 @@ async function buscarCabecalho(
     email:            org?.email ?? null,
     brasaoUrl:        org?.brasao_url ?? null,
     geradoPorIA:      false,
+    corPrimaria,
   }
 }
 
