@@ -1,4 +1,11 @@
-export type TipoCanal = 'processo' | 'setor' | 'plataforma'
+export type TipoCanal = 'processo' | 'setor' | 'plataforma' | 'dm'
+
+export interface UsuarioChat {
+  id: string
+  nome_completo: string | null
+  papel: string
+  secretaria_id: string | null
+}
 
 export interface CanalChat {
   id: string

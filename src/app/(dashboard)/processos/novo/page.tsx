@@ -183,7 +183,7 @@ export default function NovoProcessoPage() {
 
   if (documentosGerados) {
     return (
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <TelaDocumentosGerados
           documentos={documentosGerados}
           dados={dados}
@@ -201,7 +201,7 @@ export default function NovoProcessoPage() {
   const prontoParaGerar = todasEtapasValidas(dados)
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
         <Link
           href="/dashboard"

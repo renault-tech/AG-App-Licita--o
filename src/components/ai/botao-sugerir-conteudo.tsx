@@ -31,9 +31,10 @@ export function BotaoSugerirConteudo({
     }
 
     setSugerindo(true)
-    onTextoSugerido('')
-
     abortRef.current = new AbortController()
+
+    // Nao limpa o campo antes da resposta — preserva texto original se a requisicao falhar
+    let iniciouEscrita = false
 
     try {
       const res = await fetch('/api/ai/sugerir-conteudo', {
@@ -57,13 +58,23 @@ export function BotaoSugerirConteudo({
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
+
+        if (!iniciouEscrita) {
+          iniciouEscrita = true
+          onTextoSugerido('') // limpa somente quando o primeiro dado chega
+        }
+
         textoAcumulado += decoder.decode(value, { stream: true })
         onTextoSugerido(textoAcumulado)
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return
       toast.error(err instanceof Error ? err.message : 'Erro ao gerar sugestao.')
-      onTextoSugerido('')
+      // Resposta parcial com erro mid-stream: limpa texto incompleto
+      // Falha antes de qualquer dado: texto original permanece intacto
+      if (iniciouEscrita) {
+        onTextoSugerido('')
+      }
     } finally {
       setSugerindo(false)
     }

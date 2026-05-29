@@ -15,6 +15,7 @@ const CANAL_ICON: Record<TipoCanal, React.ElementType> = {
   plataforma: Hash,
   setor: Building2,
   processo: Users,
+  dm: MessageCircle,
 }
 
 interface ChatDrawerProps {

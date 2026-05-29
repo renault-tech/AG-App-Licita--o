@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { CanalChat, CanalComNaoLidos, MensagemChat } from '@/types/chat'
+import type { CanalChat, CanalComNaoLidos, MensagemChat, UsuarioChat } from '@/types/chat'
 
 export async function buscarCanaisComNaoLidos(): Promise<CanalComNaoLidos[]> {
   const supabase = await createClient()
@@ -225,6 +225,93 @@ export async function garantirCanalSetor(
     .single()
 
   return error ? null : (novo as any).id
+}
+
+export async function listarUsuariosOrg(): Promise<UsuarioChat[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data: usr } = await supabase
+    .from('usuarios')
+    .select('organizacao_id')
+    .eq('id', user.id)
+    .single()
+  if (!usr) return []
+  const orgId = (usr as any).organizacao_id
+
+  const { data } = await (supabase as any)
+    .from('usuarios')
+    .select('id, nome_completo, papel, secretaria_id')
+    .eq('organizacao_id', orgId)
+    .neq('id', user.id)
+    .order('nome_completo', { ascending: true })
+    .limit(100)
+
+  return (data ?? []) as UsuarioChat[]
+}
+
+// Cria ou recupera um canal DM entre o usuario atual e outro usuario
+export async function garantirCanalDM(outroUsuarioId: string): Promise<string | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: usr } = await supabase
+    .from('usuarios')
+    .select('organizacao_id')
+    .eq('id', user.id)
+    .single()
+  if (!usr) return null
+  const orgId = (usr as any).organizacao_id
+
+  // Busca canal DM existente entre os dois usuarios
+  const { data: participacoes } = await (supabase as any)
+    .from('canais_dm_participantes')
+    .select('canal_id')
+    .eq('usuario_id', user.id)
+
+  if (participacoes?.length) {
+    const meusCanalIds = (participacoes as any[]).map((p: any) => p.canal_id)
+    const { data: candidatos } = await (supabase as any)
+      .from('canais_dm_participantes')
+      .select('canal_id')
+      .eq('usuario_id', outroUsuarioId)
+      .in('canal_id', meusCanalIds)
+
+    if (candidatos?.length) {
+      return (candidatos[0] as any).canal_id
+    }
+  }
+
+  // Busca nome do outro usuario para nomear o canal
+  const { data: outro } = await (supabase as any)
+    .from('usuarios')
+    .select('nome_completo')
+    .eq('id', outroUsuarioId)
+    .maybeSingle()
+  const nomeOutro = (outro as any)?.nome_completo ?? 'Usuario'
+
+  // Cria novo canal DM
+  const { data: novoCanal, error } = await (supabase as any)
+    .from('canais_chat')
+    .insert({ organizacao_id: orgId, tipo: 'dm', referencia_id: null, nome: nomeOutro })
+    .select('id')
+    .single()
+
+  if (error || !novoCanal) return null
+
+  const canalId = (novoCanal as any).id
+
+  // Insere os dois participantes
+  await (supabase as any)
+    .from('canais_dm_participantes')
+    .insert([
+      { canal_id: canalId, usuario_id: user.id },
+      { canal_id: canalId, usuario_id: outroUsuarioId },
+    ])
+
+  return canalId
 }
 
 export async function contarNaoLidosTotal(): Promise<number> {

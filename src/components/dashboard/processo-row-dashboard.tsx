@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Users } from 'lucide-react'
 import { StatusPill } from '@/components/licita/status-pill'
 import type { StatusProcesso } from '@/components/licita/status-pill'
 
@@ -35,19 +35,29 @@ export interface ProcessoRowDashboardProps {
   diasParado?: number
   valor_estimado?: number | null
   secretaria?: string | null
+  criadoPorNome?: string | null
+  ehMeu?: boolean
+  compraConjunta?: boolean
+  avisoPrazo?: string | null
 }
 
 export function ProcessoRowDashboard({
   id, objeto, numero_processo, modalidade, status, fase_atual,
   updated_at, href, diasParado, valor_estimado, secretaria,
+  criadoPorNome, ehMeu = true, compraConjunta = false, avisoPrazo,
 }: ProcessoRowDashboardProps) {
   const dias = diasParado ?? Math.floor((Date.now() - new Date(updated_at).getTime()) / 86400000)
   const destino = href ?? `/processos/${id}/dfd`
 
+  const diasAteAvisoPrazo = avisoPrazo
+    ? Math.ceil((new Date(avisoPrazo).getTime() - Date.now()) / 86400000)
+    : null
+
   return (
     <Link
       href={destino}
-      className="glass lift rounded-[var(--r-lg)] flex items-center gap-4 px-5 py-4 group"
+      className="glass lift rounded-[var(--r-lg)] flex items-center gap-4 px-5 py-4 group overflow-hidden relative"
+      style={!ehMeu ? { borderLeft: '3px solid var(--primarySoft, #93c5fd)' } : undefined}
     >
       {/* Informacoes do processo */}
       <div className="flex-1 min-w-0">
@@ -77,6 +87,23 @@ export function ProcessoRowDashboard({
           {!secretaria && fase_atual && (
             <span className="text-[11.5px]" style={{ color: 'var(--muted)' }}>{FASE_LABEL[fase_atual] ?? fase_atual}</span>
           )}
+          {criadoPorNome && (
+            <>
+              <span style={{ color: 'var(--hairline)' }}>·</span>
+              <span className="text-[11.5px]" style={{ color: 'var(--muted)' }}>
+                {ehMeu ? 'por mim' : `por ${criadoPorNome}`}
+              </span>
+            </>
+          )}
+          {compraConjunta && (
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+              style={{ background: 'var(--primaryWash, #dbeafe)', color: 'var(--primary)' }}
+            >
+              <Users className="w-2.5 h-2.5" />
+              Compra conjunta
+            </span>
+          )}
         </div>
       </div>
 
@@ -89,6 +116,17 @@ export function ProcessoRowDashboard({
             </p>
             <p className="text-[10px]" style={{ color: 'var(--muted)' }}>estimado</p>
           </div>
+        )}
+        {diasAteAvisoPrazo !== null && diasAteAvisoPrazo >= 0 && (
+          <span
+            className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+            style={{
+              background: diasAteAvisoPrazo <= 2 ? 'var(--dangerWash)' : 'var(--warnWash)',
+              color: diasAteAvisoPrazo <= 2 ? 'var(--danger)' : 'var(--warn)',
+            }}
+          >
+            {diasAteAvisoPrazo === 0 ? 'hoje' : `${diasAteAvisoPrazo}d`}
+          </span>
         )}
         {dias > 3 && (
           <span

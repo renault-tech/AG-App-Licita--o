@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Bell, ShoppingCart } from 'lucide-react'
+import { Bell, ShoppingCart, Users, ArrowRight, Clock } from 'lucide-react'
 import { KPIBar } from '@/components/dashboard/kpi-bar'
 import { FaseTimeline } from '@/components/dashboard/fase-timeline'
 import { PendenciasCard } from '@/components/dashboard/pendencias-card'
@@ -28,7 +28,15 @@ export async function DashboardRequisitante({ userId, orgId, cargo, nome }: Prop
 
   const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
 
-  const [{ data: processos }, { data: notifData }, { data: acoesIaData }] = await Promise.all([
+  // Busca secretaria_id do usuario para consulta de compra conjunta
+  const { data: usuarioData } = await (supabase as any)
+    .from('usuarios')
+    .select('secretaria_id')
+    .eq('id', userId)
+    .maybeSingle()
+  const secretariaId: string | null = (usuarioData as any)?.secretaria_id ?? null
+
+  const [{ data: processos }, { data: notifData }, { data: acoesIaData }, { data: avisosData }] = await Promise.all([
     (supabase as any)
       .from('processos_licitatorios')
       .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at, created_at, valor_estimado')
@@ -45,11 +53,21 @@ export async function DashboardRequisitante({ userId, orgId, cargo, nome }: Prop
       .select('creditos_consumidos')
       .eq('usuario_id', userId)
       .gte('created_at', inicioMes),
+    // Convites de compra conjunta pendentes para a secretaria do usuario
+    secretariaId
+      ? (supabase as any)
+          .from('avisos_destinatarias')
+          .select('id, status, avisos_compra_conjunta(id, titulo, prazo_adesao, processo_id, criado_por, processos_licitatorios(objeto, numero_processo, modalidade))')
+          .eq('secretaria_id', secretariaId)
+          .eq('status', 'pendente')
+          .limit(5)
+      : Promise.resolve({ data: [] }),
   ])
 
   const lista = (processos as any[]) ?? []
   const notifCount = ((notifData as any[]) ?? []).length
   const creditosIaMes = ((acoesIaData as any[]) ?? []).reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
+  const avisosConvite = ((avisosData as any[]) ?? []).filter((a: any) => a.avisos_compra_conjunta)
 
   const contagens = {
     total:      lista.length,
@@ -106,6 +124,67 @@ export async function DashboardRequisitante({ userId, orgId, cargo, nome }: Prop
         {/* Coluna principal */}
         <div className="space-y-6">
           <PendenciasCard userId={userId} orgId={orgId} faseAtual="requisitante" />
+
+          {/* Card de convites de compra conjunta */}
+          {avisosConvite.length > 0 && (
+            <div className="glass rounded-[var(--r-lg)] overflow-hidden">
+              <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--hairline)' }}>
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4" style={{ color: 'var(--primary)' }} />
+                  <span className="text-[13px] font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+                    Convites de Compra Conjunta
+                  </span>
+                  <span
+                    className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                    style={{ background: 'var(--primaryWash)', color: 'var(--primary)' }}
+                  >
+                    {avisosConvite.length}
+                  </span>
+                </div>
+                <Link href="/processos" className="text-[11px]" style={{ color: 'var(--primary)' }}>
+                  Ver todos
+                </Link>
+              </div>
+              <div className="divide-y" style={{ borderColor: 'var(--hairline)' }}>
+                {avisosConvite.map((ad: any) => {
+                  const aviso = ad.avisos_compra_conjunta
+                  const proc = aviso?.processos_licitatorios
+                  const prazo = aviso?.prazo_adesao ? new Date(aviso.prazo_adesao) : null
+                  const diasRestantes = prazo ? Math.ceil((prazo.getTime() - Date.now()) / 86400000) : null
+                  return (
+                    <Link
+                      key={ad.id}
+                      href={`/processos/${aviso?.processo_id ?? ''}`}
+                      className="flex items-center gap-3 px-5 py-3.5 hover:bg-[var(--surface)] transition-colors group"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-medium truncate" style={{ color: 'var(--ink)' }}>
+                          {aviso?.titulo ?? proc?.objeto ?? 'Compra conjunta'}
+                        </p>
+                        {proc && (
+                          <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--muted)' }}>
+                            {proc.numero_processo ? `${proc.numero_processo} · ` : ''}{proc.objeto}
+                          </p>
+                        )}
+                      </div>
+                      {diasRestantes !== null && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Clock className="w-3 h-3" style={{ color: diasRestantes <= 2 ? 'var(--danger)' : 'var(--warn)' }} />
+                          <span
+                            className="text-[10px] font-bold"
+                            style={{ color: diasRestantes <= 2 ? 'var(--danger)' : 'var(--warn)' }}
+                          >
+                            {diasRestantes <= 0 ? 'hoje' : `${diasRestantes}d`}
+                          </span>
+                        </div>
+                      )}
+                      <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--muted)' }} />
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           {recentes.length > 0 ? (
             <ProcessosListSection

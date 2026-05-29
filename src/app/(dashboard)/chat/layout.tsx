@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { buscarCanaisComNaoLidos, garantirCanalPlataforma, garantirCanalSetor } from '@/lib/actions/chat'
+import { buscarCanaisComNaoLidos, garantirCanalPlataforma, garantirCanalSetor, listarUsuariosOrg } from '@/lib/actions/chat'
 import { SidebarCanais } from '@/components/chat/sidebar-canais'
 
 export default async function ChatLayout({ children }: { children: React.ReactNode }) {
@@ -27,7 +27,10 @@ export default async function ChatLayout({ children }: { children: React.ReactNo
     }
   }
 
-  const canais = await buscarCanaisComNaoLidos()
+  const [canais, usuarios] = await Promise.all([
+    buscarCanaisComNaoLidos(),
+    listarUsuariosOrg(),
+  ])
 
   return (
     <div
@@ -39,7 +42,7 @@ export default async function ChatLayout({ children }: { children: React.ReactNo
         minHeight: '500px',
       }}
     >
-      <SidebarCanais canais={canais} />
+      <SidebarCanais canais={canais} usuarios={usuarios} />
       <div className="flex-1 min-w-0 overflow-hidden">
         {children}
       </div>

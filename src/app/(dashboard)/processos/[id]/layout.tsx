@@ -5,7 +5,7 @@ import { headers } from 'next/headers'
 import {
   ArrowLeft, FileText, Calculator, ClipboardList, ShieldAlert,
   ScrollText, BookOpen, Gavel, CheckCircle2, ClipboardCheck,
-  ShieldCheck, Globe, Scale, Mail, MessageSquare, Bot,
+  ShieldCheck, Globe, Scale, Mail, MessageSquare, Bot, AlertTriangle,
 } from 'lucide-react'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { registrarAuditoria } from '@/lib/audit/log'
@@ -102,6 +102,22 @@ export default async function ProcessoLayout({
 
   const papel = (await obterPapelUsuario()) as PapelUsuario | null
 
+  // Detecta se admin_plataforma esta acessando processo de outra organizacao
+  let adminCrossOrg = false
+  if (papel === 'admin_plataforma') {
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    if (currentUser) {
+      const { data: currentUsuario } = await (supabase as any)
+        .from('usuarios')
+        .select('organizacao_id, nome_completo')
+        .eq('id', currentUser.id)
+        .maybeSingle()
+      if (currentUsuario && (currentUsuario as any).organizacao_id !== processo.organizacao_id) {
+        adminCrossOrg = true
+      }
+    }
+  }
+
   // Detecta etapa ativa pelo pathname
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') ?? ''
@@ -147,6 +163,25 @@ export default async function ProcessoLayout({
 
   return (
     <div className="space-y-0">
+
+      {/* Aviso de acesso cross-org para admin_plataforma */}
+      {adminCrossOrg && (
+        <div
+          className="mb-4 px-4 py-3 rounded-[var(--r-md)] border flex items-start gap-3 text-sm"
+          style={{
+            background: '#fefce8',
+            borderColor: '#fde047',
+            color: '#854d0e',
+          }}
+          role="alert"
+        >
+          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#ca8a04' }} />
+          <div>
+            <span className="font-semibold">Atencao: voce esta acessando um processo de outra organizacao.</span>
+            {' '}Qualquer edicao ou acao de IA neste documento sera registrada em auditoria com sua identidade. Proceda com cautela.
+          </div>
+        </div>
+      )}
 
       {/* Cabecalho do processo */}
       <div
