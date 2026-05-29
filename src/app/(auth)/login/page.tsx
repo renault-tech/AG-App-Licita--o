@@ -58,7 +58,8 @@ function LoginForm() {
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
     if (error) {
-      toast.error('Credenciais invalidas. Verifique e-mail e senha.')
+      // Exibe o erro real do Supabase para facilitar diagnostico
+      toast.error(error.message ?? 'Credenciais invalidas. Verifique e-mail e senha.')
       setCarregando(false)
       return
     }
@@ -85,7 +86,8 @@ function LoginForm() {
                 </SelectTrigger>
                 <SelectContent>
                   {orgs.map(o => (
-                    <SelectItem key={o.id} value={o.id}>
+                    // label obrigatorio no Base UI: sem ele o trigger exibe o value (UUID)
+                    <SelectItem key={o.id} value={o.id} label={o.nome}>
                       <div className="flex items-center gap-2">
                         <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                         {o.nome}

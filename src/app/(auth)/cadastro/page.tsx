@@ -138,7 +138,7 @@ export default function CadastroPage() {
                 <SelectValue placeholder="Selecione sua prefeitura..." />
               </SelectTrigger>
               <SelectContent>
-                {orgs.map(o => <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}
+                {orgs.map(o => <SelectItem key={o.id} value={o.id} label={o.nome}>{o.nome}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -157,7 +157,7 @@ export default function CadastroPage() {
               </SelectTrigger>
               <SelectContent>
                 {branding.secretarias.map(s => (
-                  <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+                  <SelectItem key={s.id} value={s.id} label={s.nome}>{s.nome}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -171,7 +171,7 @@ export default function CadastroPage() {
               </SelectTrigger>
               <SelectContent>
                 {PAPEIS.map(p => (
-                  <SelectItem key={p} value={p}>{LABEL_PAPEL[p]}</SelectItem>
+                  <SelectItem key={p} value={p} label={LABEL_PAPEL[p]}>{LABEL_PAPEL[p]}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

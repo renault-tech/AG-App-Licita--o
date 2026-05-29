@@ -110,11 +110,8 @@ export default function AuthLayoutClient({ children }: { children: ReactNode }) 
           <div style={{ height: 3, background: 'linear-gradient(90deg, rgba(255,255,255,0.25), rgba(255,255,255,0.55), rgba(255,255,255,0.25))' }} />
         </div>
 
-        {/* Painel direito: formulário */}
-        <div
-          className="flex-1 flex items-center justify-center px-6 py-12"
-          style={{ zoom: 'var(--zoom-level, 1)' }}
-        >
+        {/* Painel direito: formulário — sem zoom (quebra portais Radix no Chrome) */}
+        <div className="flex-1 flex items-center justify-center px-6 py-12">
           <div className="w-full max-w-md">
             {/* Logo mobile */}
             <div className="lg:hidden flex flex-col items-center mb-10 gap-4">
