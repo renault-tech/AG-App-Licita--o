@@ -190,6 +190,36 @@ export async function desativarUsuario(usuarioId: string): Promise<ActionResult>
   return { success: true }
 }
 
+export async function ativarUsuario(usuarioId: string): Promise<ActionResult> {
+  const usuario = await getUsuarioAutenticado()
+  if (!usuario) return { success: false, error: 'Sessao expirada.' }
+  if (!['admin_organizacao', 'admin_plataforma'].includes(usuario.papel)) {
+    return { success: false, error: 'Sem permissao.' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await (supabase
+    .from('usuarios') as any)
+    .update({ ativo: true, status_aprovacao: 'aprovado' })
+    .eq('id', usuarioId)
+    .eq('organizacao_id', usuario.organizacao_id)
+
+  if (error) return { success: false, error: 'Erro ao ativar usuario.' }
+
+  void registrarAuditoria({
+    organizacaoId: usuario.organizacao_id,
+    usuarioId:     usuario.id,
+    nomeUsuario:   usuario.nome_completo ?? 'Admin',
+    papelUsuario:  usuario.papel,
+    categoria:     'usuario',
+    acao:          'usuario.ativado',
+    recursoId:     usuarioId,
+  })
+
+  revalidatePath('/configuracoes/usuarios')
+  return { success: true }
+}
+
 export async function salvarConfigIA(provedor: string): Promise<ActionResult> {
   const provedoresValidos = ['gemini', 'groq', 'anthropic', 'openrouter']
   if (!provedoresValidos.includes(provedor)) {
