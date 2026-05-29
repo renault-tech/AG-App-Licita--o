@@ -43,11 +43,17 @@ const FILTRO_FASE_LABEL: Record<string, string> = {
   publicacao:      'Publicação',
 }
 
+// Papeis cujos usuários só enxergam processos que já chegaram ao seu setor
+const PAPEIS_VISIBILIDADE_RESTRITA = new Set([
+  'setor_compras', 'setor_licitacao', 'procurador', 'gestor_publico', 'publicacao',
+])
+
 function aplicarFiltros(
   baseQuery: any,
   papel: string | null,
   userId: string,
   orgId: string,
+  visibleIds: string[],
   filtroStatus?: string,
   filtroFase?: string,
   qSafe?: string,
@@ -59,6 +65,16 @@ function aplicarFiltros(
     q = q.eq('criado_por', userId)
   } else {
     q = q.eq('organizacao_id', orgId)
+  }
+
+  // Visibilidade restrita: só mostra processos que já chegaram ao setor do usuário
+  if (papel && PAPEIS_VISIBILIDADE_RESTRITA.has(papel) && filtroCriadoPor !== 'me') {
+    if (visibleIds.length > 0) {
+      q = q.or(`fase_atual.eq.${papel},id.in.(${visibleIds.join(',')})`)
+    } else {
+      // Nenhum processo passou por este setor ainda: mostra apenas os atuais
+      q = q.eq('fase_atual', papel)
+    }
   }
 
   if (filtroStatus === 'em_andamento') {
@@ -107,14 +123,24 @@ export default async function ProcessosPage({
   const page = Math.max(1, parseInt(searchParams.page ?? '1', 10))
   const qSafe = q.replace(/[%_;\\]/g, '')
 
+  // Pré-busca IDs de processos que já chegaram ao setor do usuário (via tramitacao_historico)
+  let visibleIds: string[] = []
+  if (papel && PAPEIS_VISIBILIDADE_RESTRITA.has(papel)) {
+    const { data: hist } = await (supabase as any)
+      .from('tramitacao_historico')
+      .select('processo_id')
+      .eq('para_papel', papel)
+    visibleIds = [...new Set(((hist ?? []) as any[]).map(h => h.processo_id))]
+  }
+
   const [{ count: totalCount }, { data: processos }] = await Promise.all([
     aplicarFiltros(
       (supabase as any).from('processos_licitatorios').select('id', { count: 'exact', head: true }),
-      papel, user.id, organizacaoId, filtroStatus, filtroFase, qSafe, filtroCriadoPor
+      papel, user.id, organizacaoId, visibleIds, filtroStatus, filtroFase, qSafe, filtroCriadoPor
     ),
     aplicarFiltros(
       (supabase as any).from('processos_licitatorios').select('id, objeto, modalidade, status, fase_atual, numero_processo, valor_estimado, created_at, updated_at'),
-      papel, user.id, organizacaoId, filtroStatus, filtroFase, qSafe, filtroCriadoPor
+      papel, user.id, organizacaoId, visibleIds, filtroStatus, filtroFase, qSafe, filtroCriadoPor
     )
       .order('created_at', { ascending: false })
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
@@ -126,7 +152,7 @@ export default async function ProcessosPage({
   // Calcular totais sem filtro para os KPIs (sem filtros de status/fase/q)
   const { data: todosProcessos } = await aplicarFiltros(
     (supabase as any).from('processos_licitatorios').select('status'),
-    papel, user.id, organizacaoId
+    papel, user.id, organizacaoId, visibleIds
   )
   const todos = (todosProcessos as any[] | null) ?? []
   const totais = {
