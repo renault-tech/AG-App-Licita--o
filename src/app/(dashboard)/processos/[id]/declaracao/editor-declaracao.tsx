@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Loader2, Save, Wand2, FileText, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -114,13 +114,12 @@ export default function EditorDeclaracao({
         {/* Objeto */}
         <div className="space-y-1.5">
           <Label className="text-sm font-medium text-gray-700">Objeto da contratação</Label>
-          <Textarea
-            rows={3}
+          <RichTextEditor
             value={objeto}
-            onChange={e => setObjeto(e.target.value)}
+            onChange={val => setObjeto(val)}
             placeholder="Descreva o objeto conforme consta no DFD..."
             disabled={readonly}
-            className="resize-y"
+            minHeight={80}
           />
         </div>
 
@@ -149,13 +148,13 @@ export default function EditorDeclaracao({
               </Button>
             )}
           </div>
-          <Textarea
-            rows={6}
+          <RichTextEditor
             value={justificativa}
-            onChange={e => { setJustificativa(e.target.value); setGeradoPorIA(false) }}
+            onChange={val => { setJustificativa(val); setGeradoPorIA(false) }}
             placeholder="Declare formalmente a necessidade da contratação, referenciando os documentos do processo..."
             disabled={readonly}
-            className={`resize-y ${geradoPorIA ? 'border-purple-200 bg-purple-50/20' : ''}`}
+            minHeight={168}
+            className={geradoPorIA ? 'border-purple-200' : ''}
           />
         </div>
 

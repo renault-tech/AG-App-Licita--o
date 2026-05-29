@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
 import { Loader2, Save, Wand2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { atualizarEdital, revisarEditalComIA } from '@/lib/actions/edital'
@@ -111,13 +111,12 @@ export default function EditorEdital({ edital, processoId, papelUsuario, podeEdi
                 </Button>
               </div>
 
-              <Textarea
-                rows={5}
+              <RichTextEditor
                 value={secao.texto}
-                onChange={(e) => atualiza(secao.id, 'texto', e.target.value)}
+                onChange={(val) => atualiza(secao.id, 'texto', val)}
                 readOnly={!podeEditar}
-                className={`resize-y text-sm text-gray-800 leading-relaxed ${!podeEditar ? 'bg-gray-50 cursor-default' : ''}`}
                 placeholder="Conteúdo da cláusula..."
+                minHeight={140}
               />
             </div>
           )

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -203,12 +203,11 @@ function TabelaItens({
                     {readonly ? (
                       <p className="text-gray-800">{item.especificacao}</p>
                     ) : (
-                      <Textarea
-                        rows={2}
+                      <RichTextEditor
                         value={item.especificacao}
-                        onChange={e => updateItem(idx, 'especificacao', e.target.value)}
+                        onChange={val => updateItem(idx, 'especificacao', val)}
                         placeholder="Descreva o item conforme normas tecnicas..."
-                        className="resize-none text-sm min-h-0"
+                        minHeight={56}
                       />
                     )}
                     {item.observacoes && (
@@ -460,13 +459,12 @@ export default function EditorDFD({
                 </div>
               )}
             </div>
-            <Textarea
-              rows={4}
+            <RichTextEditor
               value={objeto}
-              onChange={e => setObjeto(e.target.value)}
+              onChange={val => setObjeto(val)}
               placeholder="Descreva o objeto a ser contratado ou adquirido..."
               disabled={readonly}
-              className="resize-y"
+              minHeight={112}
             />
           </div>
 
@@ -509,13 +507,13 @@ export default function EditorDFD({
                 </div>
               )}
             </div>
-            <Textarea
-              rows={5}
+            <RichTextEditor
               value={justificativa}
-              onChange={e => { setJustificativa(e.target.value); setJustEditadaIA(false) }}
+              onChange={val => { setJustificativa(val); setJustEditadaIA(false) }}
               placeholder="A justificativa será gerada automaticamente ao clicar em 'Gerar com IA', ou pode ser preenchida manualmente..."
               disabled={readonly}
-              className={`resize-y ${justEditadaIA ? 'border-purple-200 bg-purple-50/20' : ''}`}
+              minHeight={140}
+              className={justEditadaIA ? 'border-purple-200' : ''}
             />
           </div>
 

@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
@@ -205,24 +205,24 @@ export default function EditorParecer({
           {veredito === 'aprovar_com_ressalvas' && (
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-amber-700">Ressalvas <span className="text-red-500">*</span></Label>
-              <Textarea
-                rows={3}
+              <RichTextEditor
                 placeholder="Descreva as ressalvas que condicionam a aprovação..."
                 value={ressalvas}
-                onChange={e => setRessalvas(e.target.value)}
-                className="border-amber-200 text-sm"
+                onChange={val => setRessalvas(val)}
+                className="border-amber-200"
+                minHeight={80}
               />
             </div>
           )}
           {veredito === 'contrario' && (
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-red-700">Motivo do parecer contrário <span className="text-red-500">*</span></Label>
-              <Textarea
-                rows={3}
+              <RichTextEditor
                 placeholder="Descreva os motivos que fundamentam o parecer contrário..."
                 value={motivoCon}
-                onChange={e => setMotivoCon(e.target.value)}
-                className="border-red-200 text-sm"
+                onChange={val => setMotivoCon(val)}
+                className="border-red-200"
+                minHeight={80}
               />
             </div>
           )}
@@ -236,12 +236,11 @@ export default function EditorParecer({
 
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-700">Texto do Parecer</Label>
-            <Textarea
-              rows={18}
-              placeholder={'EMENTA:\n\nRELATÓRIO:\n\nFUNDAMENTAÇÃO JURÍDICA:\n\nCONCLUSÃO:'}
+            <RichTextEditor
+              placeholder="EMENTA:&#10;&#10;RELATÓRIO:&#10;&#10;FUNDAMENTAÇÃO JURÍDICA:&#10;&#10;CONCLUSÃO:"
               value={conteudo}
-              onChange={e => handleConteudoChange(e.target.value)}
-              className="font-mono text-sm text-gray-800 leading-relaxed resize-y"
+              onChange={val => handleConteudoChange(val)}
+              minHeight={504}
             />
             <p className="text-[11px] text-gray-400 flex items-center gap-1.5">
               {conteudo.length} caracteres

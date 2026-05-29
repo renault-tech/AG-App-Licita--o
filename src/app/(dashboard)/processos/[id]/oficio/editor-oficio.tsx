@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Loader2, Save, Wand2, Mail, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -169,13 +169,13 @@ export default function EditorOficio({
               </Button>
             )}
           </div>
-          <Textarea
-            rows={8}
+          <RichTextEditor
             value={corpo}
-            onChange={e => { setCorpo(e.target.value); setGeradoPorIA(false) }}
+            onChange={val => { setCorpo(val); setGeradoPorIA(false) }}
             placeholder="Senhor(a) Procurador(a), comunicamos a abertura do processo licitatório..."
             disabled={readonly}
-            className={`resize-y font-mono text-sm leading-relaxed ${geradoPorIA ? 'border-purple-200 bg-purple-50/20' : ''}`}
+            minHeight={224}
+            className={geradoPorIA ? 'border-purple-200' : ''}
           />
         </div>
 

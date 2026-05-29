@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { atualizarMapaRiscos, sugerirRiscosIA } from '@/lib/actions/riscos'
 import { useAutoSave } from '@/hooks/use-auto-save'
 import { AutoSaveIndicator } from '@/components/licita/auto-save-indicator'
@@ -203,12 +203,11 @@ export default function EditorRiscos({ mapa, processoId, papelUsuario, podeEdita
 
               <div className="space-y-1.5">
                 <Label className="text-xs text-gray-600">Ação de Mitigação</Label>
-                <Textarea
-                  rows={2}
+                <RichTextEditor
                   placeholder="Ação para prevenir ou reduzir o risco..."
                   value={risco.mitigacao}
-                  onChange={(e) => atualiza(risco.id, 'mitigacao', e.target.value)}
-                  className="resize-y text-sm"
+                  onChange={(val) => atualiza(risco.id, 'mitigacao', val)}
+                  minHeight={56}
                 />
               </div>
             </div>

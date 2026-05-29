@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 
 import { salvarCotacaoFornecedores } from '@/lib/actions/cotacao'
 import { FonteCotacao } from '@/types/database'
@@ -146,11 +146,11 @@ export default function CotacaoForm({ cotacao, fornecedores, processoId }: {
           {fonte === 'pesquisa_direta' && (
             <div className="space-y-2">
               <Label className="text-sm">Justificativa para Pesquisa Direta</Label>
-              <Textarea
+              <RichTextEditor
                 placeholder="Ex: Nao foram encontrados itens correspondentes no PNCP nos ultimos 6 meses..."
-                rows={3}
                 value={justificativa}
-                onChange={(e) => setJustificativa(e.target.value)}
+                onChange={val => setJustificativa(val)}
+                minHeight={80}
               />
             </div>
           )}

@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Loader2, Save, Wand2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Button } from '@/components/ui/button'
 import { atualizarTR, aprimorarTRComIA } from '@/lib/actions/tr'
 import { useAutoSave } from '@/hooks/use-auto-save'
@@ -154,13 +154,13 @@ export default function EditorTR({ tr, processoId, papelUsuario, podeEditar = tr
                   </Button>
                 </div>
               </div>
-              <Textarea
-                rows={4}
+              <RichTextEditor
                 placeholder={placeholder}
                 value={formData[id as keyof FormData]}
-                onChange={(e) => setFormData(prev => ({ ...prev, [id]: e.target.value }))}
+                onChange={(val) => setFormData(prev => ({ ...prev, [id]: val }))}
                 readOnly={!podeEditar}
-                className={`resize-y ${foiIA ? 'border-purple-200 bg-purple-50/30' : ''} ${foiSugeri && !foiIA ? 'border-amber-200 bg-amber-50/20' : ''} ${!podeEditar ? 'bg-gray-50 cursor-default' : ''}`}
+                minHeight={112}
+                className={foiIA ? 'border-purple-200' : foiSugeri && !foiIA ? 'border-amber-200' : ''}
               />
             </div>
           )
