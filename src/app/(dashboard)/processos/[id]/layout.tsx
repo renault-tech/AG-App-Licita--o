@@ -15,6 +15,7 @@ import {
   ACESSO_RESTRITO_PROCESSO,
   getTabDesignada,
   LABEL_PAPEL,
+  COR_PAPEL,
 } from '@/lib/permissions'
 import { getPermissoesOrg } from '@/lib/cached-permissions'
 import { StatusPill } from '@/components/licita/status-pill'
@@ -196,6 +197,21 @@ export default async function ProcessoLayout({
                   }}
                 >
                   {LABEL_PAPEL[papel]}
+                </span>
+              )}
+              {/* Badge da fase atual do processo (setor que tem a posse) */}
+              {faseAtual && (
+                <span
+                  className="text-[10px] px-2 py-0.5 border"
+                  title={`Fase atual: ${LABEL_PAPEL[faseAtual as PapelUsuario] ?? faseAtual}`}
+                  style={{
+                    borderRadius: '2px',
+                    background: 'var(--surface)',
+                    borderColor: 'var(--hairline)',
+                    color: 'var(--muted)',
+                  }}
+                >
+                  Com: {LABEL_PAPEL[faseAtual as PapelUsuario] ?? faseAtual}
                 </span>
               )}
             </div>

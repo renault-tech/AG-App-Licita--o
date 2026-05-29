@@ -177,7 +177,7 @@ export default function NovoProcessoPage() {
       }
       try { localStorage.removeItem(STORAGE_KEY) } catch {}
       toast.success('Processo criado com sucesso!')
-      router.push(`/processos/${res.processoId}/dfd`)
+      router.push(`/processos/${res.processoId}/dfd?revisao=1`)
     })
   }
 

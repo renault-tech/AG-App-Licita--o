@@ -156,6 +156,18 @@ export async function criarProcessoComDocumentos(
 
     const dfdId: string = (dfdCriado as any).id
 
+    // Salvar itens do wizard no DFD para que EditorDFD exiba a lista preenchida
+    if (dados.itens && dados.itens.length > 0) {
+      const itensDfd = dados.itens.map((item: { descricao: string; unidade: string; quantidade: number }, idx: number) => ({
+        dfd_id: dfdId,
+        numero_item: idx + 1,
+        especificacao: item.descricao,
+        unidade_medida: item.unidade,
+        observacoes: `Quantidade estimada: ${item.quantidade} ${item.unidade}`,
+      }))
+      await (supabase as any).from('dfd_itens').insert(itensDfd)
+    }
+
     // Criar participacao iniciadora
     if (dados.secretaria_id) {
       await (supabase as any).from('dfd_participacoes').insert({

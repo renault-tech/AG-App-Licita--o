@@ -6,13 +6,23 @@ import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { getPermissoesOrg, resolverPodeEditar } from '@/lib/cached-permissions'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import BotaoAssinatura from '@/components/assinatura/botao-assinatura'
+import BotaoAvancarEtapa from '@/components/documentos/botao-avancar-etapa'
 import EditorDFD from './editor-dfd'
 import PainelAdesao from './painel-adesao'
 import PainelConsolidacao from './painel-consolidacao'
 import { obterProvedorAssinatura } from '@/lib/actions/assinaturas'
+import { CheckCircle2, Sparkles } from 'lucide-react'
 
-export default async function DFDPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function DFDPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ revisao?: string }>
+}) {
   const { id: processoId } = await params
+  const { revisao } = await searchParams
+  const modoRevisao = revisao === '1'
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -143,6 +153,34 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
   // Default: editor completo (iniciador em rascunho ou aguardando adesao)
   return (
     <div className="space-y-4">
+      {/* Banner pós-wizard: revisão do conteúdo gerado pela IA */}
+      {modoRevisao && (
+        <div
+          className="rounded-[var(--r-lg)] border p-4"
+          style={{
+            background: 'var(--primaryWash)',
+            borderColor: 'var(--primary)',
+          }}
+        >
+          <div className="flex items-start gap-3">
+            <Sparkles className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--primary)' }} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold" style={{ color: 'var(--primary)' }}>
+                DFD gerado pela IA. Revise o conteúdo antes de avançar.
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--inkSoft)' }}>
+                Edite qualquer campo diretamente abaixo. Quando estiver satisfeito, confirme para avançar para a Cotação.
+              </p>
+            </div>
+            <BotaoAvancarEtapa
+              processoId={processoId}
+              proximaEtapaSlug="cotacao"
+              label="Confirmar DFD e avançar"
+            />
+          </div>
+        </div>
+      )}
+
       <StepPageHeader
         title="Documento de Formalização da Demanda"
         subtitle="Formalize a necessidade de contratação conforme Art. 6º, X da Lei 14.133/21."
@@ -159,6 +197,13 @@ export default async function DFDPage({ params }: { params: Promise<{ id: string
               />
             )}
             <BotoesExportacao tipo="dfd" processoId={processoId} nomeDocumento="DFD" />
+            {!modoRevisao && (
+              <BotaoAvancarEtapa
+                processoId={processoId}
+                proximaEtapaSlug="cotacao"
+                label="Confirmar e avançar"
+              />
+            )}
           </>
         }
       />

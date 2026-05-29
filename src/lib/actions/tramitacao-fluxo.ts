@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { PapelUsuario } from '@/types/database'
+import type { PapelUsuario, FaseProcesso } from '@/types/database'
 
 interface ResultadoFluxo {
   success: boolean
@@ -25,6 +25,25 @@ const DEVOLUCOES_PERMITIDAS: Partial<Record<PapelUsuario, PapelUsuario[]>> = {
   procurador:      ['setor_licitacao'],
   gestor_publico:  ['setor_licitacao'],
 }
+
+// Mapa canônico: etapa_atual (número) -> fase responsável
+// Alinhado com a ordem de ETAPAS no layout do processo
+const ETAPA_PARA_FASE: Record<number, FaseProcesso> = {
+  1:  'requisitante',
+  2:  'requisitante',
+  3:  'requisitante',
+  4:  'requisitante',
+  5:  'requisitante',
+  6:  'setor_licitacao',
+  7:  'setor_licitacao',
+  8:  'setor_licitacao',
+  9:  'setor_licitacao',
+  10: 'procurador',
+  11: 'gestor_publico',
+  12: 'publicacao',
+}
+
+const ETAPA_TOTAL = 12
 
 async function obterUsuarioComPapel() {
   const supabase = await createClient()
@@ -213,6 +232,104 @@ export async function devolverFase(
       link: `/processos/${processoId}`,
     }))
     await (supabase as any).from('notificacoes').insert(notificacoes)
+  }
+
+  revalidatePath(`/processos/${processoId}`)
+  return { success: true }
+}
+
+/**
+ * Avanca o processo para a proxima etapa numerica e sincroniza fase_atual.
+ * Chamado pelo botao "Confirmar e Avançar" em cada pagina de documento.
+ * Admin pode avançar qualquer processo (para testes).
+ */
+export async function avancarEtapa(
+  processoId: string
+): Promise<ResultadoFluxo> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Nao autenticado.' }
+
+  const { data: usuario } = await supabase
+    .from('usuarios')
+    .select('id, papel, organizacao_id, nome_completo')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (!usuario) return { success: false, error: 'Usuario nao encontrado.' }
+
+  const { data: processo } = await (supabase as any)
+    .from('processos_licitatorios')
+    .select('id, etapa_atual, fase_atual, organizacao_id, numero_processo, objeto')
+    .eq('id', processoId)
+    .maybeSingle()
+
+  if (!processo) return { success: false, error: 'Processo nao encontrado.' }
+
+  // Admin pode avançar qualquer processo; demais verificam org
+  const papelUsuario = (usuario as any).papel as PapelUsuario
+  const ehAdmin = papelUsuario === 'admin_plataforma' || papelUsuario === 'admin_organizacao'
+  if (!ehAdmin && (processo.organizacao_id !== (usuario as any).organizacao_id)) {
+    return { success: false, error: 'Sem permissao para este processo.' }
+  }
+
+  const etapaAtual: number = (processo.etapa_atual as number) ?? 1
+  if (etapaAtual >= ETAPA_TOTAL) {
+    return { success: false, error: 'O processo ja esta na etapa final.' }
+  }
+
+  const novaEtapa = etapaAtual + 1
+  const novaFase = ETAPA_PARA_FASE[novaEtapa] ?? 'publicacao'
+  const faseAnterior = (processo.fase_atual ?? 'requisitante') as FaseProcesso
+  const faseMudou = novaFase !== faseAnterior
+
+  const { error } = await (supabase as any)
+    .from('processos_licitatorios')
+    .update({
+      etapa_atual: novaEtapa,
+      fase_atual: novaFase,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', processoId)
+
+  if (error) return { success: false, error: error.message }
+
+  // Registra historico de tramitacao apenas quando a fase (papel) muda
+  if (faseMudou) {
+    await registrarHistorico(
+      supabase,
+      processoId,
+      (processo.organizacao_id as string),
+      (usuario as any).id,
+      (usuario as any).nome_completo,
+      faseAnterior,
+      novaFase,
+      'avanco',
+      null,
+      null
+    )
+
+    // Notifica usuarios do novo papel responsavel
+    const { data: destinatarios } = await supabase
+      .from('usuarios')
+      .select('id')
+      .eq('organizacao_id', (processo.organizacao_id as string))
+      .eq('papel', novaFase)
+      .eq('ativo', true)
+
+    const identificador = (processo.objeto as string) ?? (processo.numero_processo as string) ?? 'processo'
+
+    if (destinatarios && (destinatarios as any[]).length > 0) {
+      const notificacoes = (destinatarios as any[]).map((u: { id: string }) => ({
+        usuario_id: u.id,
+        organizacao_id: processo.organizacao_id,
+        processo_id: processoId,
+        titulo: 'Processo encaminhado para seu setor',
+        mensagem: `"${identificador}" foi encaminhado para seu setor.`,
+        lida: false,
+        link: `/processos/${processoId}`,
+      }))
+      await (supabase as any).from('notificacoes').insert(notificacoes)
+    }
   }
 
   revalidatePath(`/processos/${processoId}`)
