@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import { StepPageHeader } from '@/components/licita/step-page-header'
+import BotaoAvancarEtapa from '@/components/documentos/botao-avancar-etapa'
 import PainelRevisao from './painel-revisao'
 
 export default async function RevisaoPage({ params }: { params: Promise<{ id: string }> }) {
@@ -42,6 +43,7 @@ export default async function RevisaoPage({ params }: { params: Promise<{ id: st
       <StepPageHeader
         title="Painel de Revisão"
         subtitle="Analise, aprove ou devolva os documentos enviados para revisão do setor de licitações."
+        actions={<BotaoAvancarEtapa processoId={id} proximaEtapaSlug="parecer" />}
       />
       <PainelRevisao documentos={documentos} processoId={id} />
     </div>

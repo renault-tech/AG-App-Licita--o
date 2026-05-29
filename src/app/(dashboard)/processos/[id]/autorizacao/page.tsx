@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { obterAutorizacao } from '@/lib/actions/autorizacao'
 import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { StepPageHeader } from '@/components/licita/step-page-header'
+import BotaoAvancarEtapa from '@/components/documentos/botao-avancar-etapa'
 import PainelAutorizacao from './painel-autorizacao'
 
 const DOCUMENTOS_PROCESSO = [
@@ -60,6 +61,7 @@ export default async function AutorizacaoPage({ params }: { params: Promise<{ id
         title="Autorização da Autoridade Competente"
         subtitle="Autorização para abertura do certame conforme Art. 72 da Lei 14.133/21."
         artigo="Art. 72"
+        actions={<BotaoAvancarEtapa processoId={id} proximaEtapaSlug="publicacao" />}
       />
       <PainelAutorizacao
         processoId={id}

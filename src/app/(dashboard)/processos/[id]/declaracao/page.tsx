@@ -5,6 +5,7 @@ import { obterPapelUsuario } from '@/lib/actions/usuario'
 import { StepPageHeader } from '@/components/licita/step-page-header'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import BotaoAssinatura from '@/components/assinatura/botao-assinatura'
+import BotaoAvancarEtapa from '@/components/documentos/botao-avancar-etapa'
 import EditorDeclaracao from './editor-declaracao'
 import { obterProvedorAssinatura } from '@/lib/actions/assinaturas'
 
@@ -47,6 +48,7 @@ export default async function DeclaracaoPage({
               />
             )}
             <BotoesExportacao tipo="declaracao" processoId={id} nomeDocumento="DECLARACAO" />
+            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="oficio" />
           </>
         }
       />

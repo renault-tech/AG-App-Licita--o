@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import EditorETP from './editor-etp'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import BotaoAssinatura from '@/components/assinatura/botao-assinatura'
+import BotaoAvancarEtapa from '@/components/documentos/botao-avancar-etapa'
 import { StepPageHeader } from '@/components/licita/step-page-header'
 import { getPermissoesOrg, resolverPodeEditar } from '@/lib/cached-permissions'
 import { obterProvedorAssinatura } from '@/lib/actions/assinaturas'
@@ -40,6 +41,7 @@ export default async function ETPPage({ params }: { params: Promise<{ id: string
               />
             )}
             <BotoesExportacao tipo="etp" processoId={id} nomeDocumento="ETP" />
+            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="tr" />
           </>
         }
       />

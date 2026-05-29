@@ -6,6 +6,7 @@ import { StepPageHeader } from '@/components/licita/step-page-header'
 import EditorParecer from './editor-parecer'
 import BotoesExportacao from '@/components/documentos/botoes-exportacao'
 import BotaoAssinatura from '@/components/assinatura/botao-assinatura'
+import BotaoAvancarEtapa from '@/components/documentos/botao-avancar-etapa'
 import { obterProvedorAssinatura } from '@/lib/actions/assinaturas'
 
 export default async function ParecerPage({ params }: { params: Promise<{ id: string }> }) {
@@ -48,6 +49,7 @@ export default async function ParecerPage({ params }: { params: Promise<{ id: st
               />
             )}
             <BotoesExportacao tipo="parecer" processoId={id} nomeDocumento="Parecer" />
+            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="autorizacao" />
           </>
         }
       />
