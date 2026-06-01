@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { schemaProcessoWizard, type ProcessoWizardInput } from '@/lib/validacao/processo'
 import { registrarAuditoria } from '@/lib/audit/log'
+import { PODE_CRIAR_PROCESSO, podeFazer } from '@/lib/permissions'
+import type { PapelUsuario } from '@/types/database'
 
 export async function criarProcessoInicial(dados: ProcessoWizardInput) {
   const supabase = await createClient()
@@ -30,6 +32,12 @@ export async function criarProcessoInicial(dados: ProcessoWizardInput) {
   }
 
   const { organizacao_id } = userData as any
+
+  // Apenas requisitante e administradores originam processos (ver PODE_CRIAR_PROCESSO)
+  if (!podeFazer((userData as any).papel as PapelUsuario, PODE_CRIAR_PROCESSO)) {
+    return { success: false, error: 'Seu perfil nao tem permissao para criar processos.' }
+  }
+
   const valorNum = Number.isNaN(input.valor_estimado) ? null : input.valor_estimado
 
   // 3. Criar Processo
@@ -76,10 +84,15 @@ export async function criarProcessoComDocumentos(
 
   const { data: userData } = await supabase
     .from('usuarios')
-    .select('organizacao_id')
+    .select('organizacao_id, papel')
     .eq('id', user.id)
     .maybeSingle()
   if (!userData) return { success: false, error: 'Usuario nao encontrado.' }
+
+  // Apenas requisitante e administradores originam processos (ver PODE_CRIAR_PROCESSO)
+  if (!podeFazer((userData as any).papel as PapelUsuario, PODE_CRIAR_PROCESSO)) {
+    return { success: false, error: 'Seu perfil nao tem permissao para criar processos.' }
+  }
 
   const orgId = (userData as any).organizacao_id
   const valorNum = dados.valor_estimado && !Number.isNaN(dados.valor_estimado) ? dados.valor_estimado : null

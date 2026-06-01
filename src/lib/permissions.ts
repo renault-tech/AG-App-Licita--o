@@ -1,8 +1,10 @@
 import type { PapelUsuario } from '@/types/database'
 
-// Roles que podem criar novos processos licitatorios
+// Roles que podem criar novos processos licitatorios.
+// A demanda nasce no setor requisitante (Art. 6, X da Lei 14.133/21). Setores de
+// Compras e Licitacoes apenas revisam e tramitam, nao originam processos.
 export const PODE_CRIAR_PROCESSO: PapelUsuario[] = [
-  'requisitante', 'setor_compras', 'setor_licitacao', 'admin_organizacao', 'admin_plataforma',
+  'requisitante', 'admin_organizacao', 'admin_plataforma',
 ]
 
 // Roles que podem editar documentos do wizard (DFD, ETP, TR, Cotacao, Riscos)

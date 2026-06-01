@@ -4,6 +4,8 @@ import { FileText, PlusCircle, X, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { obterPapelEfetivo, obterPapelUsuario } from '@/lib/actions/usuario'
+import { PODE_CRIAR_PROCESSO, podeFazer } from '@/lib/permissions'
+import type { PapelUsuario } from '@/types/database'
 import BotaoExcluirProcesso from './botao-excluir-processo'
 import { EditorialKicker, HeadlineSerif } from '@/components/licita/editorial'
 import BuscaProcessos from './busca-processos'
@@ -119,6 +121,9 @@ export default async function ProcessosPage({
   const organizacaoId = (usuarioData as any)?.organizacao_id
   const secretariaId  = (usuarioData as any)?.secretaria_id
   if (!organizacaoId) redirect('/dashboard')
+
+  // So requisitante e administradores originam processos (ver PODE_CRIAR_PROCESSO)
+  const podeCriar = podeFazer(papel as PapelUsuario | null, PODE_CRIAR_PROCESSO)
 
   const filtroStatus    = searchParams.status
   const filtroFase      = searchParams.fase
@@ -252,15 +257,17 @@ export default async function ProcessosPage({
             kicker="Processos Licitatórios"
             date={new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
           />
-          <Link href="/processos/novo">
-            <Button
-              className="text-white h-9 px-5 text-sm font-semibold gap-2 rounded-[var(--r-md)]"
-              style={{ background: 'var(--primary)' }}
-            >
-              <PlusCircle className="w-4 h-4" />
-              Novo processo
-            </Button>
-          </Link>
+          {podeCriar && (
+            <Link href="/processos/novo">
+              <Button
+                className="text-white h-9 px-5 text-sm font-semibold gap-2 rounded-[var(--r-md)]"
+                style={{ background: 'var(--primary)' }}
+              >
+                <PlusCircle className="w-4 h-4" />
+                Novo processo
+              </Button>
+            </Link>
+          )}
         </div>
 
         <HeadlineSerif size="md" as="h1">
@@ -359,11 +366,13 @@ export default async function ProcessosPage({
           <Suspense>
             <BuscaProcessos />
           </Suspense>
-          <Link href="/processos/novo">
-            <Button variant="outline" size="sm" className="gap-1.5 text-sm h-9" style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}>
-              <PlusCircle className="w-4 h-4" /> Novo
-            </Button>
-          </Link>
+          {podeCriar && (
+            <Link href="/processos/novo">
+              <Button variant="outline" size="sm" className="gap-1.5 text-sm h-9" style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}>
+                <PlusCircle className="w-4 h-4" /> Novo
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -374,8 +383,10 @@ export default async function ProcessosPage({
             <EmptyState
               icon={FileText}
               titulo="Nenhum processo encontrado"
-              descricao="Crie o primeiro processo licitatorio da sua organizacao."
-              cta={{ label: 'Novo Processo', href: '/processos/novo' }}
+              descricao={podeCriar
+                ? 'Crie o primeiro processo licitatorio da sua organizacao.'
+                : 'Ainda nao ha processos que tenham chegado ao seu setor.'}
+              cta={podeCriar ? { label: 'Novo Processo', href: '/processos/novo' } : undefined}
             />
           </div>
         ) : (
