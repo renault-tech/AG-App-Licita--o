@@ -328,12 +328,13 @@ export async function encaminharDFDParaAdesao(
     if (errPart) return { success: false, error: errPart.message }
   }
 
-  // Cria notificacoes para usuarios das secretarias convidadas
+  // Cria notificacoes apenas para usuarios das secretarias convidadas
   const { data: usuariosRaw } = await (supabase as any)
     .from('usuarios')
     .select('id, organizacao_id')
     .eq('organizacao_id', ctx.usuario.organizacao_id)
     .eq('ativo', true)
+    .in('secretaria_id', secretariaIds)
 
   // Busca o processo para montar o link
   const { data: dfdRaw } = await (supabase as any)
