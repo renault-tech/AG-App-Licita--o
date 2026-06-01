@@ -6,3 +6,17 @@ export const PACOTES_CREDITOS = [
 ] as const
 
 export type PacoteId = typeof PACOTES_CREDITOS[number]['id']
+
+// Provedores cujo uso e gratuito (sem custo de API).
+// Chamadas via esses provedores nao debitam creditos do usuario —
+// apenas rate limiting se aplica.
+export const PROVIDERS_GRATUITOS = ['gemini', 'groq'] as const
+export type ProviderGratuito = typeof PROVIDERS_GRATUITOS[number]
+
+export function isProviderGratuito(provider: string): boolean {
+  return (PROVIDERS_GRATUITOS as readonly string[]).includes(provider)
+}
+
+// Creditos concedidos gratuitamente ao criar conta.
+// Valem apenas para uso de providers pagos (Anthropic, OpenRouter).
+export const CREDITOS_BOAS_VINDAS = 500

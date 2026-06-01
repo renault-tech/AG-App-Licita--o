@@ -3,6 +3,42 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { schemaOnboarding, type OnboardingInput } from '@/lib/validacao/organizacao'
 import { revalidatePath } from 'next/cache'
+import { CREDITOS_BOAS_VINDAS } from '@/lib/creditos-config'
+
+// Provisiona creditos iniciais e registra transacao de boas-vindas.
+// Idempotente: nao cria duplicata se o usuario ja tiver saldo.
+async function provisionarCreditosIniciais(
+  serviceClient: Awaited<ReturnType<typeof createServiceClient>>,
+  usuarioId: string,
+  organizacaoId: string,
+): Promise<void> {
+  const { data: existente } = await (serviceClient.from('creditos_usuario') as any)
+    .select('id')
+    .eq('usuario_id', usuarioId)
+    .maybeSingle()
+
+  if (existente) return // ja tem registro — nao recriar
+
+  const { data: creditos } = await (serviceClient.from('creditos_usuario') as any)
+    .insert({ usuario_id: usuarioId, organizacao_id: organizacaoId, saldo: CREDITOS_BOAS_VINDAS })
+    .select('id')
+    .single()
+
+  if (!creditos?.id) return
+
+  // Registrar transacao de boas-vindas para visibilidade no historico
+  await (serviceClient.from('transacoes_credito') as any).insert({
+    usuario_id:         usuarioId,
+    organizacao_id:     organizacaoId,
+    tipo:               'bonus',
+    quantidade:         CREDITOS_BOAS_VINDAS,
+    saldo_anterior:     0,
+    saldo_posterior:    CREDITOS_BOAS_VINDAS,
+    descricao:          'Creditos gratuitos de boas-vindas',
+    referencia_externa: `boas-vindas-${usuarioId}`,
+    provedor:           'manual',
+  })
+}
 
 function resolverPapel(email: string): 'admin_plataforma' | 'admin_organizacao' {
   const adminEmail = process.env.ADMIN_PLATFORM_EMAIL
@@ -95,11 +131,7 @@ export async function criarOrganizacaoEAdmin(
         return { success: false, error: `Erro ao vincular usuario: ${vinculoError.message}` }
       }
 
-      await (serviceClient.from('creditos_usuario') as any).insert({
-        usuario_id: user.id,
-        organizacao_id: orgExistente.id,
-        saldo: 100,
-      }).then(() => {}).catch(() => {})
+      await provisionarCreditosIniciais(serviceClient, user.id, orgExistente.id)
 
       revalidatePath('/', 'layout')
       return { success: true }
@@ -124,12 +156,8 @@ export async function criarOrganizacaoEAdmin(
     return { success: false, error: `Erro ao configurar usuario: ${usuarioError.message}` }
   }
 
-  // Cria saldo inicial de créditos (100 créditos de boas-vindas)
-  await (serviceClient.from('creditos_usuario') as any).insert({
-    usuario_id: user.id,
-    organizacao_id: org.id,
-    saldo: 100,
-  })
+  // Provisiona creditos gratuitos de boas-vindas com registro no historico
+  await provisionarCreditosIniciais(serviceClient, user.id, org.id)
 
   revalidatePath('/', 'layout')
   return { success: true }

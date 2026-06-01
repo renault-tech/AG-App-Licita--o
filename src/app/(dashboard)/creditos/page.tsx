@@ -3,10 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import {
   Zap, TrendingUp, TrendingDown, Clock, CheckCircle2,
   XCircle, Bot, ArrowUpRight, ArrowDownRight, Package,
-  AlertCircle, CheckCircle,
+  AlertCircle, CheckCircle, Sparkles, ShieldCheck,
 } from 'lucide-react'
 import BotaoCompra from './botao-compra'
-import { PACOTES_CREDITOS } from '@/lib/creditos-config'
+import { PACOTES_CREDITOS, isProviderGratuito } from '@/lib/creditos-config'
 import { KPIBar } from '@/components/dashboard/kpi-bar'
 import { EditorialKicker, HeadlineSerif, Wordmark } from '@/components/licita/editorial'
 
@@ -54,7 +54,16 @@ export default async function CreditosPage({
 
   const params = await searchParams
 
-  const [creditosRes, transacoesRes, acoesRes] = await Promise.all([
+  // Buscar org do usuario para saber o provider ativo
+  const { data: usuarioData } = await supabase
+    .from('usuarios')
+    .select('organizacao_id')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const organizacaoId = (usuarioData as any)?.organizacao_id as string | null
+
+  const [creditosRes, transacoesRes, acoesRes, orgRes] = await Promise.all([
     (supabase as any)
       .from('creditos_usuario')
       .select('saldo, updated_at')
@@ -72,6 +81,13 @@ export default async function CreditosPage({
       .eq('usuario_id', user.id)
       .order('created_at', { ascending: false })
       .limit(20),
+    organizacaoId
+      ? (supabase as any)
+          .from('organizacoes')
+          .select('ia_config')
+          .eq('id', organizacaoId)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ])
 
   const saldo: number           = creditosRes.data?.saldo ?? 0
@@ -83,6 +99,11 @@ export default async function CreditosPage({
 
   const stripeAtivo = !!process.env.STRIPE_SECRET_KEY
   const mpAtivo     = !!process.env.MERCADOPAGO_ACCESS_TOKEN
+
+  // Determinar se o provider ativo e gratuito para mostrar banner apropriado
+  const iaConfigOrg = (orgRes.data as any)?.ia_config as { provider?: string } | null
+  const providerAtivo = iaConfigOrg?.provider ?? (process.env.AI_PROVIDER ?? 'gemini')
+  const iaGratuitaAtiva = isProviderGratuito(providerAtivo)
 
   return (
     <div className="space-y-6">
@@ -105,6 +126,44 @@ export default async function CreditosPage({
         Saldo e consumo de<br />
         <em style={{ fontStyle: 'italic', color: 'var(--muted)' }}>inteligência artificial.</em>
       </HeadlineSerif>
+
+      {/* Banner: IA gratuita ativa */}
+      {iaGratuitaAtiva && (
+        <div
+          className="flex items-start gap-3 p-4 rounded-[var(--r-lg)]"
+          style={{ background: 'var(--successWash)', border: '1px solid var(--success)' }}
+        >
+          <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--success)' }} />
+          <div>
+            <p className="text-sm font-semibold" style={{ color: 'var(--success)' }}>
+              IA gratuita ativa
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--success)' }}>
+              Sua organizacao usa <strong>{providerAtivo === 'gemini' ? 'Google Gemini Flash' : 'Groq'}</strong>, um provedor gratuito.
+              O uso de IA nao consome creditos. Creditos sao necessarios apenas para provedores pagos (Anthropic, OpenRouter).
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Banner: provedor pago com saldo baixo */}
+      {!iaGratuitaAtiva && saldo < 20 && (
+        <div
+          className="flex items-start gap-3 p-4 rounded-[var(--r-lg)]"
+          style={{ background: 'var(--warnWash)', border: '1px solid var(--warn)' }}
+        >
+          <Sparkles className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--warn)' }} />
+          <div>
+            <p className="text-sm font-semibold" style={{ color: 'var(--warn)' }}>
+              Saldo baixo para provedor pago
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--warn)' }}>
+              Voce tem {saldo} creditos restantes para uso com {providerAtivo}.
+              Considere alternar para Gemini ou Groq (gratuitos) em Configuracoes &rsaquo; IA.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Feedback pós-pagamento */}
       {params.sucesso && (

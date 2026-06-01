@@ -5,6 +5,7 @@ import { schemaOrganizacao, type OrganizacaoInput } from '@/lib/validacao/organi
 import { schemaConviteUsuario, schemaAlterarPapel, type ConviteUsuarioInput } from '@/lib/validacao/usuario'
 import { revalidatePath } from 'next/cache'
 import { registrarAuditoria } from '@/lib/audit/log'
+import { CREDITOS_BOAS_VINDAS } from '@/lib/creditos-config'
 
 type ActionResult<T = undefined> =
   | { success: true; data?: T }
@@ -94,11 +95,25 @@ export async function convidarUsuario(input: ConviteUsuarioInput): Promise<Actio
     return { success: false, error: 'Erro ao salvar perfil do usuario.' }
   }
 
-  await (serviceClient.from('creditos_usuario') as any).insert({
-    usuario_id: novoAuth.user.id,
-    organizacao_id: usuario.organizacao_id,
-    saldo: 0,
-  })
+  // Provisionar creditos gratuitos de boas-vindas com registro no historico
+  const { data: creditosNovos } = await (serviceClient.from('creditos_usuario') as any)
+    .insert({ usuario_id: novoAuth.user.id, organizacao_id: usuario.organizacao_id, saldo: CREDITOS_BOAS_VINDAS })
+    .select('id')
+    .single()
+
+  if (creditosNovos?.id) {
+    await (serviceClient.from('transacoes_credito') as any).insert({
+      usuario_id:         novoAuth.user.id,
+      organizacao_id:     usuario.organizacao_id,
+      tipo:               'bonus',
+      quantidade:         CREDITOS_BOAS_VINDAS,
+      saldo_anterior:     0,
+      saldo_posterior:    CREDITOS_BOAS_VINDAS,
+      descricao:          'Creditos gratuitos de boas-vindas',
+      referencia_externa: `boas-vindas-${novoAuth.user.id}`,
+      provedor:           'manual',
+    })
+  }
 
   // Envia link de redefinição de senha por e-mail
   await serviceClient.auth.admin.generateLink({

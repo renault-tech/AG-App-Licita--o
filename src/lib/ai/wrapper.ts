@@ -7,6 +7,7 @@ import type { AIProvider } from './types'
 import { headers } from 'next/headers'
 import { verificarRateLimit } from './rate-limiter'
 import { buscarClausulasRelevantes, injetarClausulasNoPrompt } from './clausulas-lookup'
+import { isProviderGratuito, CREDITOS_BOAS_VINDAS } from '@/lib/creditos-config'
 
 export interface RequestIA {
   prompt: string
@@ -73,47 +74,57 @@ export async function executarIAComCreditos(
     promptFinal = injetarClausulasNoPrompt(params.prompt, lookup)
   }
 
-  const [creditosRaw, orgRaw] = await Promise.all([
-    supabase
+  const { data: orgRaw } = await (supabase as any)
+    .from('organizacoes')
+    .select('ia_config')
+    .eq('id', organizacaoId)
+    .maybeSingle()
+
+  const iaConfig = (orgRaw as any)?.ia_config as { provider?: string } | null
+  const providerOverride = (iaConfig?.provider as AIProvider | undefined)
+  const { provider: providerUsado, model: modeloUsado } = getProviderInfo(providerOverride)
+
+  // Providers gratuitos (Gemini, Groq) nao consomem creditos do usuario.
+  // Apenas rate limiting se aplica — sem verificacao de saldo.
+  const usandoProviderGratuito = isProviderGratuito(providerUsado)
+
+  type CreditosSaldo = Pick<CreditosUsuarioRow, 'id' | 'saldo'>
+  let creditos: CreditosSaldo | null = null
+
+  if (!usandoProviderGratuito) {
+    // Provider pago: verificar e debitar creditos
+    const { data: creditosRaw } = await supabase
       .from('creditos_usuario')
       .select('id, saldo')
       .eq('usuario_id', user.id)
-      .single(),
-    (supabase as any)
-      .from('organizacoes')
-      .select('ia_config')
-      .eq('id', organizacaoId)
-      .maybeSingle(),
-  ])
-
-  type CreditosSaldo = Pick<CreditosUsuarioRow, 'id' | 'saldo'>
-  let creditos = creditosRaw.data as CreditosSaldo | null
-
-  if (!creditos) {
-    const { data: novoRaw } = await (supabase as any)
-      .from('creditos_usuario')
-      .insert({ usuario_id: user.id, organizacao_id: organizacaoId, saldo: 500 })
-      .select('id, saldo')
       .single()
-    creditos = novoRaw as CreditosSaldo | null
-  }
 
-  if (!creditos || creditos.saldo <= 0) {
-    return {
-      success: false,
-      error: 'Saldo de créditos insuficiente. Adquira mais créditos para continuar.',
+    creditos = creditosRaw as CreditosSaldo | null
+
+    if (!creditos) {
+      // Criar registro com saldo de boas-vindas se ainda nao existe
+      const { data: novoRaw } = await (supabase as any)
+        .from('creditos_usuario')
+        .insert({ usuario_id: user.id, organizacao_id: organizacaoId, saldo: CREDITOS_BOAS_VINDAS })
+        .select('id, saldo')
+        .single()
+      creditos = novoRaw as CreditosSaldo | null
+    }
+
+    if (!creditos || creditos.saldo <= 0) {
+      return {
+        success: false,
+        error: 'Saldo de créditos insuficiente. Adquira mais créditos ou altere o provedor de IA para Gemini ou Groq (gratuitos).',
+      }
     }
   }
-
-  const iaConfig = (orgRaw.data as any)?.ia_config as { provider?: string } | null
-  const providerOverride = (iaConfig?.provider as AIProvider | undefined)
-  const { provider: providerUsado, model: modeloUsado } = getProviderInfo(providerOverride)
 
   const temperature = params.temperature ?? 0.3
   let texto = ''
   let sucesso = false
   let erroMensagem: string | null = null
-  let creditosDebitar = 1
+  // Providers gratuitos nao debitam creditos — registrar 0 no log
+  let creditosDebitar = usandoProviderGratuito ? 0 : 1
   let tokensEntradaReal: number | null = null
   let tokensSaidaReal: number | null = null
 
@@ -139,11 +150,11 @@ export async function executarIAComCreditos(
         sucesso = true
       } catch (err2) {
         erroMensagem = err2 instanceof Error ? err2.message : 'Falha de comunicação com o provedor de IA.'
-        creditosDebitar = 0
+        if (!usandoProviderGratuito) creditosDebitar = 0
       }
     } else {
       erroMensagem = err instanceof Error ? err.message : 'Falha de comunicação com o provedor de IA.'
-      creditosDebitar = 0
+      if (!usandoProviderGratuito) creditosDebitar = 0
     }
   }
 
@@ -170,7 +181,8 @@ export async function executarIAComCreditos(
     } satisfies Omit<AcaoIARow, 'id' | 'created_at'>)
     .then(() => {})
 
-  if (sucesso && creditosDebitar > 0) {
+  // Debitar creditos apenas para providers pagos e quando houve sucesso
+  if (!usandoProviderGratuito && sucesso && creditosDebitar > 0 && creditos) {
     await (supabase as any)
       .from('creditos_usuario')
       .update({ saldo: creditos.saldo - creditosDebitar, updated_at: new Date().toISOString() })
