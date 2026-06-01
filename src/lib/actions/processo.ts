@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
 import { schemaProcessoWizard, type ProcessoWizardInput } from '@/lib/validacao/processo'
 import { registrarAuditoria } from '@/lib/audit/log'
 import { PODE_CRIAR_PROCESSO, podeFazer } from '@/lib/permissions'
@@ -280,6 +281,160 @@ export async function criarProcessoComDocumentos(
       error: err instanceof Error ? err.message : 'Erro ao criar documentos do processo.',
     }
   }
+}
+
+// ============================================================
+// Entrada DFD-first para Compra Compartilhada
+// Cria o processo e o DFD ja como compartilhado (sem gerar ETP/TR).
+// O rito deriva do flag de Registro de Precos (Art. 82): SRP -> IRP
+// (Art. 86-88 + Decreto 11.462/2023); demais -> consolidacao (Art. 6, X).
+// O EditorDFD assume a partir daqui (Anexo Unico, convite, consolidacao).
+// ============================================================
+
+const schemaProcessoCompartilhado = z.object({
+  objeto: z.string().min(10, 'Descreva o objeto com pelo menos 10 caracteres.'),
+  modalidade: z.string().min(1, 'Selecione a modalidade.'),
+  categoria_objeto: z.string().min(1, 'Selecione a categoria do objeto.'),
+  secretaria_id: z.string().uuid('Selecione a secretaria requisitante.'),
+  registro_de_precos: z.boolean(),
+})
+
+export type ProcessoCompartilhadoInput = z.infer<typeof schemaProcessoCompartilhado>
+
+export async function criarProcessoCompartilhado(
+  dados: ProcessoCompartilhadoInput
+): Promise<{ success: boolean; processoId?: string; error?: string }> {
+  const supabase = await createClient()
+
+  const validacao = schemaProcessoCompartilhado.safeParse(dados)
+  if (!validacao.success) {
+    return { success: false, error: validacao.error.issues[0].message }
+  }
+  const input = validacao.data
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Usuário não autenticado.' }
+
+  const { data: userData } = await supabase
+    .from('usuarios')
+    .select('organizacao_id, papel, nome_completo')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (!userData) return { success: false, error: 'Usuario nao encontrado.' }
+
+  // Apenas requisitante e administradores originam processos (ver PODE_CRIAR_PROCESSO)
+  if (!podeFazer((userData as any).papel as PapelUsuario, PODE_CRIAR_PROCESSO)) {
+    return { success: false, error: 'Seu perfil nao tem permissao para criar processos.' }
+  }
+
+  const orgId = (userData as any).organizacao_id as string
+  const nomeCompleto = (userData as any).nome_completo ?? ''
+
+  // Snapshot da secretaria iniciadora (imutabilidade documental)
+  const { data: secRaw } = await (supabase as any)
+    .from('secretarias')
+    .select('id, nome, email, telefone, secretario_nome, responsavel')
+    .eq('id', input.secretaria_id)
+    .eq('organizacao_id', orgId)
+    .maybeSingle()
+  const sec = secRaw as {
+    id: string; nome: string; email: string | null; telefone: string | null;
+    secretario_nome: string | null; responsavel: string | null
+  } | null
+  if (!sec) return { success: false, error: 'Secretaria requisitante nao encontrada.' }
+
+  const rito = input.registro_de_precos ? 'irp' : 'consolidacao'
+
+  // 1. Criar processo
+  const { data: processo, error: procError } = await (supabase as any)
+    .from('processos_licitatorios')
+    .insert({
+      organizacao_id: orgId,
+      criado_por: user.id,
+      objeto: input.objeto,
+      modalidade: input.modalidade,
+      categoria_objeto: input.categoria_objeto,
+      secretaria_id: input.secretaria_id,
+      registro_de_precos: input.registro_de_precos,
+      status: 'rascunho',
+      etapa_atual: 1,
+      fase_atual: 'requisitante',
+    })
+    .select('id')
+    .single()
+
+  if (procError || !processo) {
+    return { success: false, error: procError?.message ?? 'Erro ao criar processo.' }
+  }
+
+  const processoId: string = processo.id
+
+  try {
+    // 2. Criar DFD ja como compartilhado em rascunho
+    const { data: dfdCriado, error: dfdError } = await (supabase as any)
+      .from('dfd')
+      .insert({
+        processo_id: processoId,
+        organizacao_id: orgId,
+        criado_por: user.id,
+        objeto: input.objeto,
+        justificativa: '',
+        justificativa_necessidade: null,
+        tipo: 'compartilhado',
+        rito,
+        status_adesao: 'rascunho',
+        secretaria_id: sec.id,
+        secretaria_nome: sec.nome,
+        secretaria_email: sec.email ?? null,
+        secretaria_telefone: sec.telefone ?? null,
+        secretario_responsavel: sec.secretario_nome ?? sec.responsavel ?? null,
+        responsavel_elaboracao: nomeCompleto,
+        status: 'rascunho',
+        gerado_por_ia: false,
+      })
+      .select('id')
+      .single()
+    if (dfdError || !dfdCriado) throw new Error(dfdError?.message ?? 'Erro ao criar DFD.')
+
+    // 3. Participacao da secretaria iniciadora
+    const { error: partError } = await (supabase as any)
+      .from('dfd_participacoes')
+      .insert({
+        dfd_id: dfdCriado.id,
+        secretaria_id: sec.id,
+        tipo: 'iniciadora',
+        status: 'aderida',
+        secretaria_nome: sec.nome,
+        secretaria_email: sec.email ?? null,
+        secretaria_telefone: sec.telefone ?? null,
+        secretario_responsavel: sec.secretario_nome ?? sec.responsavel ?? null,
+        enviado_em: new Date().toISOString(),
+        respondido_em: new Date().toISOString(),
+        respondido_por: user.id,
+      })
+    if (partError) throw new Error(partError.message)
+  } catch (err) {
+    // Rollback: remove o processo para nao deixar registro incompleto
+    await (supabase as any).from('processos_licitatorios').delete().eq('id', processoId)
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Erro ao criar DFD compartilhado.',
+    }
+  }
+
+  void registrarAuditoria({
+    organizacaoId: orgId,
+    usuarioId:     user.id,
+    nomeUsuario:   nomeCompleto,
+    papelUsuario:  (userData as any).papel ?? '',
+    categoria:     'processo',
+    acao:          'processo.criado',
+    recursoId:     processoId,
+    recursoDesc:   `Compra compartilhada: ${input.objeto}`,
+  })
+
+  revalidatePath('/processos')
+  return { success: true, processoId }
 }
 
 const PAPEIS_ADMIN = ['admin_organizacao', 'admin_plataforma'] as const

@@ -258,15 +258,27 @@ export default async function ProcessosPage({
             date={new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
           />
           {podeCriar && (
-            <Link href="/processos/novo">
-              <Button
-                className="text-white h-9 px-5 text-sm font-semibold gap-2 rounded-[var(--r-md)]"
-                style={{ background: 'var(--primary)' }}
-              >
-                <PlusCircle className="w-4 h-4" />
-                Novo processo
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/processos/compartilhado/novo">
+                <Button
+                  variant="outline"
+                  className="h-9 px-4 text-sm font-semibold gap-2 rounded-[var(--r-md)]"
+                  style={{ borderColor: 'var(--hairline)', color: 'var(--primary)' }}
+                >
+                  <Users className="w-4 h-4" />
+                  Compra compartilhada
+                </Button>
+              </Link>
+              <Link href="/processos/novo">
+                <Button
+                  className="text-white h-9 px-5 text-sm font-semibold gap-2 rounded-[var(--r-md)]"
+                  style={{ background: 'var(--primary)' }}
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  Novo processo
+                </Button>
+              </Link>
+            </div>
           )}
         </div>
 
