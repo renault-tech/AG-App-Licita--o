@@ -35,6 +35,7 @@ export type TipoAcaoIA = 'aprimorar_texto' | 'sugerir_conteudo' | 'gerar_documen
 export type FonteCotacao = 'pncp' | 'banco_municipal' | 'pesquisa_direta'
 export type StatusParecer = 'pendente' | 'em_analise' | 'aprovado' | 'aprovado_com_ressalvas' | 'contrario' | 'devolvido'
 export type TipoDFD = 'individual' | 'compartilhado'
+export type RitoDFD = 'irp' | 'consolidacao'
 export type StatusAdesaoDFD = 'rascunho' | 'aguardando_adesao' | 'prazo_encerrado' | 'consolidado'
 export type StatusParticipacaoDFD = 'pendente' | 'aderida' | 'recusada'
 export type TipoParticipacaoDFD = 'iniciadora' | 'participante'
@@ -96,6 +97,7 @@ export interface ProcessoLicitatorioRow {
   etapa_atual: number
   fase_atual: FaseProcesso
   cotacao_pendente: boolean
+  registro_de_precos: boolean
 }
 
 export interface DFDRow {
@@ -108,6 +110,8 @@ export interface DFDRow {
   objeto: string
   justificativa_necessidade: string | null
   tipo: TipoDFD
+  rito: RitoDFD
+  permite_adesao_posterior: boolean
   status_adesao: StatusAdesaoDFD
   prazo_adesao: string | null
   consolidado_em: string | null
@@ -657,6 +661,7 @@ export interface Database {
       fonte_cotacao: FonteCotacao
       status_parecer: StatusParecer
       tipo_dfd: TipoDFD
+      rito_dfd: RitoDFD
       status_adesao_dfd: StatusAdesaoDFD
       status_participacao_dfd: StatusParticipacaoDFD
       tipo_participacao_dfd: TipoParticipacaoDFD
