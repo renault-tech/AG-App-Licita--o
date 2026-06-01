@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { executarIAComCreditos } from '@/lib/ai/wrapper'
+import { buildPromptETP, buildPromptTR } from '@/lib/ai/prompts/gerar-documentos-simultaneos'
 import { registrarAuditoria } from '@/lib/audit/log'
 import type {
   DFDRow,
@@ -514,6 +515,150 @@ export async function verificarPrazoAdesao(dfdId: string): Promise<void> {
       .update({ status_adesao: 'prazo_encerrado', updated_at: new Date().toISOString() })
       .eq('id', dfdId)
   }
+}
+
+// -------------------------------------------------------
+// Geracao de ETP e TR a partir do DFD consolidado
+// Vincula a geracao ao processo existente (nao cria processo novo).
+// Pre-preenche com objeto, justificativa e itens consolidados do DFD.
+// -------------------------------------------------------
+
+function stripHtml(s: string | null | undefined): string {
+  if (!s) return ''
+  return s.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
+export async function gerarETPeTRDoDFDConsolidado(
+  processoId: string
+): Promise<{ success: boolean; error?: string }> {
+  const ctx = await obterUsuarioEOrg()
+  if (!ctx) return { success: false, error: 'Não autenticado.' }
+  const { supabase, usuario } = ctx
+
+  // 1. DFD consolidado
+  const dfd = await obterDFD(processoId)
+  if (!dfd) return { success: false, error: 'DFD nao encontrado.' }
+  if (dfd.status_adesao !== 'consolidado') {
+    return { success: false, error: 'Consolide as demandas antes de gerar ETP e TR.' }
+  }
+
+  // 2. Processo e organizacao
+  const [{ data: procRaw }, { data: orgRaw }] = await Promise.all([
+    (supabase as any)
+      .from('processos_licitatorios')
+      .select('modalidade, valor_estimado, registro_de_precos')
+      .eq('id', processoId)
+      .maybeSingle(),
+    (supabase as any)
+      .from('organizacoes')
+      .select('municipio, estado')
+      .eq('id', usuario.organizacao_id)
+      .maybeSingle(),
+  ])
+  const proc = procRaw as { modalidade: string; valor_estimado: number | null; registro_de_precos: boolean } | null
+  if (!proc) return { success: false, error: 'Processo nao encontrado.' }
+  const org = orgRaw as { municipio: string | null; estado: string | null } | null
+
+  // 3. Quantidades consolidadas por item (soma das secretarias aderidas)
+  const participacoes = await obterParticipacoesComItens(dfd.id)
+  const aderidas = participacoes.filter(p => p.status === 'aderida')
+  const descricaoItens = dfd.itens
+    .map(item => {
+      const total = aderidas.reduce((acc, p) => {
+        const pit = p.dfd_participacoes_itens.find(i => i.dfd_item_id === item.id)
+        return acc + (pit ? Number(pit.quantidade) : 0)
+      }, 0)
+      const espec = stripHtml(item.especificacao)
+      return total > 0 ? `${total} ${item.unidade_medida} de ${espec}` : espec
+    })
+    .filter(Boolean)
+    .join('; ')
+
+  const dadosPrompt = {
+    objeto: stripHtml(dfd.objeto),
+    justificativaNecessidade: stripHtml(dfd.justificativa_necessidade),
+    modalidade: proc.modalidade,
+    valorEstimado: proc.valor_estimado ?? undefined,
+    prazoExecucao: undefined,
+    secretaria: dfd.secretaria_nome,
+    municipio: org?.municipio ?? undefined,
+    estado: org?.estado ?? undefined,
+    requisitosEspecificos: undefined,
+    quantidadeItens: dfd.itens.length || undefined,
+    descricaoItens: descricaoItens || undefined,
+    fonteRecurso: undefined,
+    unidadeRequisitante: dfd.secretaria_nome,
+  }
+
+  // 4. Gerar ETP e TR sequencialmente (respeita rate limit do provider)
+  const resETP = await executarIAComCreditos({
+    prompt: buildPromptETP(dadosPrompt),
+    tipoAcao: 'gerar_documento',
+    processoId,
+    temperature: 0.3,
+  })
+  if (!resETP.success) return { success: false, error: resETP.error }
+
+  const resTR = await executarIAComCreditos({
+    prompt: buildPromptTR(dadosPrompt),
+    tipoAcao: 'gerar_documento',
+    processoId,
+    temperature: 0.3,
+  })
+  if (!resTR.success) return { success: false, error: resTR.error }
+
+  // 5. Gravar ETP e TR no processo (atualiza se ja existir)
+  const [{ data: etpExistente }, { data: trExistente }] = await Promise.all([
+    (supabase as any).from('etp').select('id').eq('processo_id', processoId).maybeSingle(),
+    (supabase as any).from('termo_referencia').select('id').eq('processo_id', processoId).maybeSingle(),
+  ])
+
+  if (etpExistente) {
+    await (supabase as any).from('etp')
+      .update({ descricao_necessidade: resETP.texto, gerado_por_ia: true, updated_at: new Date().toISOString() })
+      .eq('id', (etpExistente as any).id)
+  } else {
+    const { error: etpErr } = await (supabase as any).from('etp').insert({
+      processo_id: processoId,
+      organizacao_id: usuario.organizacao_id,
+      criado_por: usuario.id,
+      descricao_necessidade: resETP.texto,
+      status: 'rascunho',
+      gerado_por_ia: true,
+    })
+    if (etpErr) return { success: false, error: `Erro ao salvar ETP: ${etpErr.message}` }
+  }
+
+  if (trExistente) {
+    await (supabase as any).from('termo_referencia')
+      .update({ fundamentacao: resTR.texto, gerado_por_ia: true, updated_at: new Date().toISOString() })
+      .eq('id', (trExistente as any).id)
+  } else {
+    const { error: trErr } = await (supabase as any).from('termo_referencia').insert({
+      processo_id: processoId,
+      organizacao_id: usuario.organizacao_id,
+      criado_por: usuario.id,
+      fundamentacao: resTR.texto,
+      status: 'rascunho',
+      gerado_por_ia: true,
+    })
+    if (trErr) return { success: false, error: `Erro ao salvar TR: ${trErr.message}` }
+  }
+
+  void registrarAuditoria({
+    organizacaoId: usuario.organizacao_id,
+    usuarioId:     usuario.id,
+    nomeUsuario:   usuario.nome_completo,
+    papelUsuario:  usuario.papel,
+    categoria:     'documento',
+    acao:          'documento.gerado_ia',
+    recursoId:     processoId,
+    recursoDesc:   'ETP e TR gerados a partir do DFD consolidado',
+  })
+
+  revalidatePath(`/processos/${processoId}/etp`)
+  revalidatePath(`/processos/${processoId}/tr`)
+  return { success: true }
 }
 
 // -------------------------------------------------------

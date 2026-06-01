@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Loader2, Layers, ChevronDown, ChevronRight, Check, X, Clock, AlertCircle } from 'lucide-react'
+import { Loader2, Layers, ChevronDown, ChevronRight, Check, X, Clock, AlertCircle, Sparkles } from 'lucide-react'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
-import { consolidarDFD } from '@/lib/actions/dfd'
+import { consolidarDFD, gerarETPeTRDoDFDConsolidado } from '@/lib/actions/dfd'
 import type { DFDItemRow, DFDParticipacaoRow, DFDParticipacaoItemRow } from '@/types/database'
 
 type ParticipacaoComItens = DFDParticipacaoRow & {
@@ -66,6 +66,7 @@ function StatusBadge({ status }: { status: string }) {
 export default function PainelConsolidacao({ dfd, processoId }: Props) {
   const router = useRouter()
   const [consolidando, setConsolidando] = useState(false)
+  const [gerando, setGerando] = useState(false)
   const [expandidas, setExpandidas] = useState<Set<string>>(new Set())
 
   const jaConsolidado = dfd.status_adesao === 'consolidado'
@@ -93,6 +94,18 @@ export default function PainelConsolidacao({ dfd, processoId }: Props) {
     }
     toast.success('DFD consolidado com sucesso.')
     router.refresh()
+  }
+
+  async function handleGerarETPeTR() {
+    setGerando(true)
+    const res = await gerarETPeTRDoDFDConsolidado(processoId)
+    if (!res.success) {
+      toast.error(res.error ?? 'Erro ao gerar ETP e TR.')
+      setGerando(false)
+      return
+    }
+    toast.success('ETP e TR gerados a partir do DFD consolidado.')
+    router.push(`/processos/${processoId}/etp?revisao=1`)
   }
 
   return (
@@ -258,9 +271,22 @@ export default function PainelConsolidacao({ dfd, processoId }: Props) {
         </div>
 
         {jaConsolidado && dfd.consolidado_em && (
-          <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
-            <Check className="w-4 h-4 shrink-0" />
-            DFD consolidado em {new Date(dfd.consolidado_em).toLocaleDateString('pt-BR')}. O processo licitatorio pode prosseguir.
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+              <Check className="w-4 h-4 shrink-0" />
+              DFD consolidado em {new Date(dfd.consolidado_em).toLocaleDateString('pt-BR')}. Gere o ETP e o TR com base na demanda consolidada.
+            </div>
+            <div className="flex justify-end">
+              <Button
+                onClick={handleGerarETPeTR}
+                disabled={gerando}
+                className="bg-blue-700 hover:bg-blue-800 text-white gap-2 h-9 text-sm"
+              >
+                {gerando
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Gerando ETP e TR...</>
+                  : <><Sparkles className="w-4 h-4" /> Gerar ETP e TR</>}
+              </Button>
+            </div>
           </div>
         )}
 
