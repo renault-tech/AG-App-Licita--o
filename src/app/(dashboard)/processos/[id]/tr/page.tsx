@@ -41,7 +41,7 @@ export default async function TRPage({ params }: { params: Promise<{ id: string 
               />
             )}
             <BotoesExportacao tipo="tr" processoId={id} nomeDocumento="TR" />
-            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="riscos" />
+            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="riscos" modoAdmin={papel === 'admin_organizacao' || papel === 'admin_plataforma'} />
           </>
         }
       />

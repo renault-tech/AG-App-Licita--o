@@ -61,7 +61,7 @@ export default async function AutorizacaoPage({ params }: { params: Promise<{ id
         title="Autorização da Autoridade Competente"
         subtitle="Autorização para abertura do certame conforme Art. 72 da Lei 14.133/21."
         artigo="Art. 72"
-        actions={<BotaoAvancarEtapa processoId={id} proximaEtapaSlug="publicacao" />}
+        actions={<BotaoAvancarEtapa processoId={id} proximaEtapaSlug="publicacao" modoAdmin={papel === 'admin_organizacao' || papel === 'admin_plataforma'} />}
       />
       <PainelAutorizacao
         processoId={id}

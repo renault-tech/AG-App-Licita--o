@@ -176,6 +176,7 @@ export default async function DFDPage({
               processoId={processoId}
               proximaEtapaSlug="cotacao"
               label="Confirmar DFD e avançar"
+              modoAdmin={papelUsuario === 'admin_organizacao' || papelUsuario === 'admin_plataforma'}
             />
           </div>
         </div>
@@ -202,6 +203,7 @@ export default async function DFDPage({
                 processoId={processoId}
                 proximaEtapaSlug="cotacao"
                 label="Confirmar e avançar"
+                modoAdmin={papelUsuario === 'admin_organizacao' || papelUsuario === 'admin_plataforma'}
               />
             )}
           </>

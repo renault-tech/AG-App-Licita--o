@@ -55,7 +55,7 @@ export default async function OficioPage({
               />
             )}
             <BotoesExportacao tipo="oficio" processoId={id} nomeDocumento="OFICIO" />
-            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="revisao" />
+            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="revisao" modoAdmin={papel === 'admin_organizacao' || papel === 'admin_plataforma'} />
           </>
         }
       />

@@ -41,7 +41,7 @@ export default async function MapaRiscosPage({ params }: { params: Promise<{ id:
               />
             )}
             <BotoesExportacao tipo="riscos" processoId={id} nomeDocumento="Mapa-de-Riscos" />
-            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="edital" />
+            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="edital" modoAdmin={papel === 'admin_organizacao' || papel === 'admin_plataforma'} />
           </>
         }
       />

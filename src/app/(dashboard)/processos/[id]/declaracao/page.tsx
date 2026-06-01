@@ -48,7 +48,7 @@ export default async function DeclaracaoPage({
               />
             )}
             <BotoesExportacao tipo="declaracao" processoId={id} nomeDocumento="DECLARACAO" />
-            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="oficio" />
+            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="oficio" modoAdmin={papel === 'admin_organizacao' || papel === 'admin_plataforma'} />
           </>
         }
       />

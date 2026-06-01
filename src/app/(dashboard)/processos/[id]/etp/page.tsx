@@ -41,7 +41,7 @@ export default async function ETPPage({ params }: { params: Promise<{ id: string
               />
             )}
             <BotoesExportacao tipo="etp" processoId={id} nomeDocumento="ETP" />
-            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="tr" />
+            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="tr" modoAdmin={papel === 'admin_organizacao' || papel === 'admin_plataforma'} />
           </>
         }
       />

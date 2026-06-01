@@ -41,7 +41,7 @@ export default async function EditalPage({ params }: { params: Promise<{ id: str
               />
             )}
             <BotoesExportacao tipo="edital" processoId={id} nomeDocumento="Edital" />
-            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="declaracao" />
+            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="declaracao" modoAdmin={papel === 'admin_organizacao' || papel === 'admin_plataforma'} />
           </>
         }
       />

@@ -1,4 +1,5 @@
 import { obterCotacao } from '@/lib/actions/cotacao'
+import { obterPapelUsuario } from '@/lib/actions/usuario'
 import CotacaoForm from './cotacao-form'
 import { notFound } from 'next/navigation'
 import { StepPageHeader } from '@/components/licita/step-page-header'
@@ -8,7 +9,7 @@ import BotaoAvancarEtapa from '@/components/documentos/botao-avancar-etapa'
 export default async function CotacaoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const data = await obterCotacao(id)
+  const [data, papel] = await Promise.all([obterCotacao(id), obterPapelUsuario()])
   if (!data) return notFound()
 
   return (
@@ -20,7 +21,7 @@ export default async function CotacaoPage({ params }: { params: Promise<{ id: st
         actions={
           <>
             <BotoesExportacao tipo="cotacao" processoId={id} nomeDocumento="Cotacao" />
-            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="etp" />
+            <BotaoAvancarEtapa processoId={id} proximaEtapaSlug="etp" modoAdmin={papel === 'admin_organizacao' || papel === 'admin_plataforma'} />
           </>
         }
       />

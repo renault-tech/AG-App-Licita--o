@@ -43,7 +43,7 @@ export default async function RevisaoPage({ params }: { params: Promise<{ id: st
       <StepPageHeader
         title="Painel de Revisão"
         subtitle="Analise, aprove ou devolva os documentos enviados para revisão do setor de licitações."
-        actions={<BotaoAvancarEtapa processoId={id} proximaEtapaSlug="parecer" />}
+        actions={<BotaoAvancarEtapa processoId={id} proximaEtapaSlug="parecer" modoAdmin={papel === 'admin_organizacao' || papel === 'admin_plataforma'} />}
       />
       <PainelRevisao documentos={documentos} processoId={id} />
     </div>
