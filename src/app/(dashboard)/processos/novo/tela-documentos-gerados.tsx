@@ -122,12 +122,13 @@ interface Props {
   onConfirmar: (avisoId?: string) => void
   onVoltar: () => void
   salvando: boolean
+  ocultarDfd?: boolean
 }
 
 const STORAGE_KEY_AVISO = 'licitaia_wizard_aviso'
 
-export default function TelaDocumentosGerados({ documentos, dados, secretarias, iaModeloSolicitado, onEditar, onConfirmar, onVoltar, salvando }: Props) {
-  const [abaAtiva, setAbaAtiva] = useState<'dfd' | 'etp' | 'tr'>('dfd')
+export default function TelaDocumentosGerados({ documentos, dados, secretarias, iaModeloSolicitado, onEditar, onConfirmar, onVoltar, salvando, ocultarDfd }: Props) {
+  const [abaAtiva, setAbaAtiva] = useState<'dfd' | 'etp' | 'tr'>(ocultarDfd ? 'etp' : 'dfd')
   const [modalAberta, setModalAberta] = useState(false)
   const [secsSelecionadas, setSecsSelecionadas] = useState<string[]>([])
   const [prazoAdesaoDias, setPrazoAdesaoDias] = useState(7)
@@ -138,13 +139,15 @@ export default function TelaDocumentosGerados({ documentos, dados, secretarias, 
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY_AVISO) ?? 'null') } catch { return null }
   })
 
-  const abas: { key: 'dfd' | 'etp' | 'tr'; label: string }[] = [
+  const todasAbas: { key: 'dfd' | 'etp' | 'tr'; label: string }[] = [
     { key: 'dfd', label: 'DFD' },
     { key: 'etp', label: 'ETP' },
     { key: 'tr', label: 'TR' },
   ]
+  // No fluxo DFD-first, o DFD ja existe no processo — nao exibir aba de geracao
+  const abas = ocultarDfd ? todasAbas.filter(a => a.key !== 'dfd') : todasAbas
 
-  const todasSecoes = [...documentos.dfd.secoes, ...documentos.etp.secoes, ...documentos.tr.secoes]
+  const todasSecoes = [...(ocultarDfd ? [] : documentos.dfd.secoes), ...documentos.etp.secoes, ...documentos.tr.secoes]
   const iaFoiUsada = todasSecoes.some(s => s.origem === 'ia')
   const temSecoesVazias = todasSecoes.some(s => !s.texto)
 

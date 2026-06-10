@@ -36,7 +36,7 @@ export async function DashboardRequisitante({ userId, orgId, cargo, nome }: Prop
     .maybeSingle()
   const secretariaId: string | null = (usuarioData as any)?.secretaria_id ?? null
 
-  const [{ data: processos }, { data: notifData }, { data: acoesIaData }, { data: avisosData }] = await Promise.all([
+  const [{ data: processos }, { data: notifData }, { data: acoesIaData }, { data: avisosData }, { data: minhasSolicitacoesData }] = await Promise.all([
     (supabase as any)
       .from('processos_licitatorios')
       .select('id, objeto, numero_processo, modalidade, status, fase_atual, updated_at, created_at, valor_estimado')
@@ -62,12 +62,20 @@ export async function DashboardRequisitante({ userId, orgId, cargo, nome }: Prop
           .eq('status', 'pendente')
           .limit(5)
       : Promise.resolve({ data: [] }),
+    (supabase as any)
+      .from('solicitacoes_compra')
+      .select('id, objeto, status, prioridade, created_at')
+      .eq('usuario_id', userId)
+      .in('status', ['rascunho', 'enviada', 'em_analise'])
+      .order('created_at', { ascending: false })
+      .limit(3),
   ])
 
   const lista = (processos as any[]) ?? []
   const notifCount = ((notifData as any[]) ?? []).length
   const creditosIaMes = ((acoesIaData as any[]) ?? []).reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
   const avisosConvite = ((avisosData as any[]) ?? []).filter((a: any) => a.avisos_compra_conjunta)
+  const minhasSolicitacoes = (minhasSolicitacoesData as any[]) ?? []
 
   const contagens = {
     total:      lista.length,
@@ -124,6 +132,60 @@ export async function DashboardRequisitante({ userId, orgId, cargo, nome }: Prop
         {/* Coluna principal */}
         <div className="space-y-6">
           <PendenciasCard userId={userId} orgId={orgId} faseAtual="requisitante" />
+
+          {/* Minhas solicitacoes de compra em aberto */}
+          {minhasSolicitacoes.length > 0 && (
+            <div className="glass rounded-[var(--r-lg)] overflow-hidden">
+              <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--hairline)' }}>
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="w-4 h-4" style={{ color: 'var(--primary)' }} />
+                  <span className="text-[13px] font-semibold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+                    Minhas Solicitacoes
+                  </span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: 'var(--primaryWash)', color: 'var(--primary)' }}>
+                    {minhasSolicitacoes.length}
+                  </span>
+                </div>
+                <Link href="/solicitacoes" className="text-[11px] flex items-center gap-1" style={{ color: 'var(--primary)' }}>
+                  Ver todas <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+              <div className="divide-y" style={{ borderColor: 'var(--hairline)' }}>
+                {minhasSolicitacoes.map((s: any) => {
+                  const STATUS_LABEL: Record<string, string> = { rascunho: 'Rascunho', enviada: 'Enviada', em_analise: 'Em analise' }
+                  const STATUS_COR: Record<string, string> = { rascunho: 'var(--muted)', enviada: 'var(--primary)', em_analise: '#F59E0B' }
+                  return (
+                    <Link
+                      key={s.id}
+                      href="/solicitacoes"
+                      className="flex items-center justify-between gap-3 px-5 py-3 transition-colors"
+                      style={{ background: 'transparent' }}
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate" style={{ color: 'var(--ink)' }}>{s.objeto}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                          {new Date(s.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-semibold shrink-0" style={{ color: STATUS_COR[s.status] ?? 'var(--muted)' }}>
+                        {STATUS_LABEL[s.status] ?? s.status}
+                      </span>
+                    </Link>
+                  )
+                })}
+              </div>
+              <div className="px-5 py-3" style={{ borderTop: '1px solid var(--hairline)' }}>
+                <Link
+                  href="/solicitacoes/nova"
+                  className="text-[13px] font-semibold flex items-center gap-1.5"
+                  style={{ color: 'var(--primary)' }}
+                >
+                  <Bell className="w-3.5 h-3.5" />
+                  Nova solicitacao de compra
+                </Link>
+              </div>
+            </div>
+          )}
 
           {/* Card de convites de compra conjunta */}
           {avisosConvite.length > 0 && (

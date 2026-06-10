@@ -77,7 +77,7 @@ export async function criarProcessoInicial(dados: ProcessoWizardInput) {
 export async function criarProcessoComDocumentos(
   dados: import('@/app/(dashboard)/processos/novo/types').DadosWizard,
   documentos: import('@/app/(dashboard)/processos/novo/types').DocumentosGerados,
-  opcoes?: { avisoId?: string }
+  opcoes?: { avisoId?: string; solicitacaoId?: string }
 ): Promise<{ success: boolean; processoId?: string; error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -136,17 +136,54 @@ export async function criarProcessoComDocumentos(
   const processoId: string = processo.id
 
   const avisoId = opcoes?.avisoId
+  const solicitacaoId = opcoes?.solicitacaoId
 
   // 2. Criar DFD, ETP e TR. Se qualquer um falhar, desfaz o processo.
   try {
-    const secoesDfd = Object.fromEntries(documentos.dfd.secoes.map(s => [s.tipo_campo, s.texto]))
+    // DFD: quando vem de solicitacao, usa dados dela. Caso contrario, usa texto gerado pelo wizard.
+    let justificativaDfd: string | null = null
+    let objetoDfd = dados.objeto
+    let itensDfdParaInserir: { especificacao: string; unidade_medida: string; observacoes: string }[] = []
+    let tipoDfd: 'individual' | 'compartilhado' = 'individual'
+    let statusAdesaoDfd: 'rascunho' | 'consolidado' = 'rascunho'
+    let geradoPorIa = dados.ia_modelo !== 'sem_ia'
 
-    // Quando ha aviso vinculado, DFD e compartilhado e ja consolidado (prazo expirou)
-    const tipoDfd = avisoId ? 'compartilhado' : 'individual'
-    const statusAdesaoDfd = avisoId ? 'consolidado' : 'rascunho'
+    if (solicitacaoId) {
+      // Fluxo DFD-first: DFD criado a partir dos dados da solicitacao de compra
+      const { data: sol } = await (supabase as any)
+        .from('solicitacoes_compra')
+        .select('objeto, justificativa, solicitacoes_itens(numero_item, catmat_codigo, catmat_descricao, especificacao_complementar, quantidade, unidade_medida)')
+        .eq('id', solicitacaoId)
+        .maybeSingle()
 
-    // Quando a IA gera o documento inteiro, o conteudo vem em 'texto_completo'
-    const dfdTextoCompleto = secoesDfd['texto_completo'] ?? null
+      if (sol) {
+        objetoDfd = sol.objeto
+        justificativaDfd = sol.justificativa ?? null
+        geradoPorIa = false
+        itensDfdParaInserir = (sol.solicitacoes_itens ?? []).map((it: any, idx: number) => {
+          const descricao = [it.catmat_descricao, it.especificacao_complementar].filter(Boolean).join(' | ') || 'Item sem descricao'
+          const codigoObs = it.catmat_codigo ? `CATMAT ${it.catmat_codigo} | ` : ''
+          return {
+            numero_item: idx + 1,
+            especificacao: descricao,
+            unidade_medida: it.unidade_medida ?? 'un',
+            observacoes: `${codigoObs}Quantidade estimada: ${it.quantidade} ${it.unidade_medida ?? 'un'}`,
+          }
+        })
+      }
+    } else {
+      const secoesDfd = Object.fromEntries((documentos.dfd?.secoes ?? []).map(s => [s.tipo_campo, s.texto]))
+      const dfdTextoCompleto = secoesDfd['texto_completo'] ?? null
+      justificativaDfd = secoesDfd['justificativa_necessidade'] ?? dfdTextoCompleto ?? null
+      tipoDfd = avisoId ? 'compartilhado' : 'individual'
+      statusAdesaoDfd = avisoId ? 'consolidado' : 'rascunho'
+      itensDfdParaInserir = (dados.itens ?? []).map((item: any, idx: number) => ({
+        numero_item: idx + 1,
+        especificacao: item.descricao,
+        unidade_medida: item.unidade,
+        observacoes: `Quantidade estimada: ${item.quantidade} ${item.unidade}`,
+      }))
+    }
 
     const { data: dfdCriado, error: dfdError } = await (supabase as any).from('dfd').insert({
       processo_id: processoId,
@@ -158,28 +195,22 @@ export async function criarProcessoComDocumentos(
       secretaria_telefone: sec?.telefone ?? null,
       secretario_responsavel: sec?.secretario_nome ?? null,
       responsavel_elaboracao: nomeCompleto,
-      objeto: dados.objeto,
-      justificativa_necessidade: secoesDfd['justificativa_necessidade'] ?? dfdTextoCompleto ?? null,
-      dotacao_orcamentaria: secoesDfd['dotacao_orcamentaria'] ?? null,
+      objeto: objetoDfd,
+      justificativa_necessidade: justificativaDfd,
+      dotacao_orcamentaria: null,
       tipo: tipoDfd,
       status_adesao: statusAdesaoDfd,
       status: 'rascunho',
-      gerado_por_ia: dados.ia_modelo !== 'sem_ia',
+      gerado_por_ia: geradoPorIa,
     }).select('id').single()
     if (dfdError) throw new Error(`Erro ao criar DFD: ${dfdError.message}`)
 
     const dfdId: string = (dfdCriado as any).id
 
-    // Salvar itens do wizard no DFD para que EditorDFD exiba a lista preenchida
-    if (dados.itens && dados.itens.length > 0) {
-      const itensDfd = dados.itens.map((item: { descricao: string; unidade: string; quantidade: number }, idx: number) => ({
-        dfd_id: dfdId,
-        numero_item: idx + 1,
-        especificacao: item.descricao,
-        unidade_medida: item.unidade,
-        observacoes: `Quantidade estimada: ${item.quantidade} ${item.unidade}`,
-      }))
-      await (supabase as any).from('dfd_itens').insert(itensDfd)
+    if (itensDfdParaInserir.length > 0) {
+      await (supabase as any).from('dfd_itens').insert(
+        itensDfdParaInserir.map(it => ({ dfd_id: dfdId, ...it }))
+      )
     }
 
     // Criar participacao iniciadora
@@ -195,6 +226,19 @@ export async function criarProcessoComDocumentos(
         secretario_responsavel: sec?.secretario_nome ?? null,
         respondido_em: new Date().toISOString(),
       })
+    }
+
+    // Marcar solicitacao como convertida e vincular ao processo
+    if (solicitacaoId) {
+      await (supabase as any)
+        .from('solicitacoes_compra')
+        .update({
+          status: 'convertida',
+          processo_id: processoId,
+          convertido_por: user.id,
+          convertido_em: new Date().toISOString(),
+        })
+        .eq('id', solicitacaoId)
     }
 
     // Se ha aviso: criar participacoes das secretarias que aderiram

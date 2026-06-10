@@ -30,6 +30,7 @@ interface NavbarProps {
 const NAV_LINKS = [
   { href: '/dashboard', label: 'Painel', icon: LayoutDashboard },
   { href: '/processos', label: 'Processos', icon: FileText },
+  { href: '/solicitacoes', label: 'Solicitacoes', icon: Bell },
   { href: '/processos/aviso-compra-conjunta/novo', label: 'Compra Conjunta', icon: Share2 },
 ]
 

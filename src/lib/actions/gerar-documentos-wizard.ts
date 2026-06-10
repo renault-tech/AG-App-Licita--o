@@ -10,7 +10,7 @@ import {
 import type { DadosWizard } from '@/app/(dashboard)/processos/novo/types'
 
 interface DocumentosGeradosIA {
-  dfd: string
+  dfd?: string
   etp: string
   tr: string
 }
@@ -22,7 +22,8 @@ interface ResultadoGeracao {
 }
 
 export async function gerarDocumentosWizard(
-  dados: DadosWizard
+  dados: DadosWizard,
+  opcoes?: { skipDfd?: boolean }
 ): Promise<ResultadoGeracao> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -80,17 +81,23 @@ export async function gerarDocumentosWizard(
     unidadeRequisitante: secretariaNome,
   }
 
-  // Gerar os 3 documentos sequencialmente via wrapper padrao.
+  // Gerar documentos sequencialmente via wrapper padrao.
   // O wrapper le ia_config.provider da org, debita creditos e registra em acoes_ia.
   // Sequencial (nao paralelo) para respeitar rate limit do provider configurado.
-  const resDFD = await executarIAComCreditos({
-    prompt: buildPromptDFD(dadosPrompt),
-    tipoAcao: 'gerar_documento',
-    temperature: 0.3,
-  })
-  if (!resDFD.success) {
-    console.error('[gerarDocumentosWizard] falha no DFD:', resDFD.error)
-    return { success: false, error: resDFD.error }
+
+  // DFD e gerado apenas quando nao vem de uma solicitacao previa (DFD-first flow).
+  let dfdTexto: string | undefined
+  if (!opcoes?.skipDfd) {
+    const resDFD = await executarIAComCreditos({
+      prompt: buildPromptDFD(dadosPrompt),
+      tipoAcao: 'gerar_documento',
+      temperature: 0.3,
+    })
+    if (!resDFD.success) {
+      console.error('[gerarDocumentosWizard] falha no DFD:', resDFD.error)
+      return { success: false, error: resDFD.error }
+    }
+    dfdTexto = resDFD.texto
   }
 
   const resETP = await executarIAComCreditos({
@@ -116,7 +123,7 @@ export async function gerarDocumentosWizard(
   return {
     success: true,
     documentos: {
-      dfd: resDFD.texto,
+      dfd: dfdTexto,
       etp: resETP.texto,
       tr:  resTR.texto,
     },

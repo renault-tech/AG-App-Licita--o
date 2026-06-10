@@ -4,11 +4,19 @@ import { FaseTimeline } from '@/components/dashboard/fase-timeline'
 import type { FaseNode } from '@/components/dashboard/fase-timeline'
 import { PendenciasCard } from '@/components/dashboard/pendencias-card'
 import { ProcessoRowDashboard } from '@/components/dashboard/processo-row-dashboard'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Inbox, ArrowRight, Clock } from 'lucide-react'
+import Link from 'next/link'
 import {
   FooterEditorial, SectionHeader,
   ProcessosListSection, DarkFeaturedCard, AiSuggestionCard,
 } from './shared'
+
+const PRIORIDADE_LABEL: Record<string, string> = {
+  baixa: 'Baixa', media: 'Media', alta: 'Alta', urgente: 'Urgente',
+}
+const PRIORIDADE_COR: Record<string, string> = {
+  baixa: '#6B7280', media: '#3B82F6', alta: '#F59E0B', urgente: '#EF4444',
+}
 
 interface Props {
   userId: string
@@ -37,6 +45,7 @@ export async function DashboardCompras({ userId, orgId, cargo, nome }: Props) {
     { data: cotacoesFeitasData },
     { data: concluidosData },
     { data: acoesIaData },
+    { data: solicitacoesPendentesData },
   ] = await Promise.all([
     (supabase as any)
       .from('processos_licitatorios')
@@ -67,6 +76,13 @@ export async function DashboardCompras({ userId, orgId, cargo, nome }: Props) {
       .select('creditos_consumidos')
       .eq('organizacao_id', orgId)
       .gte('created_at', inicioMes),
+    (supabase as any)
+      .from('solicitacoes_compra')
+      .select('id, objeto, prioridade, created_at, secretarias(nome), usuarios(nome_completo)')
+      .eq('organizacao_id', orgId)
+      .in('status', ['enviada', 'em_analise'])
+      .order('created_at', { ascending: true })
+      .limit(5),
   ])
 
   const todos = (todosProcessos as any[]) ?? []
@@ -74,6 +90,8 @@ export async function DashboardCompras({ userId, orgId, cargo, nome }: Props) {
   const cotacoesSemana = ((cotacoesFeitasData as any[]) ?? []).length
   const concluidosList = (concluidosData as any[]) ?? []
   const creditosIaMes = ((acoesIaData as any[]) ?? []).reduce((acc: number, a: any) => acc + (a.creditos_consumidos ?? 0), 0)
+  const solicitacoesPendentes = (solicitacoesPendentesData as any[]) ?? []
+  const totalSolicitacoes = solicitacoesPendentes.length
 
   const valorEmFila = todos
     .filter((p: any) => p.fase_atual === 'setor_compras')
@@ -108,10 +126,10 @@ export async function DashboardCompras({ userId, orgId, cargo, nome }: Props) {
       <FaseTimeline fases={fases} />
 
       <KPIBar items={[
+        { label: 'Solicitacoes',      value: totalSolicitacoes, sub: 'aguardando analise', sparkline: totalSolicitacoes > 0 ? 'wave' : 'flat', delta: `${totalSolicitacoes} nova${totalSolicitacoes !== 1 ? 's' : ''}`, deltaColor: totalSolicitacoes > 0 ? 'warn' : 'muted' },
         { label: 'Na fila',           value: naFila,     sub: 'aguardando cotacao',   sparkline: naFila > 0 ? 'wave' : 'flat', delta: `${naFila} pendente${naFila !== 1 ? 's' : ''}`, deltaColor: naFila > 0 ? 'warn' : 'muted' },
         { label: 'Cotacoes (semana)', value: cotacoesSemana, sub: 'ultimos 7 dias',   sparkline: 'up',   delta: 'semana',    deltaColor: 'success' },
         { label: 'Valor em cotacao',  value: valorEmFila > 0 ? `R$ ${(valorEmFila / 1000).toFixed(0)}k` : 'R$ 0', sub: 'estimado', sparkline: 'up', delta: 'total', deltaColor: 'blue' },
-        { label: 'IA (mes)',          value: creditosIaMes.toLocaleString('pt-BR'), sub: 'creditos org', sparkline: 'wave', delta: 'mes atual', deltaColor: 'blue' },
       ]} />
 
       {naFila > 0 && (
@@ -124,6 +142,56 @@ export async function DashboardCompras({ userId, orgId, cargo, nome }: Props) {
             A pesquisa de precos deve observar os parametros do Art. 23 da Lei 14.133/21,
             incluindo cotacoes de fornecedores, painel de precos e contratos anteriores.
           </p>
+        </div>
+      )}
+
+      {/* Solicitacoes de compra pendentes das secretarias */}
+      {totalSolicitacoes > 0 && (
+        <div className="glass rounded-[var(--r-lg)] border border-amber-200 bg-amber-50/60 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-amber-200">
+            <div className="flex items-center gap-2.5">
+              <Inbox className="w-4 h-4 text-amber-600" />
+              <span className="text-sm font-semibold text-amber-900">
+                {totalSolicitacoes} solicitacao{totalSolicitacoes !== 1 ? 'es' : ''} aguardando analise
+              </span>
+            </div>
+            <Link
+              href="/solicitacoes"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 hover:text-amber-900 transition-colors"
+            >
+              Ver todas
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+          <div className="divide-y divide-amber-100">
+            {solicitacoesPendentes.map((s: any) => (
+              <Link
+                key={s.id}
+                href="/solicitacoes"
+                className="flex items-start justify-between gap-4 px-5 py-3 hover:bg-amber-100/50 transition-colors"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{s.objeto}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {s.secretarias?.nome ?? 'Secretaria nao informada'}
+                    {s.usuarios?.nome_completo ? ` · ${s.usuarios.nome_completo}` : ''}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span
+                    className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: `${PRIORIDADE_COR[s.prioridade] ?? '#6B7280'}20`, color: PRIORIDADE_COR[s.prioridade] ?? '#6B7280' }}
+                  >
+                    {PRIORIDADE_LABEL[s.prioridade] ?? s.prioridade}
+                  </span>
+                  <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <Clock className="w-3 h-3" />
+                    {new Date(s.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 

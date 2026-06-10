@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
@@ -16,6 +16,7 @@ import { gerarDocumentos } from '@/lib/actions/gerar-documentos'
 import { gerarDocumentosWizard } from '@/lib/actions/gerar-documentos-wizard'
 import { criarProcessoComDocumentos } from '@/lib/actions/processo'
 import { listarSecretarias } from '@/lib/actions/secretarias'
+import { obterSolicitacao } from '@/lib/actions/solicitacoes'
 import { DADOS_WIZARD_INICIAL } from './types'
 import type { DadosWizard, DocumentosGerados } from './types'
 
@@ -68,6 +69,9 @@ function todasEtapasValidas(dados: DadosWizard): boolean {
 
 export default function NovoProcessoPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const solicitacaoId = searchParams.get('solicitacao_id') ?? undefined
+
   const [etapa, setEtapa] = useState(1)
   const [dados, setDados] = useState<DadosWizard>(DADOS_INICIAIS)
   const [secretarias, setSecretarias] = useState<Array<{ id: string; nome: string; sigla: string | null }>>([])
@@ -80,6 +84,21 @@ export default function NovoProcessoPage() {
 
   useEffect(() => {
     listarSecretarias().then(secs => setSecretarias(secs))
+
+    // Pré-popular a partir de solicitacao de compra (fluxo DFD-first)
+    if (solicitacaoId) {
+      obterSolicitacao(solicitacaoId).then(sol => {
+        if (!sol) return
+        setDados(prev => ({
+          ...prev,
+          objeto: sol.objeto ?? prev.objeto,
+          secretaria_id: sol.secretarias?.id ?? prev.secretaria_id,
+          problema_atual: sol.justificativa ?? prev.problema_atual,
+        }))
+      })
+      return // Ignora rascunho do localStorage quando vem de solicitacao
+    }
+
     try {
       const salvo = localStorage.getItem(STORAGE_KEY)
       if (salvo) {
@@ -90,7 +109,7 @@ export default function NovoProcessoPage() {
         }
       }
     } catch {}
-  }, [])
+  }, [solicitacaoId])
 
   function handleRestaurarRascunho() {
     if (!rascunhoSalvo) return
@@ -125,12 +144,17 @@ export default function NovoProcessoPage() {
     setGerando(true)
     try { localStorage.removeItem('licitaia_wizard_aviso') } catch {}
 
+    // No fluxo DFD-first (solicitacao), o DFD ja existe — gera apenas ETP e TR
+    const skipDfd = !!solicitacaoId
+
     if (dados.ia_modelo === 'com_ia') {
-      const resIA = await gerarDocumentosWizard(dados)
+      const resIA = await gerarDocumentosWizard(dados, { skipDfd })
       if (resIA.success && resIA.documentos) {
         setGerando(false)
         setDocumentosGerados({
-          dfd: { secoes: [{ tipo_campo: 'texto_completo', texto: resIA.documentos.dfd, origem: 'ia', processos_referencia: [] }] },
+          dfd: resIA.documentos.dfd
+            ? { secoes: [{ tipo_campo: 'texto_completo', texto: resIA.documentos.dfd, origem: 'ia', processos_referencia: [] }] }
+            : { secoes: [] },
           etp: { secoes: [{ tipo_campo: 'texto_completo', texto: resIA.documentos.etp, origem: 'ia', processos_referencia: [] }] },
           tr:  { secoes: [{ tipo_campo: 'texto_completo', texto: resIA.documentos.tr,  origem: 'ia', processos_referencia: [] }] },
         })
@@ -169,7 +193,10 @@ export default function NovoProcessoPage() {
     if (!documentosGerados) return
     setSalvando(true)
     startTransition(async () => {
-      const res = await criarProcessoComDocumentos(dados, documentosGerados, { avisoId })
+      const res = await criarProcessoComDocumentos(dados, documentosGerados, {
+        avisoId,
+        solicitacaoId,
+      })
       setSalvando(false)
       if (!res.success || !res.processoId) {
         toast.error(res.error ?? 'Erro ao criar processo.')
@@ -193,6 +220,7 @@ export default function NovoProcessoPage() {
           onConfirmar={handleConfirmar}
           onVoltar={() => setDocumentosGerados(null)}
           salvando={salvando}
+          ocultarDfd={!!solicitacaoId}
         />
       </div>
     )
@@ -215,7 +243,9 @@ export default function NovoProcessoPage() {
         <div>
           <h1 className="text-lg font-bold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>Novo Processo Licitatorio</h1>
           <p className="text-sm" style={{ color: 'var(--muted)' }}>
-            Preencha os dados e o sistema gera DFD, ETP e TR automaticamente.
+            {solicitacaoId
+              ? 'Dados pre-preenchidos da solicitacao. Complemente e gere ETP e TR.'
+              : 'Preencha os dados e o sistema gera ETP e TR automaticamente.'}
           </p>
         </div>
       </div>
