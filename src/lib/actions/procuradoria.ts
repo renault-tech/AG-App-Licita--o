@@ -256,15 +256,23 @@ export async function gerarMinutaIA(
 ): Promise<{ success: boolean; conteudo?: string; error?: string }> {
   const supabase = await createClient()
 
-  const [procRaw, trRaw, dfdRaw] = await Promise.all([
+  const [procRaw, trRaw, dfdRaw, etpRaw, riscosRaw] = await Promise.all([
     supabase.from('processos_licitatorios').select('objeto, modalidade, valor_estimado').eq('id', processoId).single(),
-    (supabase as any).from('termo_referencia').select('fundamentacao, modelo_execucao, requisitos_tecnicos').eq('processo_id', processoId).maybeSingle(),
+    (supabase as any).from('termo_referencia').select('fundamentacao, modelo_execucao, requisitos_tecnicos, garantias, sancoes').eq('processo_id', processoId).maybeSingle(),
     (supabase as any).from('dfd').select('justificativa_necessidade').eq('processo_id', processoId).maybeSingle(),
+    (supabase as any).from('etp').select('descricao_necessidade, justificativa_solucao, parcelamento').eq('processo_id', processoId).maybeSingle(),
+    (supabase as any).from('mapa_riscos').select('riscos').eq('processo_id', processoId).maybeSingle(),
   ])
 
   const proc = procRaw.data as any
   const tr = trRaw.data as any
   const dfd = dfdRaw.data as any
+  const etp = etpRaw.data as any
+  const riscos = (riscosRaw.data as any)?.riscos as Array<{ identificacao: string; probabilidade: string; impacto: string; mitigacao: string }> | null
+
+  const resumoRiscos = riscos?.length
+    ? riscos.map(r => `${r.identificacao} (probabilidade ${r.probabilidade}, impacto ${r.impacto}; mitigacao: ${r.mitigacao})`).join('\n')
+    : 'Mapa de riscos nao disponivel'
 
   const vereditos: Record<typeof veredito, string> = {
     aprovar:                'FAVORAVEL ao prosseguimento do processo',
@@ -281,13 +289,30 @@ Use estrutura: EMENTA / RELATORIO / FUNDAMENTACAO JURIDICA / CONCLUSAO.
 Retorne APENAS o texto do parecer, sem saudacoes ou explicacoes adicionais.
 </instrucoes>
 
+<contexto_legal>
+O parecer juridico previo e exigido pelo Art. 53 da Lei 14.133/21 e deve analisar a regularidade de toda a fase preparatoria:
+- DFD e justificativa da necessidade (Art. 6, X)
+- ETP e seus elementos obrigatorios (Art. 18, par. 1 e 2)
+- Mapa de riscos (Art. 22)
+- TR e seus parametros (Art. 6, XXIII)
+- Adequacao da modalidade escolhida (Arts. 28 a 32)
+No RELATORIO, descreva o que consta dos autos. Na FUNDAMENTACAO, analise cada documento da fase preparatoria a luz dos dispositivos citados, apontando conformidades e, quando o veredito nao for plenamente favoravel, as desconformidades concretas.
+</contexto_legal>
+
 <dados_processo>
 Objeto: ${proc?.objeto ?? 'Nao informado'}
 Modalidade: ${proc?.modalidade ?? 'Nao informada'}
 Valor estimado: ${proc?.valor_estimado ? `R$ ${proc.valor_estimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Nao informado'}
 Justificativa (DFD): ${dfd?.justificativa_necessidade ?? 'Nao disponivel'}
+Necessidade (ETP): ${etp?.descricao_necessidade ?? 'Nao disponivel'}
+Solucao escolhida (ETP): ${etp?.justificativa_solucao ?? 'Nao disponivel'}
+Parcelamento (ETP): ${etp?.parcelamento ?? 'Nao disponivel'}
 Fundamentacao (TR): ${tr?.fundamentacao ?? 'Nao disponivel'}
-Requisitos tecnicos: ${tr?.requisitos_tecnicos ?? 'Nao disponivel'}
+Requisitos tecnicos (TR): ${tr?.requisitos_tecnicos ?? 'Nao disponivel'}
+Garantias (TR): ${tr?.garantias ?? 'Nao disponivel'}
+Sancoes (TR): ${tr?.sancoes ?? 'Nao disponivel'}
+Riscos mapeados (Art. 22):
+${resumoRiscos}
 </dados_processo>`
 
   const resultado = await executarIAComCreditos({

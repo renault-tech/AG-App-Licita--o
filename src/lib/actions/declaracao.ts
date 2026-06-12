@@ -99,17 +99,48 @@ export async function gerarJustificativaDeclaracaoIA(
 ): Promise<{ success: true; texto: string } | { success: false; error: string }> {
   if (!objeto) return { success: false, error: 'Objeto não informado.' }
 
-  const prompt = `Você é um servidor público especializado em licitações (Lei 14.133/21).
-Redija a justificativa para a Declaração do Setor Requisitante.
-Setor: ${setor || 'Setor Requisitante'}
-Objeto da contratação: ${objeto}
+  // Buscar dados reais do processo e do DFD para fundamentar a declaracao
+  const supabase = await createClient()
+  const [procRes, dfdRes] = await Promise.all([
+    supabase
+      .from('processos_licitatorios')
+      .select('modalidade, valor_estimado')
+      .eq('id', processoId)
+      .maybeSingle(),
+    (supabase as any)
+      .from('dfd')
+      .select('justificativa_necessidade')
+      .eq('processo_id', processoId)
+      .maybeSingle(),
+  ])
+  const proc = procRes.data as { modalidade: string | null; valor_estimado: number | null } | null
+  const dfd = dfdRes.data as { justificativa_necessidade: string | null } | null
 
-A declaração deve afirmar que:
-1. A necessidade da contratação está devidamente caracterizada
-2. Os recursos orçamentários estão reservados (ou serão reservados)
-3. O objeto atende ao interesse público e é imprescindível à continuidade dos serviços
+  const prompt = `<instrucoes>
+Voce e um servidor publico especializado em licitacoes (Lei 14.133/21).
+Redija a justificativa para a Declaracao do Setor Requisitante, documento que atesta a necessidade da contratacao e a disponibilidade orcamentaria antes da abertura do certame.
+Use linguagem administrativa formal e impessoal, sem travessao (em dash).
+</instrucoes>
 
-Retorne APENAS o texto da justificativa, em linguagem administrativa formal, sem título, sem aspas.`
+<dados_processo>
+  <setor_requisitante>${setor || 'Setor Requisitante'}</setor_requisitante>
+  <objeto>${objeto}</objeto>
+  ${proc?.modalidade ? `<modalidade>${proc.modalidade}</modalidade>` : ''}
+  ${proc?.valor_estimado ? `<valor_estimado>R$ ${proc.valor_estimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</valor_estimado>` : ''}
+  ${dfd?.justificativa_necessidade ? `<justificativa_dfd>${dfd.justificativa_necessidade.slice(0, 1500)}</justificativa_dfd>` : ''}
+</dados_processo>
+
+<conteudo_obrigatorio>
+A declaracao deve afirmar que:
+1. A necessidade da contratacao esta devidamente caracterizada (coerente com a justificativa do DFD, quando fornecida)
+2. Os recursos orcamentarios estao reservados (ou serao reservados)
+3. O objeto atende ao interesse publico e e imprescindivel a continuidade dos servicos
+</conteudo_obrigatorio>
+
+<formato_saida>
+Retorne APENAS o texto da justificativa, em linguagem administrativa formal, sem titulo, sem aspas.
+Nao invente numeros de dotacao orcamentaria ou datas que nao foram fornecidos.
+</formato_saida>`
 
   return executarIAComCreditos({ prompt, tipoAcao: 'aprimorar_texto', processoId, temperature: 0.3 })
 }

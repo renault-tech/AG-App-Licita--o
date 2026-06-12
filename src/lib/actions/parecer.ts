@@ -2,9 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { executarIAComCreditos } from '@/lib/ai/wrapper'
 import { registrarAuditoria } from '@/lib/audit/log'
-import type { StatusParecer, ProcessoLicitatorioRow, TermoReferenciaRow } from '@/types/database'
+import type { StatusParecer, ProcessoLicitatorioRow } from '@/types/database'
 
 export async function obterParecer(processoId: string) {
   const supabase = await createClient()
@@ -88,44 +87,7 @@ export async function salvarParecer(parecerId: string, conteudo: string, status:
   return { success: true }
 }
 
-export async function gerarParecerIA(processoId: string) {
-  const supabase = await createClient()
-
-  const { data: procRaw } = await supabase
-    .from('processos_licitatorios')
-    .select('objeto, modalidade')
-    .eq('id', processoId)
-    .single()
-
-  const proc = procRaw as Pick<ProcessoLicitatorioRow, 'objeto' | 'modalidade'> | null
-
-  const { data: trRaw } = await supabase
-    .from('termo_referencia')
-    .select('fundamentacao, modelo_execucao')
-    .eq('processo_id', processoId)
-    .maybeSingle()
-
-  const tr = trRaw as Pick<TermoReferenciaRow, 'fundamentacao' | 'modelo_execucao'> | null
-
-  const prompt = `Você é um Procurador Jurídico Municipal. Analise os seguintes dados do processo licitatório e redija um PARECER JURÍDICO em conformidade com a Lei 14.133/21.
-
-Dados do Processo:
-- Objeto: ${proc?.objeto ?? 'Não informado'}
-- Modalidade: ${proc?.modalidade ?? 'Não informada'}
-- Fundamentação (TR): ${tr?.fundamentacao ?? 'Padrão'}
-- Modelo de Execução: ${tr?.modelo_execucao ?? 'Padrão'}
-
-O parecer deve ter uma estrutura formal: Ementa, Relatório, Fundamentação Jurídica e Conclusão.
-A conclusão deve ser favorável (aprovando o prosseguimento do processo).
-Retorne EXCLUSIVAMENTE o texto do parecer, sem saudações ou explicações adicionais.`
-
-  const resultado = await executarIAComCreditos({
-    prompt,
-    tipoAcao: 'gerar_documento',
-    processoId,
-    temperature: 0.3,
-  })
-
-  if (!resultado.success) return resultado
-  return { success: true as const, conteudo: resultado.texto, statusSugerido: 'aprovado' as StatusParecer }
-}
+// A geracao de minuta de parecer via IA fica em procuradoria.ts (gerarMinutaIA),
+// que recebe o veredito decidido pelo procurador. Conforme o Art. 53 da Lei 14.133/21,
+// a conclusao juridica e ato privativo do procurador; a IA apenas redige a minuta
+// a partir da decisao humana, nunca o contrario.

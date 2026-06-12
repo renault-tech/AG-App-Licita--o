@@ -75,7 +75,7 @@ export default function EditorETP({ etp, processoId, papelUsuario, podeEditar = 
     const texto = formData[campo]
     if (!texto || texto.length < 5) { toast.warning('Texto muito curto para a IA.'); return }
     setIaLoading(campo)
-    const res = await aprimorarETPComIA(texto, campo)
+    const res = await aprimorarETPComIA(texto, campo, processoId)
     if (res.success) {
       setFormData(prev => ({ ...prev, [campo]: res.texto }))
       setIaEditado(prev => new Set(prev).add(campo))

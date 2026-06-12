@@ -68,19 +68,50 @@ export async function atualizarMapaRiscos(mapaId: string, riscos: RiscoItem[]) {
   return { success: true as const }
 }
 
-export async function sugerirRiscosIA(objeto: string) {
+export async function sugerirRiscosIA(objeto: string, processoId?: string) {
   if (!objeto) return { success: false as const, error: 'Objeto vazio.' }
 
-  const prompt = `Você é um pregoeiro/especialista em licitações públicas (Lei 14.133/21).
-Gere de 3 a 5 riscos inerentes à seguinte contratação/aquisição: "${objeto}".
-Para cada risco, defina a probabilidade (Baixa, Média, Alta), o impacto (Baixo, Médio, Alto) e a mitigação.
-Retorne EXCLUSIVAMENTE um array JSON com objetos. Sem formatação markdown (\`\`\`json), apenas o array puro.
+  // Enriquecer o prompt com dados reais do processo quando disponiveis
+  let contextoProcesso = ''
+  if (processoId) {
+    const supabase = await createClient()
+    const { data: procRaw } = await supabase
+      .from('processos_licitatorios')
+      .select('modalidade, valor_estimado, prazo_dias')
+      .eq('id', processoId)
+      .maybeSingle()
+    const proc = procRaw as { modalidade: string | null; valor_estimado: number | null; prazo_dias: number | null } | null
+    if (proc) {
+      contextoProcesso = `
+<contexto_processo>
+  ${proc.modalidade ? `<modalidade>${proc.modalidade}</modalidade>` : ''}
+  ${proc.valor_estimado ? `<valor_estimado>R$ ${proc.valor_estimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</valor_estimado>` : ''}
+  ${proc.prazo_dias ? `<prazo>${proc.prazo_dias} dias</prazo>` : ''}
+</contexto_processo>`
+    }
+  }
+
+  const prompt = `<instrucoes>
+Voce e um especialista em gestao de riscos de contratacoes publicas (Lei 14.133/21).
+Elabore a matriz de riscos da contratacao conforme o Art. 22 da Lei 14.133/21, que exige a identificacao dos riscos que possam comprometer a licitacao ou a execucao contratual, com tratamento e alocacao adequados.
+Considere riscos das tres fases: planejamento da contratacao, selecao do fornecedor e execucao contratual (incluindo riscos de mercado, de inexecucao, de variacao de precos e operacionais).
+Pondere probabilidade e impacto de forma consistente com a modalidade e o valor informados, quando disponiveis.
+</instrucoes>
+
+<objeto_contratacao>${objeto}</objeto_contratacao>
+${contextoProcesso}
+
+<formato_saida>
+Gere de 4 a 6 riscos. Retorne EXCLUSIVAMENTE um array JSON com objetos, sem formatacao markdown (sem \`\`\`json), apenas o array puro.
+A mitigacao deve ser uma acao concreta e atribuivel (quem faz o que), nao uma frase generica.
 Formato exato de cada objeto:
-{"id": "uuid_unico", "identificacao": "descrição do risco", "probabilidade": "Média", "impacto": "Alto", "mitigacao": "ação de contingência/prevenção"}`
+{"id": "uuid_unico", "identificacao": "descricao objetiva do risco", "probabilidade": "Baixa|Média|Alta", "impacto": "Baixo|Médio|Alto", "mitigacao": "acao concreta de prevencao ou contingencia"}
+</formato_saida>`
 
   const resultado = await executarIAComCreditos({
     prompt,
     tipoAcao: 'sugerir_conteudo',
+    processoId,
     temperature: 0.2,
   })
 

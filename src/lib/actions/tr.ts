@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { executarIAComCreditos } from '@/lib/ai/wrapper'
+import { buildPromptMelhorarCampo } from '@/lib/ai/prompts/melhorar-campo'
 import { registrarAuditoria } from '@/lib/audit/log'
 import type { ProcessoLicitatorioRow, TermoReferenciaRow } from '@/types/database'
 
@@ -82,16 +83,34 @@ export async function atualizarTR(trId: string, dados: Partial<TermoReferenciaRo
   return { success: true as const }
 }
 
-export async function aprimorarTRComIA(textoOriginal: string, campo: string) {
+export async function aprimorarTRComIA(textoOriginal: string, campo: string, processoId?: string) {
   if (!textoOriginal) return { success: false as const, error: 'Texto vazio.' }
 
-  const prompt = `Você é um especialista em licitações públicas (Lei 14.133/21).
-Aprimore o texto abaixo para um Termo de Referência (TR).
-Seção do TR: ${campo}
-Texto original: "${textoOriginal}"
+  let dadosProcesso: { objeto?: string; modalidade?: string; valorEstimado?: number } | undefined
+  if (processoId) {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('processos_licitatorios')
+      .select('objeto, modalidade, valor_estimado')
+      .eq('id', processoId)
+      .maybeSingle()
+    const proc = data as { objeto: string; modalidade: string; valor_estimado: number | null } | null
+    if (proc) {
+      dadosProcesso = {
+        objeto: proc.objeto,
+        modalidade: proc.modalidade,
+        valorEstimado: proc.valor_estimado ?? undefined,
+      }
+    }
+  }
 
-Retorne APENAS o texto aprimorado final, redigido de forma clara, técnica, objetiva e formal (linguagem governamental).
-Sem introduções, sem aspas, focado puramente no conteúdo.`
+  const prompt = buildPromptMelhorarCampo({
+    nomeCampo: campo,
+    documentoContexto: 'Termo de Referencia (TR)',
+    artigo: 'Art. 6, XXIII da Lei 14.133/21',
+    textoAtual: textoOriginal,
+    dadosProcesso,
+  })
 
-  return executarIAComCreditos({ prompt, tipoAcao: 'aprimorar_texto', temperature: 0.2 })
+  return executarIAComCreditos({ prompt, tipoAcao: 'aprimorar_texto', processoId, temperature: 0.2 })
 }

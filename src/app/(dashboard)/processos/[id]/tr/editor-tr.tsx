@@ -81,7 +81,7 @@ export default function EditorTR({ tr, processoId, papelUsuario, podeEditar = tr
     const texto = formData[campo]
     if (!texto || texto.length < 5) { toast.warning('Texto muito curto para a IA.'); return }
     setIaLoading(campo)
-    const res = await aprimorarTRComIA(texto, campo)
+    const res = await aprimorarTRComIA(texto, campo, processoId)
     if (res.success) {
       setFormData(prev => ({ ...prev, [campo]: res.texto }))
       setIaEditado(prev => new Set(prev).add(campo))

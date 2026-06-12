@@ -69,7 +69,7 @@ export async function obterOficio(processoId: string): Promise<OficioData | null
       numero_oficio:      numeroOficio,
       destinatario_nome:  '',
       destinatario_cargo: 'Procurador(a) Municipal',
-      assunto:            `Abertura de Processo Licitatório — ${processo.objeto}`,
+      assunto:            `Abertura de Processo Licitatório: ${processo.objeto}`,
       corpo:              '',
       emitente_nome:      usuario?.nome_completo ?? '',
       emitente_cargo:     usuario?.cargo ?? '',

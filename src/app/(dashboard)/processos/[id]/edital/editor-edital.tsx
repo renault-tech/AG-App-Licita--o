@@ -2,12 +2,12 @@
 
 import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
-import { Loader2, Save, Wand2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Loader2, Save, Wand2, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { atualizarEdital, revisarEditalComIA } from '@/lib/actions/edital'
+import { atualizarEdital, revisarEditalComIA, gerarEditalIA } from '@/lib/actions/edital'
 import { useAutoSave } from '@/hooks/use-auto-save'
 import { AutoSaveIndicator } from '@/components/licita/auto-save-indicator'
 import BotaoTramitacao from '@/components/documentos/botao-tramitacao'
@@ -24,6 +24,7 @@ export default function EditorEdital({ edital, processoId, papelUsuario, podeEdi
   const [salvando, setSalvando]         = useState(false)
   const [iaLoadingId, setIaLoadingId]   = useState<string | null>(null)
   const [iaEditados, setIaEditados]     = useState<Set<string>>(new Set())
+  const [gerandoTudo, setGerandoTudo]   = useState(false)
 
   const autoSalvarEdital = useCallback(async () => {
     if (!podeEditar || edital.status === 'assinado') return
@@ -46,6 +47,19 @@ export default function EditorEdital({ edital, processoId, papelUsuario, podeEdi
     setSalvando(false)
   }
 
+  async function handleGerarTudoIA() {
+    setGerandoTudo(true)
+    const res = await gerarEditalIA(processoId)
+    if (res.success) {
+      setSecoes(res.secoes)
+      setIaEditados(new Set(res.secoes.map(s => s.id)))
+      toast.success(`Minuta gerada com ${res.secoes.length} cláusulas. Revise antes de tramitar.`)
+    } else {
+      toast.error(res.error)
+    }
+    setGerandoTudo(false)
+  }
+
   async function handleRevisarIA(id: string) {
     const secao = secoes.find(s => s.id === id)
     if (!secao || secao.texto.length < 5) { toast.warning('Texto muito curto.'); return }
@@ -63,13 +77,27 @@ export default function EditorEdital({ edital, processoId, papelUsuario, podeEdi
 
   return (
     <Card className="border-gray-200 shadow-sm">
-      <CardHeader className="border-b border-gray-100 pb-4">
-        <CardTitle className="text-base font-semibold text-gray-800">
-          Cláusulas e Seções do Edital
-        </CardTitle>
-        <p className="text-xs text-gray-500 mt-0.5">
-          {secoes.length} seção(oes) — clique em "Revisão Jurídica" para cada cláusula.
-        </p>
+      <CardHeader className="border-b border-gray-100 pb-4 flex flex-row items-start justify-between gap-3">
+        <div>
+          <CardTitle className="text-base font-semibold text-gray-800">
+            Cláusulas e Seções do Edital
+          </CardTitle>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {secoes.length} seção(ões). Use "Revisão Jurídica" por cláusula ou gere a minuta completa a partir do TR.
+          </p>
+        </div>
+        {podeEditar && edital.status !== 'assinado' && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleGerarTudoIA}
+            disabled={gerandoTudo}
+            className="h-8 text-xs gap-1.5 shrink-0 text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100"
+          >
+            {gerandoTudo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+            Gerar minuta com IA
+          </Button>
+        )}
       </CardHeader>
 
       <CardContent className="p-5 space-y-4">
