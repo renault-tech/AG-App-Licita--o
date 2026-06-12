@@ -31,7 +31,7 @@ export async function criarSessaoStripe(pacoteId: PacoteId): Promise<{ url: stri
       body: new URLSearchParams({
         'payment_method_types[]':        'card',
         'line_items[0][price_data][currency]':                 'brl',
-        'line_items[0][price_data][product_data][name]':      `LicitaIA — ${pacote.creditos} Créditos`,
+        'line_items[0][price_data][product_data][name]':      `LicitaIA: ${pacote.creditos} Créditos`,
         'line_items[0][price_data][product_data][description]': `Pacote de ${pacote.creditos} créditos para uso de IA`,
         'line_items[0][price_data][unit_amount]':              String(pacote.preco_brl),
         'line_items[0][quantity]':                             '1',
@@ -84,7 +84,7 @@ export async function criarPreferenciaMercadoPago(pacoteId: PacoteId): Promise<{
       body: JSON.stringify({
         items: [{
           id:          pacoteId,
-          title:       `LicitaIA — ${pacote.creditos} Créditos`,
+          title:       `LicitaIA: ${pacote.creditos} Créditos`,
           description: `Pacote de ${pacote.creditos} créditos para uso de IA na plataforma LicitaIA`,
           quantity:    1,
           unit_price:  pacote.preco_brl / 100,

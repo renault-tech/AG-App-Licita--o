@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     usuarioId,
     creditos,
     referenciaExterna: sessionId,
-    descricao:         `Compra Stripe — Pacote ${creditos} créditos`,
+    descricao:         `Compra Stripe: Pacote ${creditos} créditos`,
     provedor:          'stripe',
   })
 

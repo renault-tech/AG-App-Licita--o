@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     usuario_id: usuario.id,
     organizacao_id: usuario.organizacao_id,
     tipo_acao: 'aprimorar_texto',
-    modelo: process.env.AI_PROVIDER ?? 'gemini',
+    modelo: process.env.AI_PROVIDER ?? 'desconhecido',
     input_resumo: ctx.textoAtual.slice(0, 200),
     output_resumo: textoGerado.slice(0, 200),
     tokens_input: tokensIn || Math.ceil(prompt.length / 4),

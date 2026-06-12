@@ -650,6 +650,18 @@ export interface Database {
         Update: Partial<Omit<PermissaoPapelRow, 'id'>>
         Relationships: NoRelationships
       }
+      solicitacoes_compra: {
+        Row: SolicitacaoCompraRow
+        Insert: Omit<SolicitacaoCompraRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<SolicitacaoCompraRow, 'id' | 'created_at'>>
+        Relationships: NoRelationships
+      }
+      solicitacoes_itens: {
+        Row: SolicitacaoItemRow
+        Insert: Omit<SolicitacaoItemRow, 'id' | 'created_at'>
+        Update: Partial<Omit<SolicitacaoItemRow, 'id' | 'created_at'>>
+        Relationships: NoRelationships
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -778,4 +790,42 @@ export interface UsuarioListagemRow {
   nome_completo: string
   papel: PapelUsuario
   cargo: string | null
+}
+
+export type StatusSolicitacao = 'rascunho' | 'enviada' | 'em_analise' | 'aprovada' | 'recusada' | 'convertida'
+export type PrioridadeSolicitacao = 'baixa' | 'media' | 'alta' | 'urgente'
+
+export interface SolicitacaoCompraRow {
+  id: string
+  created_at: string
+  updated_at: string
+  organizacao_id: string
+  secretaria_id: string | null
+  usuario_id: string
+  status: StatusSolicitacao
+  prioridade: PrioridadeSolicitacao
+  objeto: string
+  justificativa: string | null
+  data_necessidade: string | null
+  motivo_recusa: string | null
+  recusado_por: string | null
+  recusado_em: string | null
+  processo_id: string | null
+  convertido_por: string | null
+  convertido_em: string | null
+}
+
+export interface SolicitacaoItemRow {
+  id: string
+  created_at: string
+  solicitacao_id: string
+  numero_item: number
+  catmat_codigo: string | null
+  catmat_pdm_codigo: string | null
+  catmat_descricao: string | null
+  catmat_unidade: string | null
+  especificacao_complementar: string | null
+  quantidade: number
+  unidade_medida: string
+  valor_estimado_unitario: number | null
 }

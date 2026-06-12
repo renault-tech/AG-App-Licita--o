@@ -237,8 +237,8 @@ export default function NovaPrefeituraPage() {
         </div>
         <CardDescription>
           {passo === 1
-            ? 'Busque sua cidade para comecar'
-            : `${municipio?.nome} — ${municipio?.siglaEstado}`}
+            ? 'Busque sua cidade para começar'
+            : `${municipio?.nome}, ${municipio?.siglaEstado}`}
         </CardDescription>
       </CardHeader>
 

@@ -43,12 +43,12 @@ export default function EtapaObjeto({ dados, onChange }: Props) {
       <div className="space-y-2">
         <div className="flex items-center gap-1.5">
           <Label className="text-sm font-medium">O que sera contratado? <span className="text-red-500">*</span></Label>
-          <Tooltip texto='Descreva o objeto de forma clara e objetiva. Ex: "Aquisicao de computadores desktop para as escolas municipais". O sistema complementa os detalhes.' />
+          <Tooltip texto='Descreva o objeto de forma clara e objetiva. Ex: "Aquisição de computadores desktop para as escolas municipais". O sistema complementa os detalhes.' />
         </div>
         <Textarea
           value={dados.objeto}
           onChange={e => onChange('objeto', e.target.value)}
-          placeholder='Ex: Aquisicao de equipamentos de informatica para a rede municipal de ensino'
+          placeholder='Ex: Aquisição de equipamentos de informática para a rede municipal de ensino'
           rows={2}
           className="text-sm resize-none"
         />
@@ -58,7 +58,7 @@ export default function EtapaObjeto({ dados, onChange }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Label className="text-sm font-medium">Itens do objeto</Label>
-            <Tooltip texto="Liste os itens especificos. Ex: 20 computadores, 5 impressoras. Isso alimenta a descricao formal dos documentos." />
+            <Tooltip texto="Liste os itens específicos. Ex: 20 computadores, 5 impressoras. Isso alimenta a descrição formal dos documentos." />
           </div>
           <button type="button" onClick={adicionarItem} className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium">
             <Plus className="w-3.5 h-3.5" /> Adicionar item
@@ -72,7 +72,7 @@ export default function EtapaObjeto({ dados, onChange }: Props) {
             <Input
               value={item.descricao}
               onChange={e => atualizarItem(item.id, 'descricao', e.target.value)}
-              placeholder="Descricao do item"
+              placeholder="Descrição do item"
               className="flex-1 text-sm h-8"
             />
             <Input
@@ -97,14 +97,14 @@ export default function EtapaObjeto({ dados, onChange }: Props) {
 
       <div className="space-y-3">
         <div className="flex items-center gap-1.5">
-          <Label className="text-sm font-medium">Por que esta contratacao e necessaria? <span className="text-red-500">*</span></Label>
+          <Label className="text-sm font-medium">Por que esta contratação é necessária? <span className="text-red-500">*</span></Label>
           <Tooltip texto="Responda as 3 perguntas abaixo de forma objetiva. O sistema monta a justificativa formal completa para o DFD e ETP." />
         </div>
         <div className="border border-gray-200 rounded-xl divide-y divide-gray-100 overflow-hidden">
           {[
-            { campo: 'problema_atual' as const, label: 'Qual e o problema ou situacao atual?', placeholder: 'Ex: Os computadores atuais tem mais de 8 anos e nao suportam os sistemas educacionais modernos' },
-            { campo: 'impacto_sem_contratar' as const, label: 'O que acontece se nao contratar?', placeholder: 'Ex: Interrupcao das atividades pedagogicas que dependem de tecnologia, prejudicando o aprendizado' },
-            { campo: 'solucao_proposta' as const, label: 'Qual a solucao proposta?', placeholder: 'Ex: Substituicao dos equipamentos por modelos modernos com capacidade para os softwares educacionais exigidos pelo MEC' },
+            { campo: 'problema_atual' as const, label: 'Qual é o problema ou situação atual?', placeholder: 'Ex: Os computadores atuais têm mais de 8 anos e não suportam os sistemas educacionais modernos' },
+            { campo: 'impacto_sem_contratar' as const, label: 'O que acontece se não contratar?', placeholder: 'Ex: Interrupção das atividades pedagógicas que dependem de tecnologia, prejudicando o aprendizado' },
+            { campo: 'solucao_proposta' as const, label: 'Qual a solução proposta?', placeholder: 'Ex: Substituição dos equipamentos por modelos modernos com capacidade para os softwares educacionais exigidos pelo MEC' },
           ].map(({ campo, label, placeholder }) => (
             <div key={campo} className="p-3 space-y-1.5">
               <Label className="text-xs font-medium text-gray-600">{label}</Label>

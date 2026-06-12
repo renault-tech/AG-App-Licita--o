@@ -119,7 +119,7 @@ export async function DashboardAdminOrg({ userId, orgId, orgNome, cargo, nome }:
             }}
           >
             <ProcessosListSection
-              title={`Uso de IA — ultimos ${diasIa} dias`}
+              title={`Uso de IA, últimos ${diasIa} dias`}
               rightLabel="Por usuario"
             >
               {usuariosComConsumo.slice(0, 10).map((u: any) => (

@@ -20,8 +20,7 @@ type Secretaria = { id: string; nome: string; sigla: string | null }
 
 type ItemLocal = ItemSolicitacaoInput & {
   _id: string
-  descricaoBusca: string
-  catmat_descricao?: string
+  catmat_descricao: string
   catmat_codigo?: string
   catmat_pdm_codigo?: string
   catmat_unidade?: string
@@ -29,7 +28,7 @@ type ItemLocal = ItemSolicitacaoInput & {
 
 const PRIORIDADES = [
   { value: 'baixa', label: 'Baixa' },
-  { value: 'media', label: 'Media' },
+  { value: 'media', label: 'Média' },
   { value: 'alta', label: 'Alta' },
   { value: 'urgente', label: 'Urgente' },
 ] as const
@@ -53,22 +52,18 @@ export default function NovaSolicitacaoPage() {
     listarSecretarias().then(setSecretarias)
   }, [])
 
-  function novoItemLocal(numero: number): ItemLocal {
+  function novoItem(numero: number): ItemLocal {
     return {
       _id: crypto.randomUUID(),
       numero_item: numero,
-      descricaoBusca: '',
+      catmat_descricao: '',
       quantidade: 1,
       unidade_medida: 'un',
     }
   }
 
-  function novoItem(numero: number): ItemLocal {
-    return novoItemLocal(numero)
-  }
-
   function addItem() {
-    setItens(prev => [...prev, novoItemLocal(prev.length + 1)])
+    setItens(prev => [...prev, novoItem(prev.length + 1)])
   }
 
   function removeItem(id: string) {
@@ -84,9 +79,8 @@ export default function NovaSolicitacaoPage() {
 
   function handleSelectCatmat(id: string, item: ItemCatmat) {
     updateItem(id, {
-      descricaoBusca: item.descricao,
-      catmat_codigo: item.codigo,
       catmat_descricao: item.descricao,
+      catmat_codigo: item.codigo,
       catmat_unidade: item.unidade,
       catmat_pdm_codigo: item.tipo === 'material' ? item.pdmCodigo : undefined,
       unidade_medida: item.unidade,
@@ -94,11 +88,11 @@ export default function NovaSolicitacaoPage() {
   }
 
   function validar(): string | null {
-    if (!objeto.trim()) return 'Descreva o objeto da solicitacao.'
+    if (!objeto.trim()) return 'Descreva o objeto da solicitação.'
     if (itens.length === 0) return 'Adicione ao menos um item.'
     for (const it of itens) {
-      if (!it.descricaoBusca.trim()) return `Preencha a descricao do item ${it.numero_item}.`
-      if (it.quantidade <= 0) return `Quantidade invalida no item ${it.numero_item}.`
+      if (!it.catmat_descricao?.trim()) return `Preencha a descrição do item ${it.numero_item}.`
+      if (it.quantidade <= 0) return `Quantidade inválida no item ${it.numero_item}.`
     }
     return null
   }
@@ -114,7 +108,7 @@ export default function NovaSolicitacaoPage() {
         numero_item: it.numero_item,
         catmat_codigo: it.catmat_codigo,
         catmat_pdm_codigo: it.catmat_pdm_codigo,
-        catmat_descricao: it.catmat_descricao,
+        catmat_descricao: it.catmat_descricao || '',
         catmat_unidade: it.catmat_unidade,
         especificacao_complementar: it.especificacao_complementar,
         quantidade: it.quantidade,
@@ -151,7 +145,7 @@ export default function NovaSolicitacaoPage() {
       const res = await enviarSolicitacao(salvo.id)
       setEnviando(false)
       if (!res.success) { toast.error(res.error ?? 'Erro ao enviar.'); return }
-      toast.success('Solicitacao enviada ao setor de compras.')
+      toast.success('Solicitação enviada ao setor de compras.')
       router.push('/solicitacoes')
     })
   }
@@ -166,9 +160,9 @@ export default function NovaSolicitacaoPage() {
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
-          <h1 className="text-lg font-bold text-gray-900">Nova Solicitacao de Compra</h1>
+          <h1 className="text-lg font-bold text-gray-900">Nova Solicitação de Compra</h1>
           <p className="text-sm text-gray-500">
-            Descreva o que precisa ser adquirido. O setor de compras analisara e iniciara o processo licitatorio.
+            Descreva o que precisa ser adquirido. O setor de compras analisará e iniciará o processo licitatório.
           </p>
         </div>
       </div>
@@ -196,12 +190,12 @@ export default function NovaSolicitacaoPage() {
           {/* Objeto */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">
-              Objeto da Solicitacao <span className="text-red-500">*</span>
+              Objeto da Solicitação <span className="text-red-500">*</span>
             </Label>
             <Input
               value={objeto}
               onChange={e => setObjeto(e.target.value)}
-              placeholder="Ex: Aquisicao de computadores para o setor administrativo"
+              placeholder="Ex: Aquisição de computadores para o setor administrativo"
             />
           </div>
 
@@ -211,7 +205,7 @@ export default function NovaSolicitacaoPage() {
             <textarea
               value={justificativa}
               onChange={e => setJustificativa(e.target.value)}
-              placeholder="Descreva por que esta aquisicao e necessaria..."
+              placeholder="Descreva por que esta aquisição é necessária..."
               rows={3}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
             />
@@ -249,7 +243,7 @@ export default function NovaSolicitacaoPage() {
               Itens Solicitados <span className="text-red-500">*</span>
             </Label>
             <p className="text-xs text-gray-500">
-              Busque no catalogo CATMAT/CATSER federal para uniformizar a descricao dos itens.
+              Busque no catálogo CATMAT/CATSER federal para uniformizar a descrição dos itens.
             </p>
 
             <div className="space-y-4">
@@ -273,12 +267,12 @@ export default function NovaSolicitacaoPage() {
 
                   {/* Busca CATMAT */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-gray-600">Descricao do Item (CATMAT/CATSER)</Label>
+                    <Label className="text-xs text-gray-600">Descrição do Item (CATMAT/CATSER)</Label>
                     <ItemCatmatSearch
-                      value={item.descricaoBusca}
-                      onChange={val => updateItem(item._id, { descricaoBusca: val, catmat_descricao: val })}
+                      value={item.catmat_descricao}
+                      onChange={val => updateItem(item._id, { catmat_descricao: val })}
                       onSelectItem={catmat => handleSelectCatmat(item._id, catmat)}
-                      placeholder="Buscar no catalogo federal..."
+                      placeholder="Buscar no catálogo federal..."
                     />
                     {item.catmat_codigo && (
                       <p className="text-xs text-blue-600">
@@ -290,11 +284,11 @@ export default function NovaSolicitacaoPage() {
 
                   {/* Especificacao complementar */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-gray-600">Especificacao Complementar</Label>
+                    <Label className="text-xs text-gray-600">Especificação Complementar</Label>
                     <Input
                       value={item.especificacao_complementar ?? ''}
                       onChange={e => updateItem(item._id, { especificacao_complementar: e.target.value })}
-                      placeholder="Ex: Tela 15.6 polegadas, processador Intel Core i5..."
+                      placeholder="Ex: Tela 15,6 polegadas, processador Intel Core i5..."
                       className="text-sm"
                     />
                   </div>

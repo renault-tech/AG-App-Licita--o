@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
     usuarioId,
     creditos,
     referenciaExterna: `mp_${paymentId}`,
-    descricao:         `Compra Mercado Pago — Pacote ${creditos} créditos`,
+    descricao:         `Compra Mercado Pago: Pacote ${creditos} créditos`,
     provedor:          'mercadopago',
   })
 

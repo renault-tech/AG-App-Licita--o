@@ -16,7 +16,7 @@ import type { SolicitacaoResumo } from '@/lib/actions/solicitacoes'
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ReactNode }> = {
   rascunho:   { label: 'Rascunho',     variant: 'outline',     icon: <Clock className="w-3 h-3" /> },
   enviada:    { label: 'Enviada',      variant: 'secondary',   icon: <ArrowRightCircle className="w-3 h-3" /> },
-  em_analise: { label: 'Em Analise',   variant: 'default',     icon: <Loader2 className="w-3 h-3" /> },
+  em_analise: { label: 'Em Análise',   variant: 'default',     icon: <Loader2 className="w-3 h-3" /> },
   aprovada:   { label: 'Aprovada',     variant: 'default',     icon: <CheckCircle2 className="w-3 h-3" /> },
   recusada:   { label: 'Recusada',     variant: 'destructive', icon: <XCircle className="w-3 h-3" /> },
   convertida: { label: 'Em Processo',  variant: 'default',     icon: <CheckCircle2 className="w-3 h-3" /> },
@@ -24,7 +24,7 @@ const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secon
 
 const PRIORIDADE_CONFIG: Record<string, { label: string; className: string }> = {
   baixa:   { label: 'Baixa',   className: 'text-gray-500 bg-gray-100' },
-  media:   { label: 'Media',   className: 'text-blue-600 bg-blue-50' },
+  media:   { label: 'Média',   className: 'text-blue-600 bg-blue-50' },
   alta:    { label: 'Alta',    className: 'text-orange-600 bg-orange-50' },
   urgente: { label: 'Urgente', className: 'text-red-600 bg-red-50' },
 }
@@ -42,9 +42,9 @@ function ModalRecusa({ solicitacaoId, objeto, onClose, onConfirm, carregando }: 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4 space-y-4">
-        <h2 className="text-base font-semibold text-gray-900">Recusar Solicitacao</h2>
+        <h2 className="text-base font-semibold text-gray-900">Recusar Solicitação</h2>
         <p className="text-sm text-gray-600">
-          Voce esta recusando: <strong>{objeto}</strong>
+          Você está recusando: <strong>{objeto}</strong>
         </p>
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700">Motivo da recusa <span className="text-red-500">*</span></label>
@@ -89,7 +89,7 @@ export function ListaSolicitacoes({ solicitacoes, isGestao }: Props) {
       const res = await aprovarSolicitacao(id)
       setCarregando(null)
       if (!res.success) { toast.error(res.error ?? 'Erro ao aprovar.'); return }
-      toast.success('Solicitacao aprovada. Abrindo wizard...')
+      toast.success('Solicitação aprovada. Abrindo processo...')
       router.push(res.redirectUrl!)
     })
   }
@@ -101,7 +101,7 @@ export function ListaSolicitacoes({ solicitacoes, isGestao }: Props) {
       setCarregando(null)
       setRecusandoId(null)
       if (!res.success) { toast.error(res.error ?? 'Erro ao recusar.'); return }
-      toast.success('Solicitacao recusada.')
+      toast.success('Solicitação recusada.')
       router.refresh()
     })
   }
@@ -113,11 +113,11 @@ export function ListaSolicitacoes({ solicitacoes, isGestao }: Props) {
           <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
             <Clock className="w-5 h-5 text-gray-400" />
           </div>
-          <p className="text-sm font-medium text-gray-600">Nenhuma solicitacao encontrada</p>
+          <p className="text-sm font-medium text-gray-600">Nenhuma solicitação encontrada</p>
           <p className="text-xs text-gray-400">
             {isGestao
-              ? 'As solicitacoes enviadas pelas secretarias apareceram aqui.'
-              : 'Crie uma nova solicitacao para iniciar o processo de compra.'}
+              ? 'As solicitações enviadas pelas secretarias aparecerão aqui.'
+              : 'Crie uma nova solicitação para iniciar o processo de compra.'}
           </p>
         </CardContent>
       </Card>

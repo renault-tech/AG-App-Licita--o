@@ -139,7 +139,7 @@ export default function EditorOficio({
           <Input
             value={assunto}
             onChange={e => setAssunto(e.target.value)}
-            placeholder="Abertura de Processo Licitatório — objeto..."
+            placeholder="Abertura de Processo Licitatório, objeto..."
             disabled={readonly}
           />
         </div>
