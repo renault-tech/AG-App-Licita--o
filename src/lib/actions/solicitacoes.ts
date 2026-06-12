@@ -57,14 +57,15 @@ async function notificarSetorCompras(
   mensagem: string,
   link: string
 ) {
-  const { data: gestores } = await supabase
+  const { data: gestoresRaw } = await supabase
     .from('usuarios')
     .select('id')
     .eq('organizacao_id', organizacaoId)
     .in('papel', ['setor_compras', 'setor_licitacao', 'admin_organizacao'])
     .eq('ativo', true)
 
-  if (!gestores?.length) return
+  const gestores = (gestoresRaw ?? []) as Array<{ id: string }>
+  if (!gestores.length) return
 
   const notifs = gestores.map((u) => ({
     usuario_id: u.id,
