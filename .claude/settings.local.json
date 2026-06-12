@@ -33,7 +33,9 @@
       "Bash(C:\\\\Users\\\\danre\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.1.0\\\\scripts\\\\start-server.sh --project-dir \"D:\\\\Documentos\\\\Projetos IA\\\\Licita AI\\\\AG-App-Licita--o\")",
       "mcp__903ea701-e33a-4e3d-a685-ad369731f7d8__execute_sql",
       "Bash(npx shadcn@latest add popover --yes)",
-      "Bash(supabase --version)"
+      "Bash(supabase --version)",
+      "mcp__9353fa7b-3048-401e-b36d-d03d5f10e63a__list_projects",
+      "mcp__9353fa7b-3048-401e-b36d-d03d5f10e63a__list_deployments"
     ]
   }
 }
