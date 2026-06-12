@@ -145,7 +145,7 @@ export function ListaSolicitacoes({ solicitacoes, isGestao }: Props) {
           const podeProceder = isGestao && (sol.status === 'enviada' || sol.status === 'em_analise')
 
           return (
-            <Card key={sol.id} className="border-gray-200 shadow-sm hover:border-gray-300 transition-colors">
+            <Card key={sol.id} className="lift border-[var(--hairline)] cursor-default">
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
                   <div className="flex-1 min-w-0 space-y-1.5">
@@ -197,7 +197,8 @@ export function ListaSolicitacoes({ solicitacoes, isGestao }: Props) {
                           size="sm"
                           onClick={() => handleAprovar(sol.id)}
                           disabled={carregando === sol.id}
-                          className="bg-[#1A365D] hover:bg-[#1A365D]/90 text-white text-xs h-8 gap-1"
+                          className="text-xs h-8 gap-1 hover:brightness-110 transition-all"
+                          style={{ background: 'var(--primary)', color: 'var(--primaryInk)' }}
                         >
                           {carregando === sol.id
                             ? <Loader2 className="w-3.5 h-3.5 animate-spin" />

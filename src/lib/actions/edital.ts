@@ -135,7 +135,7 @@ export async function gerarEditalIA(
   const [procRes, trRes, riscosRes] = await Promise.all([
     supabase
       .from('processos_licitatorios')
-      .select('objeto, modalidade, valor_estimado, prazo_dias')
+      .select('objeto, modalidade, valor_estimado')
       .eq('id', processoId)
       .single(),
     (supabase as any)
@@ -150,7 +150,7 @@ export async function gerarEditalIA(
       .maybeSingle(),
   ])
 
-  const proc = procRes.data as Pick<ProcessoLicitatorioRow, 'objeto' | 'modalidade' | 'valor_estimado' | 'prazo_dias'> | null
+  const proc = procRes.data as Pick<ProcessoLicitatorioRow, 'objeto' | 'modalidade' | 'valor_estimado'> | null
   if (!proc) return { success: false, error: 'Processo não encontrado.' }
 
   const tr = trRes.data as {
@@ -181,7 +181,6 @@ Adapte as regras procedimentais a modalidade (Arts. 28 a 32): pregao exige inver
   <objeto>${proc.objeto}</objeto>
   <modalidade>${proc.modalidade}</modalidade>
   ${proc.valor_estimado ? `<valor_estimado>R$ ${proc.valor_estimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</valor_estimado>` : ''}
-  ${proc.prazo_dias ? `<prazo_execucao>${proc.prazo_dias} dias</prazo_execucao>` : ''}
 </dados_processo>
 
 ${tr ? `<termo_referencia>

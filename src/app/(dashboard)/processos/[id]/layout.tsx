@@ -169,13 +169,13 @@ export default async function ProcessoLayout({
         <div
           className="mb-4 px-4 py-3 rounded-[var(--r-md)] border flex items-start gap-3 text-sm"
           style={{
-            background: '#fefce8',
-            borderColor: '#fde047',
-            color: '#854d0e',
+            background: 'var(--warnWash)',
+            borderColor: 'var(--warn)',
+            color: 'var(--warn)',
           }}
           role="alert"
         >
-          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#ca8a04' }} />
+          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: 'var(--warn)' }} />
           <div>
             <span className="font-semibold">Atencao: voce esta acessando um processo de outra organizacao.</span>
             {' '}Qualquer edicao ou acao de IA neste documento sera registrada em auditoria com sua identidade. Proceda com cautela.
@@ -332,14 +332,14 @@ export default async function ProcessoLayout({
                   const circleStyle: React.CSSProperties =
                     isAtiva                                              ? { backgroundColor: 'var(--primary)',     borderColor: 'var(--primary)',    color: '#fff'           }
                     : dbStatus === 'assinado'                            ? { backgroundColor: 'var(--successWash)', borderColor: 'var(--success)',    color: 'var(--success)' }
-                    : dbStatus === 'devolvido'                           ? { backgroundColor: '#fef3c7',            borderColor: '#f59e0b',           color: '#b45309'        }
+                    : dbStatus === 'devolvido'                           ? { backgroundColor: 'var(--warnWash)',    borderColor: 'var(--warn)',       color: 'var(--warn)'    }
                     : dbStatus === 'rascunho' || dbStatus === 'em_revisao' ? { backgroundColor: 'var(--primaryWash)', borderColor: 'var(--primary)',    color: 'var(--primary)' }
                     :                                                       { backgroundColor: 'var(--surface)',     borderColor: 'var(--hairline)',   color: 'var(--muted)'   }
 
                   const labelColor =
                     isAtiva                                              ? 'var(--primary)'
                     : dbStatus === 'assinado'                            ? 'var(--success)'
-                    : dbStatus === 'devolvido'                           ? '#b45309'
+                    : dbStatus === 'devolvido'                           ? 'var(--warn)'
                     : dbStatus === 'rascunho' || dbStatus === 'em_revisao' ? 'var(--primary)'
                     :                                                       'var(--muted)'
 

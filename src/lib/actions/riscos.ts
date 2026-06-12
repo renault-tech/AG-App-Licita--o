@@ -77,16 +77,15 @@ export async function sugerirRiscosIA(objeto: string, processoId?: string) {
     const supabase = await createClient()
     const { data: procRaw } = await supabase
       .from('processos_licitatorios')
-      .select('modalidade, valor_estimado, prazo_dias')
+      .select('modalidade, valor_estimado')
       .eq('id', processoId)
       .maybeSingle()
-    const proc = procRaw as { modalidade: string | null; valor_estimado: number | null; prazo_dias: number | null } | null
+    const proc = procRaw as { modalidade: string | null; valor_estimado: number | null } | null
     if (proc) {
       contextoProcesso = `
 <contexto_processo>
   ${proc.modalidade ? `<modalidade>${proc.modalidade}</modalidade>` : ''}
   ${proc.valor_estimado ? `<valor_estimado>R$ ${proc.valor_estimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</valor_estimado>` : ''}
-  ${proc.prazo_dias ? `<prazo>${proc.prazo_dias} dias</prazo>` : ''}
 </contexto_processo>`
     }
   }

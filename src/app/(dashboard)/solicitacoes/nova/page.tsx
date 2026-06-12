@@ -160,8 +160,10 @@ export default function NovaSolicitacaoPage() {
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
-          <h1 className="text-lg font-bold text-gray-900">Nova Solicitação de Compra</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-lg font-bold" style={{ color: 'var(--ink)', fontFamily: 'var(--font-heading)' }}>
+            Nova Solicitação de Compra
+          </h1>
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>
             Descreva o que precisa ser adquirido. O setor de compras analisará e iniciará o processo licitatório.
           </p>
         </div>
@@ -350,7 +352,8 @@ export default function NovaSolicitacaoPage() {
           <Button
             onClick={handleEnviar}
             disabled={enviando || salvando}
-            className="gap-2 bg-[#1A365D] hover:bg-[#1A365D]/90 text-white"
+            className="gap-2 hover:brightness-110 transition-all shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
+            style={{ background: 'var(--primary)', color: 'var(--primaryInk)' }}
           >
             {enviando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             Enviar ao Setor de Compras

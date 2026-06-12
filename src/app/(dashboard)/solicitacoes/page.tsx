@@ -1,7 +1,10 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { PlusCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { listarSolicitacoes } from '@/lib/actions/solicitacoes'
 import { ListaSolicitacoes } from './lista-solicitacoes'
+import { EditorialKicker, HeadlineSerif } from '@/components/licita/editorial'
 
 export default async function SolicitacoesPage() {
   const supabase = await createClient()
@@ -23,23 +26,29 @@ export default async function SolicitacoesPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      <EditorialKicker
+        kicker="Solicitações de Compra"
+        date={new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replaceAll('/', '·')}
+      />
+      <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-lg font-bold text-gray-900">
-            {isGestao ? 'Solicitacoes de Compra' : 'Minhas Solicitacoes'}
-          </h1>
-          <p className="text-sm text-gray-500">
+          <HeadlineSerif size="md" as="h1">
+            {isGestao ? 'Solicitações de Compra' : 'Minhas Solicitações'}
+          </HeadlineSerif>
+          <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
             {isGestao
-              ? 'Gerencie as solicitacoes recebidas das secretarias.'
-              : 'Acompanhe o status das suas solicitacoes de compra.'}
+              ? 'Gerencie as solicitações recebidas das secretarias.'
+              : 'Acompanhe o status das suas solicitações de compra.'}
           </p>
         </div>
-        <a
+        <Link
           href="/solicitacoes/nova"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1A365D] text-white text-sm font-medium hover:bg-[#1A365D]/90 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-[var(--r-md)] text-sm font-semibold transition-all hover:brightness-110 shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
+          style={{ background: 'var(--primary)', color: 'var(--primaryInk)' }}
         >
-          Nova Solicitacao
-        </a>
+          <PlusCircle className="w-4 h-4" />
+          Nova Solicitação
+        </Link>
       </div>
 
       <ListaSolicitacoes solicitacoes={solicitacoes} isGestao={isGestao} />

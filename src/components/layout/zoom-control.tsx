@@ -81,14 +81,14 @@ export default function ZoomControl() {
 
   return (
     <div
-      className="fixed bottom-16 right-6 z-[55] flex items-center gap-0.5 rounded-full border border-[#E3E2E6] bg-white/95 backdrop-blur-md px-1.5 py-1 transition-all"
+      className="fixed bottom-16 right-6 z-[55] flex items-center gap-0.5 rounded-full border border-[var(--hairline)] bg-white/95 backdrop-blur-md px-1.5 py-1 transition-all"
       style={{ boxShadow: '0px 4px 16px rgba(26, 54, 93, 0.08)' }}
     >
       {/* Zoom out */}
       <button
         onClick={zoomOut}
         disabled={isMin}
-        className="flex items-center justify-center w-8 h-8 rounded-full text-[#43474E] hover:bg-[#F4F3F7] hover:text-[#1A365D] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className="flex items-center justify-center w-8 h-8 rounded-full text-[var(--inkSoft)] hover:bg-[var(--surfaceAlt)] hover:text-[var(--primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         title="Diminuir zoom (Ctrl + −)"
         aria-label="Diminuir zoom"
       >
@@ -100,8 +100,8 @@ export default function ZoomControl() {
         onClick={resetZoom}
         className={`flex items-center justify-center min-w-[52px] h-8 rounded-full text-xs font-semibold transition-colors ${
           isDefault
-            ? 'text-[#74777F] cursor-default'
-            : 'text-[#1A365D] hover:bg-[#1A365D]/5 cursor-pointer'
+            ? 'text-[var(--muted)] cursor-default'
+            : 'text-[var(--primary)] hover:bg-[var(--primary)]/5 cursor-pointer'
         }`}
         title={isDefault ? 'Zoom: 100%' : 'Restaurar zoom (Ctrl + 0)'}
         aria-label={`Zoom ${pct}%`}
@@ -114,7 +114,7 @@ export default function ZoomControl() {
       <button
         onClick={zoomIn}
         disabled={isMax}
-        className="flex items-center justify-center w-8 h-8 rounded-full text-[#43474E] hover:bg-[#F4F3F7] hover:text-[#1A365D] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className="flex items-center justify-center w-8 h-8 rounded-full text-[var(--inkSoft)] hover:bg-[var(--surfaceAlt)] hover:text-[var(--primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         title="Aumentar zoom (Ctrl + +)"
         aria-label="Aumentar zoom"
       >

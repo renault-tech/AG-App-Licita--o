@@ -30,18 +30,18 @@ interface BotaoTramitacaoProps {
 
 const STATUS_LABEL: Record<StatusDocumento, string> = {
   rascunho:   'Rascunho',
-  em_revisao: 'Em Revisao',
+  em_revisao: 'Em Revisão',
   assinado:   'Aprovado',
   publicado:  'Publicado',
   devolvido:  'Devolvido',
 }
 
 const STATUS_COR: Record<StatusDocumento, string> = {
-  rascunho:   'bg-gray-100 text-gray-600 border-gray-200',
-  em_revisao: 'bg-amber-50 text-amber-700 border-amber-200',
-  assinado:   'bg-green-50 text-green-700 border-green-200',
-  publicado:  'bg-blue-50 text-blue-700 border-blue-200',
-  devolvido:  'bg-red-50 text-red-700 border-red-200',
+  rascunho:   'bg-[var(--surfaceAlt)] text-[var(--muted)] border-[var(--hairline)]',
+  em_revisao: 'bg-[var(--warnWash)] text-[var(--warn)] border-[var(--warn)]/30',
+  assinado:   'bg-[var(--successWash)] text-[var(--success)] border-[var(--success)]/30',
+  publicado:  'bg-[var(--primaryWash)] text-[var(--primary)] border-[var(--primary)]/30',
+  devolvido:  'bg-[var(--dangerWash)] text-[var(--danger)] border-[var(--danger)]/30',
 }
 
 export default function BotaoTramitacao({

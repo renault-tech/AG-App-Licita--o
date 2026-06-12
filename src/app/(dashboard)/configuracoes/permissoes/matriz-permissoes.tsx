@@ -39,11 +39,11 @@ function Toggle({ ativo, onChange, disabled }: { ativo: boolean; onChange: () =>
       aria-checked={ativo}
       disabled={disabled}
       onClick={onChange}
-      className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A365D] focus-visible:ring-offset-2 ${
+      className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 ${
         disabled
           ? 'cursor-not-allowed opacity-40'
           : 'cursor-pointer'
-      } ${ativo ? 'bg-[#1A365D]' : 'bg-[#E3E2E6]'}`}
+      } ${ativo ? 'bg-[var(--primary)]' : 'bg-[var(--hairline)]'}`}
     >
       <span
         className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
@@ -120,7 +120,7 @@ export default function MatrizPermissoes({ initialData }: Props) {
 
       {/* Seletor de papel */}
       <div
-        className="bg-white border border-[#E3E2E6] rounded-xl p-1 flex gap-1"
+        className="bg-white border border-[var(--hairline)] rounded-xl p-1 flex gap-1"
         style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}
       >
         {PAPEIS_CONFIGURÁVEIS.map(({ papel, label, descricao }) => {
@@ -133,12 +133,12 @@ export default function MatrizPermissoes({ initialData }: Props) {
               onClick={() => { setPapelAtivo(papel); setFeedback(null) }}
               className={`flex-1 flex flex-col items-start px-3 py-2.5 rounded-lg text-left transition-all ${
                 isAtivo
-                  ? 'bg-[#1A365D] text-white'
-                  : 'text-[#43474E] hover:bg-[#F4F3F7]'
+                  ? 'bg-[var(--primary)] text-white'
+                  : 'text-[var(--inkSoft)] hover:bg-[var(--surfaceAlt)]'
               }`}
             >
               <div className="flex items-center gap-2 w-full">
-                <span className={`text-[13px] font-semibold ${isAtivo ? 'text-white' : 'text-[#1A365D]'}`}>
+                <span className={`text-[13px] font-semibold ${isAtivo ? 'text-white' : 'text-[var(--primary)]'}`}>
                   {label}
                 </span>
                 {isCustomizado && (
@@ -146,14 +146,14 @@ export default function MatrizPermissoes({ initialData }: Props) {
                     className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-auto ${
                       isAtivo
                         ? 'bg-white/20 text-white'
-                        : 'bg-[#B7935E]/10 text-[#B7935E]'
+                        : 'bg-[var(--accent)]/10 text-[var(--accent)]'
                     }`}
                   >
                     CUSTOM
                   </span>
                 )}
               </div>
-              <span className={`text-[11px] mt-0.5 hidden md:block ${isAtivo ? 'text-white/70' : 'text-[#74777F]'}`}>
+              <span className={`text-[11px] mt-0.5 hidden md:block ${isAtivo ? 'text-white/70' : 'text-[var(--muted)]'}`}>
                 {descricao}
               </span>
             </button>
@@ -163,24 +163,24 @@ export default function MatrizPermissoes({ initialData }: Props) {
 
       {/* Matriz de permissoes */}
       <div
-        className="bg-white border border-[#E3E2E6] rounded-xl overflow-hidden"
+        className="bg-white border border-[var(--hairline)] rounded-xl overflow-hidden"
         style={{ boxShadow: '0 1px 4px rgba(26,54,93,0.04)' }}
       >
         {/* Cabecalho da tabela */}
-        <div className="grid grid-cols-[1fr_auto_auto] gap-x-8 px-5 py-3 border-b border-[#F4F3F7] bg-[#F9F9FB]">
-          <span className="text-[11px] font-semibold text-[#74777F] uppercase tracking-wider">
+        <div className="grid grid-cols-[1fr_auto_auto] gap-x-8 px-5 py-3 border-b border-[var(--surfaceAlt)] bg-[var(--surfaceAlt)]">
+          <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
             Etapa do Processo
           </span>
-          <span className="text-[11px] font-semibold text-[#74777F] uppercase tracking-wider w-16 text-center">
+          <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider w-16 text-center">
             Visivel
           </span>
-          <span className="text-[11px] font-semibold text-[#74777F] uppercase tracking-wider w-16 text-center">
+          <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider w-16 text-center">
             Editavel
           </span>
         </div>
 
         {/* Linhas */}
-        <div className="divide-y divide-[#F4F3F7]">
+        <div className="divide-y divide-[var(--surfaceAlt)]">
           {TABS_PROCESSO.map((tab, idx) => {
             const perm = dadosPapel.permissoes.find(p => p.tab_slug === tab.slug) ?? {
               tab_slug: tab.slug, pode_ver: false, pode_editar: false,
@@ -190,12 +190,12 @@ export default function MatrizPermissoes({ initialData }: Props) {
               <div
                 key={tab.slug}
                 className={`grid grid-cols-[1fr_auto_auto] gap-x-8 px-5 py-3 items-center transition-colors ${
-                  isImpar ? 'bg-[#FAFAFA]' : 'bg-white'
-                } hover:bg-[#F4F3F7]/60`}
+                  isImpar ? 'bg-[var(--surfaceAlt)]' : 'bg-white'
+                } hover:bg-[var(--surfaceAlt)]/60`}
               >
                 <div>
-                  <p className="text-[13px] font-medium text-[#1A1C1E]">{tab.label}</p>
-                  <p className="text-[11px] text-[#74777F]">{tab.desc}</p>
+                  <p className="text-[13px] font-medium text-[var(--ink)]">{tab.label}</p>
+                  <p className="text-[11px] text-[var(--muted)]">{tab.desc}</p>
                 </div>
                 <div className="w-16 flex justify-center">
                   <Toggle
@@ -217,10 +217,10 @@ export default function MatrizPermissoes({ initialData }: Props) {
         </div>
 
         {/* Footer com acoes */}
-        <div className="px-5 py-3.5 border-t border-[#E3E2E6] flex items-center justify-between gap-3 bg-white">
+        <div className="px-5 py-3.5 border-t border-[var(--hairline)] flex items-center justify-between gap-3 bg-white">
           <div className="flex items-center gap-2">
             {feedback && (
-              <p className={`text-[12px] font-medium ${feedback.tipo === 'sucesso' ? 'text-[#1A6637]' : 'text-red-600'}`}>
+              <p className={`text-[12px] font-medium ${feedback.tipo === 'sucesso' ? 'text-[var(--success)]' : 'text-red-600'}`}>
                 {feedback.msg}
               </p>
             )}
@@ -231,7 +231,7 @@ export default function MatrizPermissoes({ initialData }: Props) {
                 type="button"
                 onClick={restaurar}
                 disabled={isPending}
-                className="px-3 py-1.5 text-[12px] font-medium text-[#74777F] border border-[#E3E2E6] rounded-lg hover:bg-[#F4F3F7] hover:text-[#43474E] transition-colors disabled:opacity-50"
+                className="px-3 py-1.5 text-[12px] font-medium text-[var(--muted)] border border-[var(--hairline)] rounded-lg hover:bg-[var(--surfaceAlt)] hover:text-[var(--inkSoft)] transition-colors disabled:opacity-50"
               >
                 Restaurar padrao
               </button>
@@ -241,7 +241,7 @@ export default function MatrizPermissoes({ initialData }: Props) {
               onClick={salvar}
               disabled={isPending || !dirty[papelAtivo]}
               className="px-4 py-1.5 text-[12px] font-semibold text-white rounded-lg transition-colors disabled:opacity-40"
-              style={{ backgroundColor: dirty[papelAtivo] && !isPending ? '#1A365D' : '#74777F' }}
+              style={{ backgroundColor: dirty[papelAtivo] && !isPending ? 'var(--primary)' : 'var(--muted)' }}
             >
               {isPending ? 'Salvando...' : 'Salvar alteracoes'}
             </button>
@@ -250,7 +250,7 @@ export default function MatrizPermissoes({ initialData }: Props) {
       </div>
 
       {/* Nota sobre admins */}
-      <p className="text-[11px] text-[#74777F] px-1">
+      <p className="text-[11px] text-[var(--muted)] px-1">
         Os perfis Administrador e Admin da Plataforma sempre tem acesso completo a todas as etapas e nao sao configuraveis.
       </p>
     </div>
