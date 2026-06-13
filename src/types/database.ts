@@ -622,7 +622,15 @@ export interface Database {
       }
       notificacoes: {
         Row: NotificacaoRow
-        Insert: Omit<NotificacaoRow, 'id' | 'created_at'>
+        Insert: {
+          usuario_id: string
+          organizacao_id: string
+          titulo: string
+          mensagem: string
+          processo_id?: string | null
+          lida?: boolean
+          link?: string | null
+        }
         Update: Partial<Omit<NotificacaoRow, 'id' | 'created_at'>>
         Relationships: NoRelationships
       }
@@ -652,13 +660,39 @@ export interface Database {
       }
       solicitacoes_compra: {
         Row: SolicitacaoCompraRow
-        Insert: Omit<SolicitacaoCompraRow, 'id' | 'created_at' | 'updated_at'>
+        Insert: {
+          organizacao_id: string
+          usuario_id: string
+          objeto: string
+          prioridade: PrioridadeSolicitacao
+          status?: StatusSolicitacao
+          secretaria_id?: string | null
+          justificativa?: string | null
+          data_necessidade?: string | null
+          motivo_recusa?: string | null
+          recusado_por?: string | null
+          recusado_em?: string | null
+          processo_id?: string | null
+          convertido_por?: string | null
+          convertido_em?: string | null
+        }
         Update: Partial<Omit<SolicitacaoCompraRow, 'id' | 'created_at'>>
         Relationships: NoRelationships
       }
       solicitacoes_itens: {
         Row: SolicitacaoItemRow
-        Insert: Omit<SolicitacaoItemRow, 'id' | 'created_at'>
+        Insert: {
+          solicitacao_id: string
+          numero_item: number
+          quantidade: number
+          unidade_medida: string
+          catmat_codigo?: string | null
+          catmat_pdm_codigo?: string | null
+          catmat_descricao?: string | null
+          catmat_unidade?: string | null
+          especificacao_complementar?: string | null
+          valor_estimado_unitario?: number | null
+        }
         Update: Partial<Omit<SolicitacaoItemRow, 'id' | 'created_at'>>
         Relationships: NoRelationships
       }

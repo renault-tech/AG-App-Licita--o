@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { registrarAuditoria } from '@/lib/audit/log'
-import type { SolicitacaoCompraRow, SolicitacaoItemRow } from '@/types/database'
+import type { SolicitacaoCompraRow, SolicitacaoItemRow, StatusSolicitacao } from '@/types/database'
 
 // -------------------------------------------------------
 // Schemas Zod
@@ -69,13 +69,14 @@ async function notificarSetorCompras(
 
   const notifs = gestores.map((u) => ({
     usuario_id: u.id,
+    organizacao_id: organizacaoId,
     titulo,
     mensagem,
     link,
     lida: false,
   }))
 
-  await supabase.from('notificacoes').insert(notifs)
+  await (supabase as any).from('notificacoes').insert(notifs)
 }
 
 // -------------------------------------------------------
@@ -99,7 +100,7 @@ export async function salvarSolicitacao(
 
   const parsed = SolicitacaoSchema.safeParse(input)
   if (!parsed.success) {
-    const primeira = parsed.error.errors[0]
+    const primeira = parsed.error.issues[0]
     return { success: false, error: primeira?.message ?? 'Dados inválidos' }
   }
   const dados = parsed.data
@@ -112,13 +113,15 @@ export async function salvarSolicitacao(
     justificativa: dados.justificativa ?? null,
     prioridade: dados.prioridade,
     data_necessidade: dados.data_necessidade ?? null,
-    status: 'rascunho' as const,
-  } satisfies Partial<SolicitacaoCompraRow>
+    status: 'rascunho' as StatusSolicitacao,
+  }
 
   let id = solicitacaoId
 
+  const sb = supabase as any
+
   if (id) {
-    const { error } = await supabase
+    const { error } = await sb
       .from('solicitacoes_compra')
       .update(payload)
       .eq('id', id)
@@ -127,18 +130,18 @@ export async function salvarSolicitacao(
 
     if (error) return { success: false, error: error.message }
   } else {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('solicitacoes_compra')
       .insert(payload)
       .select('id')
       .single()
 
     if (error) return { success: false, error: error.message }
-    id = data.id
+    id = (data as { id: string }).id
   }
 
   // Substitui itens
-  await supabase.from('solicitacoes_itens').delete().eq('solicitacao_id', id)
+  await sb.from('solicitacoes_itens').delete().eq('solicitacao_id', id)
 
   if (dados.itens.length > 0) {
     const itens = dados.itens.map((it) => ({
@@ -152,12 +155,9 @@ export async function salvarSolicitacao(
       quantidade: it.quantidade,
       unidade_medida: it.unidade_medida,
       valor_estimado_unitario: it.valor_estimado_unitario ?? null,
-    } satisfies Partial<SolicitacaoItemRow>))
+    }))
 
-    const { error: errItens } = await supabase
-      .from('solicitacoes_itens')
-      .insert(itens)
-
+    const { error: errItens } = await sb.from('solicitacoes_itens').insert(itens)
     if (errItens) return { success: false, error: errItens.message }
   }
 
@@ -176,17 +176,17 @@ export async function enviarSolicitacao(
   if (!ctx) return { success: false, error: 'Não autorizado' }
   const { supabase, usuario } = ctx
 
-  const { data: sol } = await supabase
+  const { data: sol } = await (supabase as any)
     .from('solicitacoes_compra')
     .select('id, objeto, organizacao_id, status')
     .eq('id', solicitacaoId)
     .eq('usuario_id', usuario.id)
-    .maybeSingle()
+    .maybeSingle() as { data: { id: string; objeto: string; organizacao_id: string; status: string } | null }
 
   if (!sol) return { success: false, error: 'Solicitação não encontrada' }
   if (sol.status !== 'rascunho') return { success: false, error: 'Apenas rascunhos podem ser enviados' }
 
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('solicitacoes_compra')
     .update({ status: 'enviada' })
     .eq('id', solicitacaoId)
@@ -333,16 +333,16 @@ export async function recusarSolicitacao(
     return { success: false, error: 'Sem permissão para esta ação' }
   }
 
-  const { data: sol } = await supabase
+  const { data: sol } = await (supabase as any)
     .from('solicitacoes_compra')
     .select('id, usuario_id, objeto, organizacao_id')
     .eq('id', solicitacaoId)
     .eq('organizacao_id', usuario.organizacao_id)
-    .maybeSingle()
+    .maybeSingle() as { data: { id: string; usuario_id: string; objeto: string; organizacao_id: string } | null }
 
   if (!sol) return { success: false, error: 'Solicitação não encontrada' }
 
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('solicitacoes_compra')
     .update({
       status: 'recusada',
@@ -355,8 +355,9 @@ export async function recusarSolicitacao(
   if (error) return { success: false, error: error.message }
 
   // Notifica o autor
-  await supabase.from('notificacoes').insert({
+  await (supabase as any).from('notificacoes').insert({
     usuario_id: sol.usuario_id,
+    organizacao_id: usuario.organizacao_id,
     titulo: 'Solicitação recusada',
     mensagem: `Sua solicitação "${sol.objeto}" foi recusada. Motivo: ${motivo}`,
     link: `/solicitacoes/${sol.id}`,
@@ -383,7 +384,7 @@ export async function aprovarSolicitacao(
     return { success: false, error: 'Sem permissão para esta ação' }
   }
 
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('solicitacoes_compra')
     .update({ status: 'aprovada' })
     .eq('id', solicitacaoId)
