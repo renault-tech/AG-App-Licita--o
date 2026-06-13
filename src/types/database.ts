@@ -69,6 +69,7 @@ export interface UsuarioRow {
   ativo: boolean
   status_aprovacao: StatusAprovacaoUsuario
   papel_solicitado: PapelUsuario | null
+  secretaria_id: string | null
 }
 
 export interface SecretariaRow {
@@ -502,7 +503,17 @@ export interface Database {
       }
       usuarios: {
         Row: UsuarioRow
-        Insert: Omit<UsuarioRow, 'created_at'>
+        Insert: {
+          id: string
+          organizacao_id: string
+          nome_completo: string
+          papel?: PapelUsuario
+          cargo?: string | null
+          ativo?: boolean
+          status_aprovacao?: StatusAprovacaoUsuario
+          papel_solicitado?: PapelUsuario | null
+          secretaria_id?: string | null
+        }
         Update: Partial<Omit<UsuarioRow, 'id' | 'created_at'>>
         Relationships: NoRelationships
       }

@@ -65,24 +65,28 @@ export async function obterDFD(processoId: string) {
   const p = pRaw as ProcessoLicitatorioRow | null
   if (!p) return null
 
-  // Tenta buscar secretaria vinculada ao usuario
-  const { data: secRaw } = await (supabase as any)
-    .from('secretarias')
-    .select('id, nome, email, telefone, secretario_nome, responsavel')
-    .eq('organizacao_id', p.organizacao_id)
-    .eq('ativo', true)
-    .limit(1)
-    .maybeSingle()
-
-  const sec = secRaw as { id: string; nome: string; email: string | null; telefone: string | null; secretario_nome: string | null; responsavel: string | null } | null
-
-  const { data: usuarioRaw } = await supabase
+  // Busca o usuario e a secretaria a qual ele pertence
+  const { data: usuarioRaw } = await (supabase as any)
     .from('usuarios')
-    .select('nome_completo')
+    .select('nome_completo, secretaria_id')
     .eq('id', user.id)
     .maybeSingle()
 
   const nomeCompleto = (usuarioRaw as any)?.nome_completo ?? ''
+  const secretariaUsuarioId = (usuarioRaw as any)?.secretaria_id as string | null
+
+  // Prefere a secretaria vinculada ao usuario; se nao houver, usa a primeira ativa da org
+  const secQuery = (supabase as any)
+    .from('secretarias')
+    .select('id, nome, email, telefone, secretario_nome, responsavel')
+    .eq('organizacao_id', p.organizacao_id)
+    .eq('ativo', true)
+
+  const { data: secRaw } = secretariaUsuarioId
+    ? await secQuery.eq('id', secretariaUsuarioId).maybeSingle()
+    : await secQuery.limit(1).maybeSingle()
+
+  const sec = secRaw as { id: string; nome: string; email: string | null; telefone: string | null; secretario_nome: string | null; responsavel: string | null } | null
 
   const { data: novo } = await (supabase as any)
     .from('dfd')

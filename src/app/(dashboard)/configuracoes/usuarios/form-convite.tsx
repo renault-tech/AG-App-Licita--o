@@ -22,12 +22,18 @@ const PAPEIS = [
   { value: 'admin_organizacao', label: 'Administrador' },
 ]
 
-export default function FormConvite() {
+interface FormConviteProps {
+  secretarias: Array<{ id: string; nome: string; sigla: string | null }>
+}
+
+const SEM_SECRETARIA = '__nenhuma__'
+
+export default function FormConvite({ secretarias }: FormConviteProps) {
   const [salvando, setSalvando] = useState(false)
 
   const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm<ConviteUsuarioInput>({
     resolver: zodResolver(schemaConviteUsuario),
-    defaultValues: { email: '', nome_completo: '', cargo: '', papel: 'requisitante' },
+    defaultValues: { email: '', nome_completo: '', cargo: '', papel: 'requisitante', secretaria_id: '' },
   })
 
   async function onSubmit(data: ConviteUsuarioInput) {
@@ -88,6 +94,31 @@ export default function FormConvite() {
               {errors.papel && <p className="text-xs text-red-600">{errors.papel.message}</p>}
             </div>
           </div>
+
+          {secretarias.length > 0 && (
+            <div className="space-y-2">
+              <Label>Secretaria (opcional)</Label>
+              <Select
+                defaultValue={SEM_SECRETARIA}
+                onValueChange={v => setValue('secretaria_id', v && v !== SEM_SECRETARIA ? v : '')}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={SEM_SECRETARIA}>Nenhuma</SelectItem>
+                  {secretarias.map(s => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.sigla ? `${s.sigla} - ${s.nome}` : s.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-400">
+                Vincule o usuario a uma secretaria para participar de compras compartilhadas.
+              </p>
+            </div>
+          )}
 
           <button
             type="submit"

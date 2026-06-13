@@ -2,7 +2,7 @@
 
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { schemaOrganizacao, type OrganizacaoInput } from '@/lib/validacao/organizacao'
-import { schemaConviteUsuario, schemaAlterarPapel, type ConviteUsuarioInput } from '@/lib/validacao/usuario'
+import { schemaConviteUsuario, schemaAlterarPapel, schemaAlterarSecretaria, type ConviteUsuarioInput } from '@/lib/validacao/usuario'
 import { revalidatePath } from 'next/cache'
 import { registrarAuditoria } from '@/lib/audit/log'
 import { CREDITOS_BOAS_VINDAS } from '@/lib/creditos-config'
@@ -88,6 +88,7 @@ export async function convidarUsuario(input: ConviteUsuarioInput): Promise<Actio
     papel: parsed.data.papel,
     nome_completo: parsed.data.nome_completo,
     cargo: parsed.data.cargo ?? null,
+    secretaria_id: parsed.data.secretaria_id ? parsed.data.secretaria_id : null,
   })
 
   if (profileError) {
@@ -168,6 +169,51 @@ export async function alterarPapelUsuario(input: { usuario_id: string; papel: st
     acao:          'usuario.papel_alterado',
     recursoId:     parsed.data.usuario_id,
     detalhes:      { novo_papel: parsed.data.papel },
+  })
+
+  revalidatePath('/configuracoes/usuarios')
+  return { success: true }
+}
+
+export async function alterarSecretariaUsuario(input: { usuario_id: string; secretaria_id: string | null }): Promise<ActionResult> {
+  const parsed = schemaAlterarSecretaria.safeParse(input)
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message }
+
+  const usuario = await getUsuarioAutenticado()
+  if (!usuario) return { success: false, error: 'Sessao expirada.' }
+  if (!['admin_organizacao', 'admin_plataforma'].includes(usuario.papel)) {
+    return { success: false, error: 'Sem permissao.' }
+  }
+
+  const supabase = await createClient()
+
+  // Garante que a secretaria pertence a organizacao do admin
+  if (parsed.data.secretaria_id) {
+    const { data: sec } = await (supabase.from('secretarias') as any)
+      .select('id')
+      .eq('id', parsed.data.secretaria_id)
+      .eq('organizacao_id', usuario.organizacao_id)
+      .maybeSingle()
+    if (!sec) return { success: false, error: 'Secretaria invalida.' }
+  }
+
+  const { error } = await (supabase
+    .from('usuarios') as any)
+    .update({ secretaria_id: parsed.data.secretaria_id })
+    .eq('id', parsed.data.usuario_id)
+    .eq('organizacao_id', usuario.organizacao_id)
+
+  if (error) return { success: false, error: 'Erro ao alterar secretaria.' }
+
+  void registrarAuditoria({
+    organizacaoId: usuario.organizacao_id,
+    usuarioId:     usuario.id,
+    nomeUsuario:   usuario.nome_completo ?? 'Admin',
+    papelUsuario:  usuario.papel,
+    categoria:     'usuario',
+    acao:          'usuario.secretaria_alterada',
+    recursoId:     parsed.data.usuario_id,
+    detalhes:      { secretaria_id: parsed.data.secretaria_id },
   })
 
   revalidatePath('/configuracoes/usuarios')

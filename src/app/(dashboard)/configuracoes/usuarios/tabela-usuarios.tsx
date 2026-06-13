@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Loader2, UserX, UserCheck } from 'lucide-react'
-import { alterarPapelUsuario, desativarUsuario, ativarUsuario } from '@/lib/actions/organizacao'
+import { alterarPapelUsuario, alterarSecretariaUsuario, desativarUsuario, ativarUsuario } from '@/lib/actions/organizacao'
 import { AlertDialog } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -19,6 +19,8 @@ const PAPEIS = [
   { value: 'admin_organizacao', label: 'Administrador' },
 ]
 
+const SEM_SECRETARIA = '__nenhuma__'
+
 interface Usuario {
   id: string
   nome_completo: string
@@ -26,15 +28,17 @@ interface Usuario {
   papel: string
   ativo: boolean
   created_at: string
+  secretaria_id: string | null
 }
 
 interface Props {
   usuarios: Usuario[]
   usuarioAtualId: string
   papeisLabels: Record<string, string>
+  secretarias: Array<{ id: string; nome: string; sigla: string | null }>
 }
 
-export default function TabelaUsuarios({ usuarios, usuarioAtualId, papeisLabels }: Props) {
+export default function TabelaUsuarios({ usuarios, usuarioAtualId, papeisLabels, secretarias }: Props) {
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [confirmarDesativacao, setConfirmarDesativacao] = useState<{ id: string; nome: string } | null>(null)
 
@@ -43,6 +47,15 @@ export default function TabelaUsuarios({ usuarios, usuarioAtualId, papeisLabels 
     const result = await alterarPapelUsuario({ usuario_id: usuarioId, papel })
     if (!result.success) toast.error(result.error)
     else toast.success('Papel atualizado.')
+    setLoadingId(null)
+  }
+
+  async function handleAlterarSecretaria(usuarioId: string, valor: string) {
+    const secretaria_id = valor === SEM_SECRETARIA ? null : valor
+    setLoadingId(usuarioId)
+    const result = await alterarSecretariaUsuario({ usuario_id: usuarioId, secretaria_id })
+    if (!result.success) toast.error(result.error)
+    else toast.success('Secretaria atualizada.')
     setLoadingId(null)
   }
 
@@ -80,6 +93,9 @@ export default function TabelaUsuarios({ usuarios, usuarioAtualId, papeisLabels 
             <tr>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Usuario</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Papel</th>
+              {secretarias.length > 0 && (
+                <th className="text-left px-4 py-3 font-medium text-gray-600">Secretaria</th>
+              )}
               <th className="text-left px-4 py-3 font-medium text-gray-600">Situacao</th>
               <th className="text-right px-4 py-3 font-medium text-gray-600">Acoes</th>
             </tr>
@@ -117,6 +133,27 @@ export default function TabelaUsuarios({ usuarios, usuarioAtualId, papeisLabels 
                       </Select>
                     )}
                   </td>
+                  {secretarias.length > 0 && (
+                    <td className="px-4 py-3">
+                      <Select
+                        defaultValue={u.secretaria_id ?? SEM_SECRETARIA}
+                        onValueChange={v => v && handleAlterarSecretaria(u.id, v)}
+                        disabled={carregando}
+                      >
+                        <SelectTrigger className="h-7 text-xs w-44">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={SEM_SECRETARIA} className="text-xs">Nenhuma</SelectItem>
+                          {secretarias.map(s => (
+                            <SelectItem key={s.id} value={s.id} className="text-xs">
+                              {s.sigla ? `${s.sigla} - ${s.nome}` : s.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                  )}
                   <td className="px-4 py-3">
                     <Badge variant={u.ativo ? 'default' : 'secondary'}>
                       {u.ativo ? 'Ativo' : 'Inativo'}

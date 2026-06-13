@@ -31,7 +31,7 @@ export default async function DFDPage({
   // Obtem usuario e secretaria vinculada
   const { data: usuarioRaw } = await (supabase as any)
     .from('usuarios')
-    .select('id, organizacao_id, nome_completo')
+    .select('id, organizacao_id, nome_completo, secretaria_id')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -73,15 +73,9 @@ export default async function DFDPage({
   if (dfd.tipo === 'compartilhado') {
     const partComItens = await obterParticipacoesComItens(dfd.id)
 
-    const { data: secUsuarioRaw } = await (supabase as any)
-      .from('secretarias')
-      .select('id')
-      .eq('organizacao_id', (usuarioRaw as any).organizacao_id)
-      .eq('ativo', true)
-      .limit(1)
-      .maybeSingle()
-
-    const secIdUsuario = (secUsuarioRaw as any)?.id as string | undefined
+    // A secretaria do usuario vem do seu proprio cadastro (usuarios.secretaria_id).
+    // Sem esse vinculo nao e possivel determinar o papel do usuario na adesao.
+    const secIdUsuario = (usuarioRaw as any)?.secretaria_id as string | undefined
 
     if (secIdUsuario) {
       const partIniciadora = partComItens.find(p => p.tipo === 'iniciadora')

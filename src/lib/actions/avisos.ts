@@ -199,6 +199,7 @@ export async function criarAviso(
     await (supabase as any).from('notificacoes').insert(
       (usuariosDestinatarios as Array<{ id: string }>).map(u => ({
         usuario_id: u.id,
+        organizacao_id: ctx.organizacao_id,
         titulo: 'Aviso de Compra Conjunta',
         mensagem: 'Uma secretaria convidou voce para participar de uma compra conjunta. Acesse para ver os itens e aderir.',
         lida: false,
@@ -367,6 +368,7 @@ export async function registrarAdesao(
     const secNome = (avioCompleto as any).secretaria_origem?.nome ?? 'Uma secretaria'
     await (supabase as any).from('notificacoes').insert({
       usuario_id: (avioCompleto as any).criado_por,
+      organizacao_id: (aviso as any).organizacao_id,
       titulo: 'Nova adesao ao aviso',
       mensagem: `${secNome} aderiu ao seu Aviso de Compra Conjunta.`,
       lida: false,
@@ -439,6 +441,7 @@ export async function encerrarPrazo(
   if (aviso) {
     await (supabase as any).from('notificacoes').insert({
       usuario_id: (aviso as any).criado_por,
+      organizacao_id: ctx.organizacao_id,
       titulo: 'Prazo de adesao encerrado',
       mensagem: 'O prazo do seu Aviso de Compra Conjunta foi encerrado. Voce pode iniciar o processo licitatorio.',
       lida: false,
@@ -539,6 +542,7 @@ export async function iniciarProcessoDoAviso(
       await (supabase as any).from('notificacoes').insert(
         (usuarios as Array<{ id: string }>).map(u => ({
           usuario_id: u.id,
+          organizacao_id: ctx.organizacao_id,
           titulo: 'Processo licitatorio iniciado',
           mensagem: 'O processo licitatorio do Aviso de Compra Conjunta do qual sua secretaria participou foi iniciado.',
           lida: false,

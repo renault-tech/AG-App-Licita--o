@@ -30,11 +30,21 @@ export default async function GestaoUsuariosPage() {
   if (!usuarioAtual) redirect('/onboarding')
   if (!['admin_organizacao', 'admin_plataforma'].includes(usuarioAtual.papel)) redirect('/dashboard')
 
-  const { data: usuarios } = await supabase
-    .from('usuarios')
-    .select('*')
-    .eq('organizacao_id', usuarioAtual.organizacao_id)
-    .order('created_at', { ascending: true })
+  const [{ data: usuarios }, { data: secretariasData }] = await Promise.all([
+    supabase
+      .from('usuarios')
+      .select('*')
+      .eq('organizacao_id', usuarioAtual.organizacao_id)
+      .order('created_at', { ascending: true }),
+    (supabase as any)
+      .from('secretarias')
+      .select('id, nome, sigla')
+      .eq('organizacao_id', usuarioAtual.organizacao_id)
+      .eq('ativo', true)
+      .order('nome'),
+  ])
+
+  const secretarias = (secretariasData ?? []) as Array<{ id: string; nome: string; sigla: string | null }>
 
   return (
     <div className="space-y-6">
@@ -43,7 +53,7 @@ export default async function GestaoUsuariosPage() {
         <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>Convide colaboradores e gerencie papeis de acesso.</p>
       </div>
 
-      <FormConvite />
+      <FormConvite secretarias={secretarias} />
 
       <div>
         <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--ink)' }}>
@@ -53,6 +63,7 @@ export default async function GestaoUsuariosPage() {
           usuarios={usuarios ?? []}
           usuarioAtualId={user.id}
           papeisLabels={PAPEIS_LABELS}
+          secretarias={secretarias}
         />
       </div>
     </div>
