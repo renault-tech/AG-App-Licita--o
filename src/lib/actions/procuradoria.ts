@@ -193,17 +193,17 @@ export async function emitirParecer(
 
   if (error) return { success: false, error: error.message }
 
-  const proximaEtapa = veredito === 'contrario' ? null : 9
-  if (proximaEtapa) {
+  const processoId = parecerAtual.processo_id
+  const orgId = parecerAtual.organizacao_id
+
+  if (veredito !== 'contrario') {
     await (supabase as any)
       .from('processos_licitatorios')
-      .update({ etapa_atual: proximaEtapa })
-      .eq('id', parecerAtual.processo_id)
+      .update({ etapa_atual: 11, fase_atual: 'gestor_publico' })
+      .eq('id', processoId)
   }
 
   const { data: { user } } = await supabase.auth.getUser()
-  const processoId = parecerAtual.processo_id
-  const orgId = parecerAtual.organizacao_id
 
   if (veredito === 'contrario') {
     const { data: destinatarios } = await (supabase as any)
@@ -215,6 +215,7 @@ export async function emitirParecer(
     for (const dest of destinatarios ?? []) {
       await (supabase as any).from('notificacoes').insert({
         usuario_id: dest.id,
+        organizacao_id: orgId,
         titulo: 'Parecer contrario emitido',
         mensagem: 'A procuradoria emitiu parecer contrario. Acesse para decidir entre corrigir ou arquivar.',
         link: `/processos/${processoId}/parecer`,
@@ -231,6 +232,7 @@ export async function emitirParecer(
     for (const dest of destinatarios ?? []) {
       await (supabase as any).from('notificacoes').insert({
         usuario_id: dest.id,
+        organizacao_id: orgId,
         titulo: 'Parecer juridico aprovado',
         mensagem: 'Parecer juridico emitido com sucesso. O processo aguarda sua autorizacao.',
         link: `/processos/${processoId}/autorizacao`,

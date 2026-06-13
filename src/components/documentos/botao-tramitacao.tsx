@@ -18,7 +18,7 @@ import { enviarParaRevisao, aprovarDocumento, devolverDocumento } from '@/lib/ac
 import type { PapelUsuario } from '@/types/database'
 
 type TabelaDocumento = 'dfd' | 'etp' | 'termo_referencia' | 'mapa_riscos' | 'edital'
-type StatusDocumento = 'rascunho' | 'em_revisao' | 'assinado' | 'publicado' | 'devolvido'
+type StatusDocumento = 'rascunho' | 'em_revisao' | 'assinado' | 'autorizado' | 'publicado' | 'devolvido'
 
 interface BotaoTramitacaoProps {
   tabela: TabelaDocumento
@@ -32,6 +32,7 @@ const STATUS_LABEL: Record<StatusDocumento, string> = {
   rascunho:   'Rascunho',
   em_revisao: 'Em Revisão',
   assinado:   'Aprovado',
+  autorizado:  'Autorizado',
   publicado:  'Publicado',
   devolvido:  'Devolvido',
 }
@@ -40,6 +41,7 @@ const STATUS_COR: Record<StatusDocumento, string> = {
   rascunho:   'bg-[var(--surfaceAlt)] text-[var(--muted)] border-[var(--hairline)]',
   em_revisao: 'bg-[var(--warnWash)] text-[var(--warn)] border-[var(--warn)]/30',
   assinado:   'bg-[var(--successWash)] text-[var(--success)] border-[var(--success)]/30',
+  autorizado:  'bg-[var(--accentWash)] text-[var(--accent)] border-[var(--accent)]/30',
   publicado:  'bg-[var(--primaryWash)] text-[var(--primary)] border-[var(--primary)]/30',
   devolvido:  'bg-[var(--dangerWash)] text-[var(--danger)] border-[var(--danger)]/30',
 }

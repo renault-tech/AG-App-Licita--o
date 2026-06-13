@@ -49,7 +49,7 @@ async function obterUsuarioSetor() {
   const u = usuario as { id: string; papel: string; organizacao_id: string; nome_completo: string } | null
   if (!u) return null
 
-  const papeis = ['setor_licitacao', 'gestor_publico', 'admin_organizacao', 'admin_plataforma']
+  const papeis = ['publicacao', 'setor_licitacao', 'gestor_publico', 'admin_organizacao', 'admin_plataforma']
   if (!papeis.includes(u.papel)) return null
   return u
 }

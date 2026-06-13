@@ -4,6 +4,7 @@ export type StatusProcesso =
   | 'rascunho'
   | 'em_revisao'
   | 'assinado'
+  | 'autorizado'
   | 'publicado'
   | 'em_analise'
   | 'devolvido'
@@ -21,6 +22,7 @@ const STATUS_MAP: Record<StatusProcesso, StatusConfig> = {
   rascunho:    { label: 'Rascunho',     bg: 'var(--surfaceSink)',  color: 'var(--muted)',   dot: 'var(--muted)' },
   em_revisao:  { label: 'Em revisao',   bg: 'var(--warnWash)',    color: 'var(--warn)',    dot: 'var(--warn)' },
   assinado:    { label: 'Assinado',     bg: 'var(--primaryWash)', color: 'var(--primary)', dot: 'var(--primary)' },
+  autorizado:  { label: 'Autorizado',   bg: 'var(--accentWash)',  color: 'var(--accent)',  dot: 'var(--accent)' },
   publicado:   { label: 'Publicado',    bg: 'var(--successWash)', color: 'var(--success)', dot: 'var(--success)' },
   em_analise:  { label: 'Em analise',   bg: 'var(--accentWash)',  color: 'var(--accent)',  dot: 'var(--accent)' },
   devolvido:   { label: 'Devolvido',    bg: 'var(--dangerWash)',  color: 'var(--danger)',  dot: 'var(--danger)' },

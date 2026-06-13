@@ -83,10 +83,10 @@ export async function autorizarProcesso(
 
   if (error) return { success: false, error: error.message }
 
-  // Atualiza status do processo para 'publicado' (pronto para publicacao)
+  // Atualiza status do processo para 'autorizado' (pronto para publicacao)
   await (supabase as any)
     .from('processos_licitatorios')
-    .update({ status: 'publicado', updated_at: agora })
+    .update({ status: 'autorizado', updated_at: agora })
     .eq('id', processoId)
 
   // Notifica setor de licitacoes

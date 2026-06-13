@@ -31,6 +31,7 @@ const FILTRO_STATUS_LABEL: Record<string, string> = {
   em_andamento: 'Em Andamento',
   concluido:    'Concluídos',
   publicado:    'Publicados',
+  autorizado:   'Autorizados',
   assinado:     'Assinados',
   rascunho:     'Rascunho',
   em_revisao:   'Em Revisão',
@@ -81,7 +82,7 @@ function aplicarFiltros(
   if (filtroStatus === 'em_andamento') {
     q = q.in('status', ['rascunho', 'em_revisao'])
   } else if (filtroStatus === 'concluido') {
-    q = q.in('status', ['publicado', 'assinado'])
+    q = q.in('status', ['publicado', 'autorizado', 'assinado'])
   } else if (filtroStatus) {
     q = q.eq('status', filtroStatus)
   }
@@ -180,7 +181,7 @@ export default async function ProcessosPage({
     total:      todos.length,
     rascunho:   todos.filter((p: any) => p.status === 'rascunho').length,
     emRevisao:  todos.filter((p: any) => p.status === 'em_revisao').length,
-    concluidos: todos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado').length,
+    concluidos: todos.filter((p: any) => p.status === 'publicado' || p.status === 'assinado' || p.status === 'autorizado').length,
   }
 
   // Busca nomes dos criadores em batch

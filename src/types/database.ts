@@ -19,7 +19,7 @@ export type StatusAprovacaoUsuario =
   | 'recusado'
   | 'suspenso'
 
-export type StatusDocumento = 'rascunho' | 'em_revisao' | 'assinado' | 'publicado' | 'devolvido'
+export type StatusDocumento = 'rascunho' | 'em_revisao' | 'assinado' | 'autorizado' | 'publicado' | 'devolvido'
 
 export type ModalidadeLicitacao =
   | 'pregao_eletronico'
