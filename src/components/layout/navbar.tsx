@@ -31,7 +31,7 @@ const NAV_LINKS = [
   { href: '/dashboard', label: 'Painel', icon: LayoutDashboard },
   { href: '/processos', label: 'Processos', icon: FileText },
   { href: '/solicitacoes', label: 'Solicitações', icon: Bell },
-  { href: '/processos/aviso-compra-conjunta/novo', label: 'Compra Conjunta', icon: Share2 },
+  { href: '/processos/aviso-compra-conjunta', label: 'Compra Conjunta', icon: Share2 },
 ]
 
 // Classes dos links de navegacao, usando tokens do tema para responder aos 5 temas

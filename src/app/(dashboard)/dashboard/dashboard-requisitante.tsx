@@ -57,7 +57,7 @@ export async function DashboardRequisitante({ userId, orgId, cargo, nome }: Prop
     secretariaId
       ? (supabase as any)
           .from('avisos_destinatarias')
-          .select('id, status, avisos_compra_conjunta(id, titulo, prazo_adesao, processo_id, criado_por, processos_licitatorios(objeto, numero_processo, modalidade))')
+          .select('id, status, avisos_compra_conjunta(id, modalidade, categoria_objeto, prazo_adesao, processo_id, criado_por, processos_licitatorios(objeto, numero_processo, modalidade))')
           .eq('secretaria_id', secretariaId)
           .eq('status', 'pendente')
           .limit(5)
@@ -79,8 +79,8 @@ export async function DashboardRequisitante({ userId, orgId, cargo, nome }: Prop
 
   const contagens = {
     total:      lista.length,
-    andamento:  lista.filter((p: any) => !['publicado','assinado'].includes(p.status)).length,
-    concluidos: lista.filter((p: any) => ['publicado','assinado'].includes(p.status)).length,
+    andamento:  lista.filter((p: any) => !['publicado','autorizado','assinado'].includes(p.status)).length,
+    concluidos: lista.filter((p: any) => ['publicado','autorizado','assinado'].includes(p.status)).length,
     devolvidos: lista.filter((p: any) => p.status === 'devolvido').length,
   }
 
@@ -221,7 +221,7 @@ export async function DashboardRequisitante({ userId, orgId, cargo, nome }: Prop
                     >
                       <div className="flex-1 min-w-0">
                         <p className="text-[13px] font-medium truncate" style={{ color: 'var(--ink)' }}>
-                          {aviso?.titulo ?? proc?.objeto ?? 'Compra conjunta'}
+                          {proc?.objeto ?? [aviso?.categoria_objeto, aviso?.modalidade].filter(Boolean).join(' · ') ?? 'Compra conjunta'}
                         </p>
                         {proc && (
                           <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--muted)' }}>
