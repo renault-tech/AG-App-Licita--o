@@ -10,6 +10,7 @@ import {
   FooterEditorial, SectionHeader,
   ProcessosListSection, DarkFeaturedCard, AiSuggestionCard,
 } from './shared'
+import { BotoesCompras } from './botoes-compras'
 
 const PRIORIDADE_LABEL: Record<string, string> = {
   baixa: 'Baixa', media: 'Media', alta: 'Alta', urgente: 'Urgente',
@@ -122,6 +123,8 @@ export async function DashboardCompras({ userId, orgId, cargo, nome }: Props) {
         nome={nome}
         contextLine={ctxLine}
       />
+
+      <BotoesCompras />
 
       <FaseTimeline fases={fases} />
 

@@ -458,59 +458,100 @@ export async function montarPayloadCotacao(processoId: string): Promise<PayloadD
     .maybeSingle()
   if (!processo) return null
 
-  const { data: fornecedores } = await (supabase as any)
-    .from('cotacoes_fornecedores')
+  const { data: itens } = await (supabase as any)
+    .from('cotacoes_itens')
     .select('*')
     .eq('cotacao_id', cotacao.id)
+    .order('numero', { ascending: true })
 
   const cabecalho = await buscarCabecalho(supabase, processo.organizacao_id, null)
 
-  const FONTE_LABEL: Record<string, string> = {
-    pncp:            'Portal Nacional de Contratações Públicas (PNCP)',
-    banco_municipal: 'Banco de Preços Municipal',
-    pesquisa_direta: 'Pesquisa Direta com Fornecedores',
+  const ROTULO_FONTE: Record<string, string> = {
+    compras_governamentais: 'Preço Compras Governamentais',
+    preco_publico:          'Preço Público (PNCP)',
+    preco_web:              'Preço Web',
+    pesquisa_direta:        'Pesquisa Direta',
   }
+  const INDICE_LABEL: Record<string, string> = { ipca: 'IPCA', igpm: 'IGP-M', inpc: 'INPC' }
 
   const fmt = (v: number | null | undefined) =>
-    v != null ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Não calculado'
+    v != null ? Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Não calculado'
+  const dataBR = (iso: string | null) => {
+    if (!iso) return 'sem data'
+    const d = new Date(iso)
+    return isNaN(d.getTime()) ? iso : d.toLocaleDateString('pt-BR')
+  }
 
-  const fonteBloco = [
-    `Fonte: ${FONTE_LABEL[cotacao.fonte] ?? cotacao.fonte}`,
-    cotacao.justificativa_fonte ? `Justificativa: ${cotacao.justificativa_fonte}` : null,
-  ].filter(Boolean).join('\n')
+  const listaItens: any[] = Array.isArray(itens) ? itens : []
 
-  const listaFornecedores: any[] = Array.isArray(fornecedores) ? fornecedores : []
-
-  const fornecedoresBloco = listaFornecedores.length === 0
-    ? '(Nenhum fornecedor cadastrado)'
-    : listaFornecedores.map((f: any, i: number) => {
-        const linhas = [
-          `${i + 1}. ${f.nome_fornecedor ?? 'Nome não informado'}`,
-          f.cnpj_fornecedor ? `   CNPJ: ${f.cnpj_fornecedor}` : null,
-          `   Valor Proposto: ${fmt(f.valor_proposto)}`,
-          f.justificativa_escolha ? `   Justificativa da Escolha: ${f.justificativa_escolha}` : null,
-        ]
-        return linhas.filter(Boolean).join('\n')
-      }).join('\n\n')
-
-  const estatisticasBloco = [
-    `Valor Médio: ${fmt(cotacao.valor_medio)}`,
-    `Valor da Mediana: ${fmt(cotacao.valor_mediana)}`,
-    `Valor Estimado da Contratação: ${fmt(cotacao.valor_estimado)}`,
-    cotacao.tem_outlier
-      ? 'Alerta de Outlier: Sim. Identificada variação superior a 30% da mediana em ao menos uma proposta. Recomenda-se justificar ou excluir a proposta discrepante.'
-      : 'Alerta de Outlier: Não. Todas as propostas dentro do intervalo aceitável.',
-  ].join('\n')
-
-  const secoes = [
-    { titulo: '1. Fonte da Pesquisa de Preços', conteudo: fonteBloco },
-    { titulo: '2. Fornecedores Consultados', conteudo: fornecedoresBloco },
-    { titulo: '3. Análise Estatística dos Preços', conteudo: estatisticasBloco },
+  const secoes: { titulo: string; conteudo: string }[] = [
+    {
+      titulo: 'Parâmetros da Pesquisa',
+      conteudo: [
+        `Fonte de dados: PNCP, Portal Nacional de Contratações Públicas`,
+        `Índice de atualização (Art. 23, II): ${INDICE_LABEL[cotacao.indice_atualizacao] ?? cotacao.indice_atualizacao ?? 'IPCA'}`,
+        `Código de validação: ${cotacao.codigo_validacao ?? 'não gerado'}`,
+        `Valor total geral estimado: ${fmt(cotacao.valor_total_geral)}`,
+      ].join('\n'),
+    },
   ]
+
+  for (const item of listaItens) {
+    const { data: fontes } = await (supabase as any)
+      .from('cotacoes_itens_fontes')
+      .select('*')
+      .eq('cotacao_item_id', item.id)
+      .order('ordem', { ascending: true })
+
+    const blocosFonte: string[] = []
+    for (const fonte of (Array.isArray(fontes) ? fontes : [])) {
+      const { data: registros } = await (supabase as any)
+        .from('cotacoes_fontes_registros')
+        .select('*')
+        .eq('fonte_id', fonte.id)
+        .order('indice', { ascending: true })
+
+      const linhasReg = (Array.isArray(registros) ? registros : []).map((r: any) => {
+        if (fonte.tipo_fonte === 'preco_web') {
+          return `   ${r.indice}. ${r.fonte_nome ?? r.url} | ${fmt(r.valor_original)} | acesso: ${r.data_hora_acesso ? new Date(r.data_hora_acesso).toLocaleString('pt-BR') : '—'} | ${r.url}`
+        }
+        const orgao = r.orgao_nome ?? 'Órgão não informado'
+        const cnpj = r.orgao_cnpj ? `CNPJ ${r.orgao_cnpj}` : 'CNPJ não informado'
+        const out = r.is_outlier ? ' [PREÇO DISCREPANTE]' : ''
+        return `   ${r.indice}. ${orgao} (${cnpj}) | proc. ${r.identificacao} | ${dataBR(r.data_licitacao)} | original ${fmt(r.valor_original)} | atualizado ${fmt(r.valor_atualizado)}${out}`
+      })
+
+      blocosFonte.push(
+        `${ROTULO_FONTE[fonte.tipo_fonte] ?? fonte.tipo_fonte} (valor unitário ${fmt(fonte.valor_unitario)}):\n${linhasReg.join('\n') || '   (sem registros)'}`,
+      )
+    }
+
+    const statusItem = item.status_item === 'pendente_insuficiente'
+      ? '\nATENÇÃO: menos de 3 preços válidos. O Art. 23 recomenda no mínimo 3 fontes.'
+      : ''
+
+    const conteudo = [
+      item.descricao ?? item.titulo,
+      ``,
+      `Quantidade: ${item.quantidade} ${item.unidade ?? ''}`,
+      `Preços utilizados / encontrados: ${item.precos_utilizados} / ${item.propostas_encontradas}`,
+      `Mediana (teto legal): ${fmt(item.mediana_precos)} | Média: ${fmt(item.media_precos)}`,
+      `Preço estimado: ${fmt(item.preco_est_calculado)} | Total: ${fmt(item.total)}`,
+      ``,
+      blocosFonte.join('\n\n'),
+      statusItem,
+    ].filter((l) => l !== undefined).join('\n')
+
+    secoes.push({ titulo: `Item ${item.numero}: ${item.titulo}`, conteudo })
+  }
+
+  if (listaItens.length === 0) {
+    secoes.push({ titulo: 'Itens', conteudo: '(Nenhum item cotado)' })
+  }
 
   return {
     cabecalho,
-    tipoDocumento: 'PESQUISA DE PREÇOS E COTAÇÃO',
+    tipoDocumento: 'RELATÓRIO DE PESQUISA DE PREÇOS',
     numeroProcesso: processo.numero_processo ?? null,
     objeto: processo.objeto,
     modalidade: MODALIDADE_LABEL[processo.modalidade] ?? processo.modalidade,
