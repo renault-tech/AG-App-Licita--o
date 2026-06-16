@@ -93,6 +93,8 @@ export interface RegistroRelatorio {
   descricaoProduto?: string | null
   dataHoraAcesso?: string | null
   isOutlier: boolean
+  // true = usada no calculo (uma das N mais recentes); false = encontrada mas nao usada
+  utilizado: boolean
 }
 
 export interface FonteRelatorio {

@@ -4,6 +4,7 @@ import { randomBytes } from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { gerarRelatorio } from '@/lib/cotacao/gerar'
+import { calcularItem, calcularMedia, arredondar, type RegistroCalculo } from '@/lib/cotacao/engine'
 import type {
   ItemEntrada,
   IndiceAtualizacao,
@@ -23,6 +24,7 @@ interface GerarCotacaoInput {
   fontes: TipoFontePreco[]
   estado?: string
   codigoMunicipio?: number
+  quantidadeCotacoes?: number
   processoId?: string | null
   itens: ItemEntrada[]
 }
@@ -62,12 +64,15 @@ export async function gerarCotacao(
     return { success: false, error: 'Selecione ao menos uma fonte de precos.' }
   }
 
+  const quantidadeCotacoes = Math.max(1, Math.floor(input.quantidadeCotacoes ?? 3))
+
   // Consulta real e calculo
   const relatorio = await gerarRelatorio(input.itens, {
     fontes: input.fontes,
     indice: input.indice,
     estado: input.estado,
     codigoMunicipio: input.codigoMunicipio,
+    quantidadeCotacoes,
   })
 
   const codigoValidacao = gerarCodigoValidacao()
@@ -84,6 +89,7 @@ export async function gerarCotacao(
       codigo_validacao: codigoValidacao,
       gerado_em: new Date().toISOString(),
       valor_total_geral: relatorio.valorTotalGeral,
+      quantidade_cotacoes: quantidadeCotacoes,
       status: 'rascunho',
     })
     .select('id')
@@ -154,6 +160,7 @@ export async function gerarCotacao(
         data_hora_acesso: r.dataHoraAcesso ?? null,
         preco: r.valorOriginal,
         is_outlier: r.isOutlier,
+        utilizado: r.utilizado,
         excluido: false,
       }))
       if (registrosInsert.length > 0) {
@@ -268,6 +275,7 @@ export async function obterCotacaoCompleta(cotacaoId: string): Promise<
           descricaoProduto: r.descricao_produto,
           dataHoraAcesso: r.data_hora_acesso,
           isOutlier: r.is_outlier,
+          utilizado: r.utilizado ?? true,
         })),
       })
     }
@@ -403,7 +411,100 @@ export async function adicionarPrecoWeb(
   })
 
   if (errReg) return { success: false, error: errReg.message }
+
+  // Recalcula as estatisticas do item considerando o novo preco web
+  await recomputarItem(supabase, cotacaoItemId)
+
   return { success: true, data: { dataHoraAcesso } }
+}
+
+/**
+ * Recalcula um item da cotacao (mediana/media/estimado/utilizados) a partir de
+ * TODOS os seus registros persistidos. Usado apos adicionar/alterar precos.
+ */
+async function recomputarItem(supabase: any, cotacaoItemId: string): Promise<void> {
+  const { data: item } = await supabase
+    .from('cotacoes_itens')
+    .select('id, cotacao_id, quantidade')
+    .eq('id', cotacaoItemId)
+    .maybeSingle()
+  if (!item) return
+
+  const { data: cotacao } = await supabase
+    .from('cotacoes')
+    .select('id, quantidade_cotacoes')
+    .eq('id', item.cotacao_id)
+    .maybeSingle()
+  const n = Math.max(1, Math.floor(cotacao?.quantidade_cotacoes ?? 3))
+
+  const { data: fontes } = await supabase
+    .from('cotacoes_itens_fontes')
+    .select('id, tipo_fonte')
+    .eq('cotacao_item_id', cotacaoItemId)
+
+  const listaFontes = (fontes as any[]) ?? []
+  const fonteIds = listaFontes.map((f) => f.id)
+  if (fonteIds.length === 0) return
+
+  const { data: registros } = await supabase
+    .from('cotacoes_fontes_registros')
+    .select('id, fonte_id, valor_atualizado, data_licitacao')
+    .in('fonte_id', fonteIds)
+
+  const listaReg = (registros as any[]) ?? []
+  const paraCalculo: RegistroCalculo[] = listaReg.map((r) => ({
+    valorAtualizado: Number(r.valor_atualizado),
+    data: r.data_licitacao,
+  }))
+  const calc = calcularItem(paraCalculo, n)
+
+  const idsUtilizados = new Set(calc.indicesUtilizados.map((i) => listaReg[i]?.id))
+  const idsOutliers = new Set(calc.indicesOutliers.map((i) => listaReg[i]?.id))
+
+  // Atualiza flags por registro
+  await Promise.all(
+    listaReg.map((r) =>
+      (supabase.from('cotacoes_fontes_registros') as any)
+        .update({ utilizado: idsUtilizados.has(r.id), is_outlier: idsOutliers.has(r.id) })
+        .eq('id', r.id),
+    ),
+  )
+
+  // valor_unitario por fonte = media dos utilizados da fonte (fallback: todos)
+  await Promise.all(
+    listaFontes.map((f) => {
+      const regsFonte = listaReg.filter((r) => r.fonte_id === f.id)
+      const util = regsFonte.filter((r) => idsUtilizados.has(r.id)).map((r) => Number(r.valor_atualizado))
+      const base = util.length > 0 ? util : regsFonte.map((r) => Number(r.valor_atualizado))
+      return (supabase.from('cotacoes_itens_fontes') as any)
+        .update({ valor_unitario: arredondar(calcularMedia(base)) })
+        .eq('id', f.id)
+    }),
+  )
+
+  const total = arredondar(calc.precoEstimado * Number(item.quantidade))
+  await (supabase.from('cotacoes_itens') as any)
+    .update({
+      precos_utilizados: calc.precosUtilizados,
+      propostas_encontradas: calc.propostasEncontradas,
+      preco_estimado: calc.precoEstimado,
+      preco_est_calculado: calc.precoEstimado,
+      total,
+      mediana_precos: calc.mediana,
+      media_precos: calc.media,
+      status_item: calc.status,
+    })
+    .eq('id', cotacaoItemId)
+
+  // Atualiza total geral da cotacao
+  const { data: itensTotais } = await supabase
+    .from('cotacoes_itens')
+    .select('total')
+    .eq('cotacao_id', item.cotacao_id)
+  const totalGeral = arredondar(((itensTotais as any[]) ?? []).reduce((acc, it) => acc + Number(it.total ?? 0), 0))
+  await (supabase.from('cotacoes') as any)
+    .update({ valor_total_geral: totalGeral })
+    .eq('id', item.cotacao_id)
 }
 
 /** Lista processos da organizacao que ainda nao possuem cotacao vinculada. */

@@ -1,17 +1,10 @@
 import type { ReactNode } from 'react'
-import type { RelatorioCotacao, ItemRelatorio, TipoFontePreco } from '@/lib/cotacao/types'
-import { ROTULO_FONTE } from '@/lib/cotacao/types'
-import { AlertTriangle, Globe } from 'lucide-react'
+import type { RelatorioCotacao, ItemRelatorio } from '@/lib/cotacao/types'
+import { AlertTriangle } from 'lucide-react'
+import { ItemRegistros } from './item-registros'
 
 function brl(v: number): string {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-}
-
-function dataBR(iso: string | null): string {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
-  return d.toLocaleDateString('pt-BR')
 }
 
 function dataHoraBR(iso: string | null | undefined): string {
@@ -21,63 +14,11 @@ function dataHoraBR(iso: string | null | undefined): string {
   return d.toLocaleString('pt-BR')
 }
 
-function FonteWeb({ registros }: { registros: ItemRelatorio['fontes'][number]['registros'] }) {
+function Resumo({ label, valor, destaque }: { label: string; valor: string; destaque?: boolean }) {
   return (
-    <div className="space-y-2">
-      {registros.map((r) => (
-        <div key={r.indice} className="text-xs flex flex-wrap items-center gap-x-3 gap-y-1 py-1.5 border-b border-gray-100 last:border-0">
-          <span className="font-mono text-gray-400">{r.indice}</span>
-          <span className="font-medium">{r.fonteNome}</span>
-          <a href={r.url ?? '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:underline">
-            <Globe className="w-3 h-3" /> link
-          </a>
-          <span className="text-gray-500">{r.descricaoProduto}</span>
-          <span className="text-gray-400">acesso: {dataHoraBR(r.dataHoraAcesso)}</span>
-          <span className="ml-auto font-mono font-semibold">{brl(r.valorOriginal)}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function FontePNCP({ registros }: { registros: ItemRelatorio['fontes'][number]['registros'] }) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="text-left text-gray-400 border-b border-gray-100">
-            <th className="py-1.5 pr-2 font-medium">#</th>
-            <th className="py-1.5 pr-2 font-medium">Orgao Publico</th>
-            <th className="py-1.5 pr-2 font-medium">Identificacao</th>
-            <th className="py-1.5 pr-2 font-medium">Data</th>
-            <th className="py-1.5 pr-2 font-medium text-right">Original</th>
-            <th className="py-1.5 pr-2 font-medium text-right">Atualizado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {registros.map((r) => (
-            <tr key={r.indice} className={r.isOutlier ? 'bg-amber-50' : ''}>
-              <td className="py-1.5 pr-2 font-mono text-gray-400 align-top">{r.indice}</td>
-              <td className="py-1.5 pr-2 align-top">
-                <div className="font-medium text-gray-800">{r.orgaoNome ?? '—'}</div>
-                <div className="text-gray-400">
-                  {r.orgaoCnpj ? `CNPJ ${r.orgaoCnpj}` : 'CNPJ nao informado'}
-                  {r.unidadeNome ? ` · ${r.unidadeNome}` : ''}
-                </div>
-              </td>
-              <td className="py-1.5 pr-2 align-top font-mono text-gray-500">{r.identificacao}</td>
-              <td className="py-1.5 pr-2 align-top whitespace-nowrap">{dataBR(r.dataLicitacao)}</td>
-              <td className="py-1.5 pr-2 align-top text-right font-mono text-gray-500">{brl(r.valorOriginal)}</td>
-              <td className="py-1.5 pr-2 align-top text-right font-mono font-semibold">
-                {brl(r.valorAtualizado)}
-                {r.isOutlier && (
-                  <AlertTriangle className="inline w-3 h-3 ml-1 text-amber-500" aria-label="Preco discrepante" />
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className={`px-2 py-2.5 ${destaque ? 'bg-blue-50' : 'bg-white'}`}>
+      <div className="text-[10px] uppercase tracking-wide text-gray-400">{label}</div>
+      <div className={`text-xs font-semibold mt-0.5 ${destaque ? 'text-blue-900' : 'text-gray-800'}`}>{valor}</div>
     </div>
   )
 }
@@ -95,7 +36,7 @@ function ItemCard({ item, acaoItem }: { item: ItemRelatorio; acaoItem?: (itemId:
           </div>
           {pendente && (
             <span className="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full bg-amber-100 text-amber-800">
-              <AlertTriangle className="w-3 h-3" /> Precos insuficientes
+              <AlertTriangle className="w-3 h-3" /> Cotacoes insuficientes
             </span>
           )}
         </div>
@@ -104,7 +45,7 @@ function ItemCard({ item, acaoItem }: { item: ItemRelatorio; acaoItem?: (itemId:
 
       {/* Resumo */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-px bg-gray-100 text-center">
-        <Resumo label="Precos util./encontr." valor={`${item.precosUtilizados} / ${item.propostasEncontradas}`} />
+        <Resumo label="Cotacoes util./encontr." valor={`${item.precosUtilizados} / ${item.propostasEncontradas}`} />
         <Resumo label="Quantidade" valor={`${item.quantidade} ${item.unidade}`} />
         <Resumo label="Mediana (teto)" valor={brl(item.mediana)} />
         <Resumo label="Media" valor={brl(item.media)} />
@@ -112,42 +53,23 @@ function ItemCard({ item, acaoItem }: { item: ItemRelatorio; acaoItem?: (itemId:
         <Resumo label="Total" valor={brl(item.total)} destaque />
       </div>
 
-      {/* Fontes */}
-      <div className="p-5 space-y-4">
-        {item.fontes.map((fonte) => (
-          <div key={fonte.tipo}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                {ROTULO_FONTE[fonte.tipo as TipoFontePreco]}
-              </span>
-              <span className="text-xs text-gray-400">
-                Valor unitario: <strong className="text-gray-700">{brl(fonte.valorUnitario)}</strong>
-              </span>
-            </div>
-            {fonte.tipo === 'preco_web'
-              ? <FonteWeb registros={fonte.registros} />
-              : <FontePNCP registros={fonte.registros} />}
-          </div>
-        ))}
-        {item.fontes.length === 0 && (
-          <p className="text-xs text-gray-400 text-center py-3">Nenhum preco encontrado para este item.</p>
-        )}
-        {item.avisos.map((aviso, i) => (
-          <p key={i} className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            {aviso}
-          </p>
-        ))}
-        {acaoItem && item.id && <div className="pt-1">{acaoItem(item.id)}</div>}
-      </div>
-    </div>
-  )
-}
+      {/* Fontes e registros (com expansao das demais cotacoes) */}
+      <ItemRegistros
+        fontes={item.fontes}
+        precosUtilizados={item.precosUtilizados}
+        propostasEncontradas={item.propostasEncontradas}
+      />
 
-function Resumo({ label, valor, destaque }: { label: string; valor: string; destaque?: boolean }) {
-  return (
-    <div className={`px-2 py-2.5 ${destaque ? 'bg-blue-50' : 'bg-white'}`}>
-      <div className="text-[10px] uppercase tracking-wide text-gray-400">{label}</div>
-      <div className={`text-xs font-semibold mt-0.5 ${destaque ? 'text-blue-900' : 'text-gray-800'}`}>{valor}</div>
+      {(item.avisos.length > 0 || (acaoItem && item.id)) && (
+        <div className="px-5 pb-5 space-y-2">
+          {item.avisos.map((aviso, i) => (
+            <p key={i} className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              {aviso}
+            </p>
+          ))}
+          {acaoItem && item.id && <div className="pt-1">{acaoItem(item.id)}</div>}
+        </div>
+      )}
     </div>
   )
 }

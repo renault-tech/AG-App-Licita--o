@@ -62,58 +62,109 @@ describe('calcularItem - exemplos reais do layout de referencia', () => {
     ])
     expect(r.mediana).toBe(64.59)
     expect(r.media).toBe(64.83)
-    // Regra legal: estimado nunca acima da mediana
     expect(r.precoEstimado).toBe(64.59)
     expect(r.precoEstimado).toBeLessThanOrEqual(r.mediana)
   })
 })
 
+describe('calcularItem - quantidade configuravel e selecao das mais recentes', () => {
+  it('seleciona as N mais recentes quando ha mais que o minimo (3 de 5)', () => {
+    const r = calcularItem(
+      [
+        { valorAtualizado: 100, data: '2026-06-01' },
+        { valorAtualizado: 110, data: '2026-05-01' },
+        { valorAtualizado: 120, data: '2026-04-01' },
+        { valorAtualizado: 90, data: '2023-01-01' },
+        { valorAtualizado: 95, data: '2022-01-01' },
+      ],
+      3,
+    )
+    expect(r.propostasEncontradas).toBe(5)
+    expect(r.precosUtilizados).toBe(3)
+    // As 3 mais recentes: indices 0,1,2 (100,110,120)
+    expect(r.indicesUtilizados.sort()).toEqual([0, 1, 2])
+    expect(r.media).toBe(110)
+    expect(r.status).toBe('ok')
+  })
+
+  it('respeita N configuravel maior (5)', () => {
+    const reg = Array.from({ length: 8 }, (_, i) => ({
+      valorAtualizado: 100 + i,
+      data: `2026-0${(i % 9) + 1}-01`,
+    }))
+    const r = calcularItem(reg, 5)
+    expect(r.propostasEncontradas).toBe(8)
+    expect(r.precosUtilizados).toBe(5)
+    expect(r.indicesUtilizados).toHaveLength(5)
+  })
+
+  it('exemplo "3/15": usa 3 e reporta 15 encontradas', () => {
+    const reg = Array.from({ length: 15 }, (_, i) => ({
+      valorAtualizado: 100,
+      data: `2026-${String((i % 12) + 1).padStart(2, '0')}-10`,
+    }))
+    const r = calcularItem(reg, 3)
+    expect(r.propostasEncontradas).toBe(15)
+    expect(r.precosUtilizados).toBe(3)
+  })
+})
+
 describe('calcularItem - regras de conformidade', () => {
-  it('sinaliza item com menos de 3 precos como pendente', () => {
-    const r = calcularItem([{ valorAtualizado: 100 }, { valorAtualizado: 110 }])
+  it('sinaliza item com menos do minimo como pendente', () => {
+    const r = calcularItem([{ valorAtualizado: 100 }, { valorAtualizado: 110 }], 3)
     expect(r.status).toBe('pendente_insuficiente')
     expect(r.precosUtilizados).toBe(2)
   })
 
   it('lista vazia retorna pendente e zeros', () => {
-    const r = calcularItem([])
+    const r = calcularItem([], 3)
     expect(r.status).toBe('pendente_insuficiente')
     expect(r.precoEstimado).toBe(0)
     expect(r.propostasEncontradas).toBe(0)
   })
 
-  it('exclui outlier do calculo quando restam ao menos 3 precos', () => {
-    const r = calcularItem([
-      { valorAtualizado: 100 },
-      { valorAtualizado: 102 },
-      { valorAtualizado: 98 },
-      { valorAtualizado: 500 }, // outlier
-    ])
+  it('exclui outlier da selecao mesmo quando ha registros suficientes', () => {
+    const r = calcularItem(
+      [
+        { valorAtualizado: 100, data: '2026-04-01' },
+        { valorAtualizado: 102, data: '2026-05-01' },
+        { valorAtualizado: 98, data: '2026-03-01' },
+        { valorAtualizado: 500, data: '2026-06-01' }, // outlier, o mais recente
+      ],
+      3,
+    )
+    // O outlier (indice 3) e sinalizado e NAO entra, apesar de ser o mais recente
     expect(r.indicesOutliers).toContain(3)
+    expect(r.indicesUtilizados).not.toContain(3)
     expect(r.precosUtilizados).toBe(3)
     expect(r.media).toBe(100)
   })
 
-  it('mantem outlier sinalizado mas no calculo se exclui-lo derrubar abaixo de 3', () => {
-    const r = calcularItem([
-      { valorAtualizado: 100 },
-      { valorAtualizado: 102 },
-      { valorAtualizado: 500 }, // outlier
-    ])
+  it('se excluir outliers derrubar abaixo do minimo, fica pendente (nao inclui discrepante)', () => {
+    const r = calcularItem(
+      [
+        { valorAtualizado: 100, data: '2026-04-01' },
+        { valorAtualizado: 102, data: '2026-05-01' },
+        { valorAtualizado: 500, data: '2026-06-01' }, // outlier
+      ],
+      3,
+    )
     expect(r.indicesOutliers).toContain(2)
-    // Nao pode descartar: restariam apenas 2 precos
-    expect(r.precosUtilizados).toBe(3)
+    expect(r.precosUtilizados).toBe(2)
+    expect(r.status).toBe('pendente_insuficiente')
   })
 
-  it('propostas encontradas reflete total localizado, nao o utilizado', () => {
-    const r = calcularItem([
-      { valorAtualizado: 100 },
-      { valorAtualizado: 102 },
-      { valorAtualizado: 98 },
-      { valorAtualizado: 500 },
-      { valorAtualizado: 99 },
-    ])
-    expect(r.propostasEncontradas).toBe(5)
-    expect(r.precosUtilizados).toBe(4) // 500 excluido
+  it('propostas encontradas reflete total valido, nao o utilizado', () => {
+    const r = calcularItem(
+      [
+        { valorAtualizado: 100, data: '2026-05-01' },
+        { valorAtualizado: 102, data: '2026-04-01' },
+        { valorAtualizado: 98, data: '2026-03-01' },
+        { valorAtualizado: 99, data: '2026-02-01' },
+      ],
+      3,
+    )
+    expect(r.propostasEncontradas).toBe(4)
+    expect(r.precosUtilizados).toBe(3)
   })
 })

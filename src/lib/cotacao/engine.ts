@@ -23,41 +23,49 @@ export function ehOutlier(valor: number, mediana: number): boolean {
 
 const LIMITE_OUTLIER_SUP = 1.3
 const LIMITE_OUTLIER_INF = 0.7
-const MINIMO_PRECOS = 3
+const MINIMO_PRECOS_PADRAO = 3
 
 export interface RegistroCalculo {
   // valor ja atualizado pelo indice (inciso II)
   valorAtualizado: number
+  // data da licitacao (ISO) para selecionar as mais recentes
+  data?: string | null
 }
 
 export interface ResultadoCalculoItem {
   mediana: number
   media: number
   precoEstimado: number // = min(media, mediana): media como referencia, mediana como teto legal
-  precosUtilizados: number // quantidade efetivamente considerada (>= 3 para status ok)
-  propostasEncontradas: number // total localizado na base
+  precosUtilizados: number // quantidade efetivamente usada no calculo (alvo: o minimo configurado)
+  propostasEncontradas: number // total de precos validos localizados
   indicesOutliers: number[] // posicoes (base 0) dos registros marcados como outlier
+  indicesUtilizados: number[] // posicoes (base 0) dos registros efetivamente usados no calculo
   status: 'ok' | 'pendente_insuficiente'
 }
 
 /**
  * Calcula estatisticas de um item a partir dos registros ja atualizados.
  *
- * Estrategia:
+ * Estrategia (modelo Banco de Precos):
  *  1. Mediana inicial sobre todos os valores validos.
  *  2. Marca outliers (>30% da mediana).
- *  3. Recalcula mediana/media sobre o conjunto sem outliers, desde que reste o
- *     minimo legal de 3 precos. Se a exclusao derrubar abaixo de 3, mantem todos
- *     (com os outliers ainda sinalizados) para nao descartar dados validos.
- *  4. Preco estimado = min(media, mediana): a mediana funciona como teto (inciso I).
- *  5. status = 'ok' apenas com 3 ou mais precos considerados.
+ *  3. Do conjunto sem outliers, seleciona as `minimo` cotacoes MAIS RECENTES
+ *     (recencia e exigencia legal). Apenas essas entram no calculo.
+ *  4. Mediana/media/estimado sao calculados sobre as selecionadas.
+ *  5. Preco estimado = min(media, mediana): a mediana funciona como teto (inciso I).
+ *  6. status = 'ok' apenas quando ha pelo menos `minimo` cotacoes selecionadas.
  */
-export function calcularItem(registros: RegistroCalculo[]): ResultadoCalculoItem {
-  const valores = registros
-    .map((r) => r.valorAtualizado)
-    .filter((v) => typeof v === 'number' && v > 0)
+export function calcularItem(
+  registros: RegistroCalculo[],
+  minimo: number = MINIMO_PRECOS_PADRAO,
+): ResultadoCalculoItem {
+  const n = Math.max(1, Math.floor(minimo))
 
-  const propostasEncontradas = valores.length
+  const validos = registros
+    .map((r, i) => ({ i, v: r.valorAtualizado, d: r.data ?? null }))
+    .filter((x) => typeof x.v === 'number' && x.v > 0)
+
+  const propostasEncontradas = validos.length
 
   if (propostasEncontradas === 0) {
     return {
@@ -67,29 +75,30 @@ export function calcularItem(registros: RegistroCalculo[]): ResultadoCalculoItem
       precosUtilizados: 0,
       propostasEncontradas: 0,
       indicesOutliers: [],
+      indicesUtilizados: [],
       status: 'pendente_insuficiente',
     }
   }
 
-  const medianaInicial = calcularMediana(valores)
+  const medianaInicial = calcularMediana(validos.map((x) => x.v))
 
-  const indicesOutliers: number[] = []
-  registros.forEach((r, i) => {
-    const v = r.valorAtualizado
-    if (typeof v === 'number' && v > 0 && ehOutlier(v, medianaInicial)) {
-      indicesOutliers.push(i)
-    }
-  })
+  const indicesOutliers = validos.filter((x) => ehOutlier(x.v, medianaInicial)).map((x) => x.i)
+  const naoOutlier = validos.filter((x) => !ehOutlier(x.v, medianaInicial))
 
-  const semOutliers = valores.filter((v) => !ehOutlier(v, medianaInicial))
+  // Pool de selecao: nao-outliers; se todos forem outliers, usa todos os validos
+  const pool = naoOutlier.length > 0 ? naoOutlier : validos
 
-  // So exclui outliers se ainda restar o minimo legal de precos
-  const considerados = semOutliers.length >= MINIMO_PRECOS ? semOutliers : valores
+  // Mais recentes primeiro (registros sem data vao para o fim)
+  pool.sort((a, b) => (b.d ?? '').localeCompare(a.d ?? ''))
 
-  const mediana = calcularMediana(considerados)
-  const media = calcularMedia(considerados)
+  const selecionados = pool.slice(0, n)
+  const indicesUtilizados = selecionados.map((x) => x.i)
+  const valores = selecionados.map((x) => x.v)
+
+  const mediana = calcularMediana(valores)
+  const media = calcularMedia(valores)
   const precoEstimado = Math.min(media, mediana)
-  const precosUtilizados = considerados.length
+  const precosUtilizados = selecionados.length
 
   return {
     mediana: arredondar(mediana),
@@ -98,7 +107,8 @@ export function calcularItem(registros: RegistroCalculo[]): ResultadoCalculoItem
     precosUtilizados,
     propostasEncontradas,
     indicesOutliers,
-    status: precosUtilizados >= MINIMO_PRECOS ? 'ok' : 'pendente_insuficiente',
+    indicesUtilizados,
+    status: precosUtilizados >= n ? 'ok' : 'pendente_insuficiente',
   }
 }
 
@@ -108,4 +118,4 @@ export function arredondar(valor: number, casas = 2): number {
   return Math.round((valor + Number.EPSILON) * f) / f
 }
 
-export { LIMITE_OUTLIER_SUP, LIMITE_OUTLIER_INF, MINIMO_PRECOS }
+export { LIMITE_OUTLIER_SUP, LIMITE_OUTLIER_INF, MINIMO_PRECOS_PADRAO }
