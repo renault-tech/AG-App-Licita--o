@@ -13,8 +13,10 @@ import type {
 } from '../types'
 
 const BASE_URL = 'https://dadosabertos.compras.gov.br/modulo-pesquisa-preco'
-const TIMEOUT_MS = 20000
-const TAMANHO_PAGINA = 50 // a API exige entre 10 e 500
+const TIMEOUT_MS = 25000
+// A API ignora dataCompraInicio/Fim, entao buscamos o maximo permitido (500) e
+// filtramos a janela temporal no cliente (limite legal de 1 ano, Art. 23, II).
+const TAMANHO_PAGINA = 500 // a API exige entre 10 e 500
 
 // Estrutura real retornada pela API (campos relevantes)
 interface RegistroComprasGov {
@@ -121,9 +123,18 @@ export class ComprasGovFonte implements FontePreco {
 
       const json = (await resp.json()) as RespostaComprasGov
       const brutos = json.resultado ?? []
-      const registros = brutos
+      let registros = brutos
         .map(mapearRegistro)
         .filter((r): r is RegistroPrecoBruto => r !== null)
+
+      // Filtro temporal client-side: a API nao respeita dataCompraInicio.
+      // Mantem apenas registros dentro da janela legal (Art. 23, II, ate 1 ano).
+      if (params.dataCompraInicio) {
+        const corte = params.dataCompraInicio
+        registros = registros.filter((r) => r.dataLicitacao != null && r.dataLicitacao >= corte)
+      }
+      // Mais recentes primeiro
+      registros.sort((a, b) => (b.dataLicitacao ?? '').localeCompare(a.dataLicitacao ?? ''))
 
       const resultado: ResultadoFonte = { tipoFonte: this.tipo, registros }
       cache.set(chave, { dados: resultado, em: Date.now() })
