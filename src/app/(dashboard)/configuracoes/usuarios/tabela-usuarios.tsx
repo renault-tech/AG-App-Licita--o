@@ -38,30 +38,53 @@ export default function TabelaUsuarios({ usuarios, usuarioAtualId, papeisLabels 
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [confirmarDesativacao, setConfirmarDesativacao] = useState<{ id: string; nome: string } | null>(null)
 
+  // As três ações abaixo chamavam a server action sem try/catch: se a
+  // requisição falhasse antes de voltar uma resposta (conexão de celular
+  // caindo no meio do request, aba suspensa e retomada durante o await),
+  // a exceção não tratada interrompia a função sem nunca chegar no
+  // toast.error nem no setLoadingId(null) — o botão ficava girando ou
+  // voltava ao normal em silêncio, sem nenhuma mensagem, e a linha
+  // continuava com o status antigo porque a mutação nunca completou.
+
   async function handleAlterarPapel(usuarioId: string, papel: string) {
     setLoadingId(usuarioId)
-    const result = await alterarPapelUsuario({ usuario_id: usuarioId, papel })
-    if (!result.success) toast.error(result.error)
-    else toast.success('Papel atualizado.')
-    setLoadingId(null)
+    try {
+      const result = await alterarPapelUsuario({ usuario_id: usuarioId, papel })
+      if (!result.success) toast.error(result.error)
+      else toast.success('Papel atualizado.')
+    } catch {
+      toast.error('Falha de conexão. Tente novamente.')
+    } finally {
+      setLoadingId(null)
+    }
   }
 
   async function confirmarEDesativar() {
     if (!confirmarDesativacao) return
     const { id } = confirmarDesativacao
     setLoadingId(id)
-    const result = await desativarUsuario(id)
-    if (!result.success) toast.error(result.error)
-    else toast.success('Usuario desativado.')
-    setLoadingId(null)
+    try {
+      const result = await desativarUsuario(id)
+      if (!result.success) toast.error(result.error)
+      else toast.success('Usuario desativado.')
+    } catch {
+      toast.error('Falha de conexão. Tente novamente.')
+    } finally {
+      setLoadingId(null)
+    }
   }
 
   async function handleAtivar(usuarioId: string) {
     setLoadingId(usuarioId)
-    const result = await ativarUsuario(usuarioId)
-    if (!result.success) toast.error(result.error)
-    else toast.success('Usuario ativado com sucesso.')
-    setLoadingId(null)
+    try {
+      const result = await ativarUsuario(usuarioId)
+      if (!result.success) toast.error(result.error)
+      else toast.success('Usuario ativado com sucesso.')
+    } catch {
+      toast.error('Falha de conexão. Tente novamente.')
+    } finally {
+      setLoadingId(null)
+    }
   }
 
   if (usuarios.length === 0) {
